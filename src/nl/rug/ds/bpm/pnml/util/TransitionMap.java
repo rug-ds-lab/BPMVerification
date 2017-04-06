@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.apm.util;
+package nl.rug.ds.bpm.pnml.util;
 
 import java.util.*;
 

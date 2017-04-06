@@ -1,0 +1,90 @@
+package nl.rug.ds.bpm.jaxb.specification;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Created by p256867 on 6-4-2017.
+ */
+
+@XmlRootElement
+public class Specification {
+    private String type;
+    private List<InputElement> inputElements;
+    private SpecificationType specificationType;
+
+    public Specification() {
+        inputElements = new ArrayList<>();
+    }
+
+    public Specification(String type) {
+        this();
+        setType(type);
+    }
+
+    @XmlAttribute
+    public void setType(String type) { this.type = type; }
+    public String getType() { return type; }
+
+    @XmlElementWrapper(name = "inputElements")
+    @XmlElement(name = "inputElement")
+    public List<InputElement> getInputElements() { return inputElements; }
+    public void addInputElement(InputElement inputElement) { inputElements.add(inputElement); }
+
+    public SpecificationType getSpecificationType() {
+        return specificationType;
+    }
+
+    public void setSpecificationType(SpecificationType specificationType) {
+        if(specificationType.getId().equals(type))
+            this.specificationType = specificationType;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        if(specificationType != null) {
+            for (Formula formula: specificationType.getFormulas()) {
+                sb.append(formula.getLanguage() + " ");
+                String f = formula.getFormula();
+
+                for (Input input: specificationType.getInputs()) {
+                    List<InputElement> elements = inputElements.stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
+
+                    StringBuilder APBuilder = new StringBuilder();
+                    if(elements.size() == 0) {
+                        f = "";
+                    }
+                    else if(elements.size() == 1) {
+                        APBuilder.append(inputElements.get(0));
+                    }
+                    else {
+                        Iterator<InputElement> inputElementIterator = elements.iterator();
+                        APBuilder.append("(");
+                        while (inputElementIterator.hasNext()) {
+                            APBuilder.append(inputElementIterator.next().getElement());
+                            if(inputElementIterator.hasNext()) {
+                                if (input.getType().equalsIgnoreCase("and"))
+                                    APBuilder.append(" & ");
+                                else
+                                    APBuilder.append(" | ");
+                            }
+                        }
+                        APBuilder.append(")");
+                    }
+                    f.replaceAll(input.getValue(), APBuilder.toString());
+                }
+                sb.append(f + ";\n");
+            }
+        }
+
+        return sb.toString();
+    }
+}
