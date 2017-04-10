@@ -14,10 +14,12 @@ import java.util.List;
 public class BPMSpecification {
     private List<SpecificationType> specificationTypes;
     private List<SpecificationSet> specificationSets;
+    private List<Group> groups;
 
     public BPMSpecification() {
         specificationTypes = new ArrayList<>();
         specificationSets = new ArrayList<>();
+        groups = new ArrayList<>();
     }
 
     @XmlElementWrapper(name = "specificationTypes")
@@ -29,4 +31,9 @@ public class BPMSpecification {
     @XmlElement(name = "specificationSet")
     public List<SpecificationSet> getSpecificationSets() { return specificationSets; }
     public void addSpecificationSet(SpecificationSet specificationSet) { specificationSets.add(specificationSet); }
+    
+    @XmlElementWrapper(name = "elementGroups")
+    @XmlElement(name = "group")
+    public List<Group> getGroups() { return groups; }
+    public void addGroup(Group group) { groups.add(group); }
 }

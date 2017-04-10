@@ -1,0 +1,52 @@
+<project name="PNMLVerification" basedir=".">
+	<property name="version">0.0.1</property>
+	<property name="dir.src">src</property>
+	<property name="dir.resource">resources</property>
+	<property name="dir.build">out</property>
+	<property name="dir.build.production">${dir.build}/production/PNMLVerification</property>
+	<property name="dir.build.artifacts">${dir.build}/artifacts/PNMLVerification</property>
+	<property name="file.jar">${dir.build.artifacts}/PNMLVerification-${version}.jar</property>
+	
+	<path id="projectClasspath">
+		<fileset dir="lib">
+			<include name="pnapi-1.0.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="clean">
+		<delete dir="${dir.build}"/>
+	</target>
+	
+	
+	<target name="init">
+		<mkdir dir="${dir.build}"/>
+		<mkdir dir="${dir.build.production}"/>
+		<mkdir dir="${dir.build.artifacts}"/>
+		
+		<copy todir="${dir.build.production}/resources">
+			<fileset dir="${dir.resource}"/>
+		</copy>
+	</target>
+	
+	
+	<target name="compile" depends="init">
+		<echo>Compiling Java source</echo>
+		
+		<javac classpathref="projectClasspath"
+			   srcdir="${dir.src}"
+			   destdir="${dir.build.production}"
+			   verbose="true"/>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<echo>Making JAR file</echo>
+		
+		<jar basedir="${dir.build.production}"
+			 file="${file.jar}">
+			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
+			<manifest>
+				<attribute name="Main-Class" value="nl.rug.ds.bpm.pnml.Verify"/>
+			</manifest>
+		</jar>
+	</target>
+</project>

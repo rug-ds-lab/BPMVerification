@@ -6,20 +6,16 @@ import nl.rug.ds.bpm.verification.models.kripke.State;
 
 import java.util.*;
 
-public class CFP2KripkeConverter {
-	private CFP cfp;
+public class Pnml2KripkeConverter {
+	private PnmlParalelStepper paralelStepper;
     private Kripke kripke;
 
 
-    public CFP2KripkeConverter(CFP cfp) {
-
-        this.cfp = cfp;
+    public Pnml2KripkeConverter() {
+        paralelStepper = new PnmlParalelStepper();
     }
 
-
     public Kripke convert() {
-        State.resetStateId();
-        int[] m = cpn.getInitialMarking();
         kripke = new Kripke();
 
 		

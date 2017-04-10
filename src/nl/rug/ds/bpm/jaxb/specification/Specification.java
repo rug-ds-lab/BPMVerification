@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @XmlRootElement
 public class Specification {
-    private String type;
+    private String id, type;
     private List<InputElement> inputElements;
     private SpecificationType specificationType;
 
@@ -27,7 +27,11 @@ public class Specification {
         this();
         setType(type);
     }
-
+    
+    @XmlAttribute
+    public void setId(String id) { this.id = id; }
+    public String getId() { return id; }
+    
     @XmlAttribute
     public void setType(String type) { this.type = type; }
     public String getType() { return type; }

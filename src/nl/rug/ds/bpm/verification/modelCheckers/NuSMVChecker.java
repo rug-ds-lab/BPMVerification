@@ -39,7 +39,7 @@ public class NuSMVChecker extends AbstractChecker {
         if (kripkeModel == null)
             inputChecker = new StringBuilder();
 
-        inputChecker.append("MODULE main\n");
+        inputChecker.append("MODULE Verify\n");
         inputChecker.append(convertVAR());
         inputChecker.append(convertDEFINE());
         inputChecker.append(convertASSIGN());

@@ -1,0 +1,45 @@
+<bpmSpecification>
+	<elementGroups>
+		<group id="start">
+			<elements>
+				<element>transition5</element>
+			</elements>
+		</group>
+	</elementGroups>
+	
+	<specificationSets>
+		<specificationSet>
+			<conditions>
+				<condition>x > 0</condition>
+				<condition>y > 5</condition>
+			</conditions>
+			<specifications>
+				<specification id="s1" type="AlwaysFinally">
+					<inputElements>
+						<inputElement target="$p">start</inputElement>
+						<inputElement target="$q">transition8</inputElement>
+						<inputElement target="$q">transition9</inputElement>
+					</inputElements>
+				</specification>
+				<specification id="s2" type="AlwaysNext">
+					<inputElements>
+						<inputElement target="$q">transition5</inputElement>
+						<inputElement target="$q">transition6</inputElement>
+					</inputElements>
+				</specification>
+			</specifications>
+		</specificationSet>
+	</specificationSets>
+	
+	<specificationTypes>
+		<specificationType id="AlwaysNext">
+			<inputs>
+				<input type="or">$p</input>
+				<input type="or">$q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG($p -> A[$p U $q])</formula>
+			</formulas>
+		</specificationType>
+	</specificationTypes>
+</bpmSpecification>
