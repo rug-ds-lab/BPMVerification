@@ -1,9 +1,7 @@
 package nl.rug.ds.bpm.verification.modelCheckers;
 
-import nl.rug.ds.bpm.editor.core.enums.ConstraintStatus;
-import nl.rug.ds.bpm.editor.models.ConstraintResult;
-import nl.rug.ds.bpm.editor.models.ModelChecker;
-import nl.rug.ds.bpm.verification.constraints.Formula;
+import nl.rug.ds.bpm.jaxb.specification.Specification;
+import nl.rug.ds.bpm.pnml.EventHandler;
 import nl.rug.ds.bpm.verification.models.kripke.Kripke;
 import nl.rug.ds.bpm.verification.models.kripke.State;
 
@@ -17,27 +15,12 @@ import java.util.List;
  */
 public class NuSMVChecker extends AbstractChecker {
 
-    private List<Formula> formulas;
-
-
-    public NuSMVChecker() {
-        super("NuSMV");
-    }
-
-    public NuSMVChecker(String checkerId) {
-        super(checkerId);
-    }
-
-    public NuSMVChecker(ModelChecker checkerSettings) {
-        super("NuSMV");
-        this.checkerSettings = checkerSettings;
-        checkerPath = checkerSettings.getLocation();
-        inputChecker = new StringBuilder();
+    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<Specification> specifications) {
+        super(eventHandler, checker, kripke, specifications);
     }
 
     public void createInputData() {
-        if (kripkeModel == null)
-            inputChecker = new StringBuilder();
+        inputChecker = new StringBuilder();
 
         inputChecker.append("MODULE Verify\n");
         inputChecker.append(convertVAR());
@@ -46,17 +29,10 @@ public class NuSMVChecker extends AbstractChecker {
         inputChecker.append(convertFORMULAS());
     }
 
-    public void convert(Kripke m) {
-        this.kripkeModel = m;
-        inputChecker = new StringBuilder();
-
-        createInputData();
-    }
-
     private String convertVAR() {
         StringBuilder v = new StringBuilder("\tVAR\n\t\t state:{");
 
-        Iterator<State> i = kripkeModel.getStates().iterator();
+        Iterator<State> i = kripke.getStates().iterator();
         while (i.hasNext()) {
             v.append(i.next().getID());
             if (i.hasNext()) v.append(",");
@@ -70,7 +46,7 @@ public class NuSMVChecker extends AbstractChecker {
     private String convertDEFINE() {
         StringBuilder d = new StringBuilder("\tDEFINE\n");
 
-        Iterator<String> i = kripkeModel.getAtomicPropositions().iterator();
+        Iterator<String> i = kripke.getAtomicPropositions().iterator();
         while (i.hasNext()) {
             String ap = i.next();
             d.append("\t\t " + ap + " := ");
@@ -90,7 +66,7 @@ public class NuSMVChecker extends AbstractChecker {
     private String convertASSIGN() {
         StringBuilder a = new StringBuilder("\tASSIGN\n\t\tinit(state) := {");
 
-        Iterator<State> i = kripkeModel.getInitial().iterator();
+        Iterator<State> i = kripke.getInitial().iterator();
         while (i.hasNext()) {
             a.append(i.next().getID());
             if (i.hasNext()) a.append(",");
@@ -98,7 +74,7 @@ public class NuSMVChecker extends AbstractChecker {
         a.append("};\n");
 
         a.append("\t\tnext(state) := \n\t\t\tcase\n");
-        Iterator<State> j = kripkeModel.getStates().iterator();
+        Iterator<State> j = kripke.getStates().iterator();
         while (j.hasNext()) {
             State s = j.next();
             a.append("\t\t\t\tstate = " + s.getID() + " : {");
@@ -118,9 +94,9 @@ public class NuSMVChecker extends AbstractChecker {
 
 
     private List<State> findStates(String ap) {
-        List<State> sub = new ArrayList<State>(kripkeModel.getStates().size() / kripkeModel.getAtomicPropositions().size());
+        List<State> sub = new ArrayList<State>(kripke.getStates().size() / kripke.getAtomicPropositions().size());
 
-        for (State s : kripkeModel.getStates())
+        for (State s : kripke.getStates())
             if (s.getAtomicPropositions().contains(ap))
                 sub.add(s);
 
@@ -129,18 +105,16 @@ public class NuSMVChecker extends AbstractChecker {
 
     protected Process createProcess() {
         try {
-            File location = new File(checkerPath);
-            Process proc = Runtime.getRuntime().exec(location.getAbsoluteFile() + " " + file.getAbsolutePath());
+            Process proc = Runtime.getRuntime().exec(checker.getAbsoluteFile() + " " + file.getAbsolutePath());
             return proc;
         } catch (Throwable t) {
-            //t.printStackTrace();
-            outputChecker.append("WARNING: Could not callModelChecker NuSMV2.\n");
-            outputChecker.append("WARNING: No checks were performed.\n");
+            eventHandler.logError("Could not call model checker NuSMV2");
+            eventHandler.logError("No checks were performed");
             return null;
         }
     }
 
-    protected void checkResults(List<String> resultLines, List<String> errorLines) {
+    protected void checkResults(List<String> resultLines) {
         List<String> results = new ArrayList<>();
         resultLines.forEach(line -> {
             if (line.contains("-- specification "))
@@ -148,26 +122,27 @@ public class NuSMVChecker extends AbstractChecker {
         });
         for (String result : results) {
             if (result.contains("is false")) {
-                ConstraintResult constraint = getConstraintResult(result.replace("is false", ""));
-                if (constraint != null)
-                    constraint.setStatus(ConstraintStatus.Invalid);
+                eventHandler.logError("Specification evaluated false for formula " + result.replace("is false", ""));
+                Specification specification = getConstraintResult(result.replace("is false", ""));
+                if(specification != null)
+                    eventHandler.fireEvent(specification, false);
             } else {
-                ConstraintResult constraint = getConstraintResult(result.replace("is true", ""));
-                if (constraint != null)
-                    constraint.setStatus(ConstraintStatus.Valid);
+                eventHandler.logInfo("Specification evaluated true for formula " + result.replace("is true", ""));
+                Specification specification = getConstraintResult(result.replace("is true", ""));
+                if(specification != null)
+                    eventHandler.fireEvent(specification, true);
             }
         }
-
     }
 
 
-    private ConstraintResult getConstraintResult(String resultFormula) {
+    private Specification getConstraintResult(String resultFormula) {
         String formula = trimFormula(resultFormula);
-        ConstraintResult constraint = constraintsResults
-                .stream().filter(c -> trimFormula(c.formulaInput).equalsIgnoreCase(formula))
-                .filter(c -> c.hasStatus(ConstraintStatus.None)).findFirst().orElse(null);
-        if (constraint == null)
-            nl.rug.ds.bpm.editor.Console.error("rawoutput matching FAILED! " + formula);
-        return constraint;
+        Specification specification = specifications
+                .stream().filter(c -> trimFormula(c.toString()).equalsIgnoreCase(formula))
+                .findFirst().orElse(null);
+        if (specification == null)
+            eventHandler.logError("Specification matching failed for " + formula);
+        return specification;
     }
 }

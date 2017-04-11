@@ -36,7 +36,7 @@ public class VerificationLogEvent {
 			sb.append("INFO\t: ");
 		else if(type == eventType.ERROR)
 			sb.append("ERROR\t: ");
-		else
+		else if(type == eventType.CRITICAL)
 			sb.append("CRITICAL: ");
 		sb.append(message);
 		return sb.toString();

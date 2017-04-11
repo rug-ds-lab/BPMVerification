@@ -1,6 +1,11 @@
 package nl.rug.ds.bpm.verification.modelCheckers;
 
-import nl.rug.ds.bpm.editor.models.ModelChecker;
+import nl.rug.ds.bpm.jaxb.specification.Specification;
+import nl.rug.ds.bpm.pnml.EventHandler;
+import nl.rug.ds.bpm.verification.models.kripke.Kripke;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Created by Mark Kloosterhuis.
@@ -8,10 +13,7 @@ import nl.rug.ds.bpm.editor.models.ModelChecker;
 public class NuXMVChecker extends NuSMVChecker {
 
 
-    public NuXMVChecker(ModelChecker checkerSettings) {
-        super("NuXMV");
-        this.checkerSettings = checkerSettings;
-        checkerPath = checkerSettings.getLocation();
-        inputChecker = new StringBuilder();
+    public NuXMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<Specification> specifications) {
+        super(eventHandler, checker, kripke, specifications);
     }
 }

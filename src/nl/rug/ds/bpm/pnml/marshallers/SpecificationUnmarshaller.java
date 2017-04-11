@@ -85,9 +85,11 @@ public class SpecificationUnmarshaller {
 			typeMap.addSpecificationType(specificationType);
 			eventHandler.logVerbose("Adding specification type " + specificationType.getId());
 		}
+
+		for (SpecificationSet set: specification.getSpecificationSets())
+			for (Specification spec: set.getSpecifications())
+				spec.setSpecificationType(typeMap.getSpecificationType(spec.getType()));
 	}
 	
-	public List<SpecificationSet> getSpecificationSets() {
-		return specification.getSpecificationSets();
-	}
+	public List<SpecificationSet> getSpecificationSets() { return specification.getSpecificationSets();	}
 }

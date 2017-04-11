@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
@@ -50,13 +51,11 @@ public class Specification {
             this.specificationType = specificationType;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    public List<String> getFormulas() {
+        List<String> formulas = new ArrayList<>();
 
         if(specificationType != null) {
             for (Formula formula: specificationType.getFormulas()) {
-                sb.append(formula.getLanguage() + " ");
                 String f = formula.getFormula();
 
                 for (Input input: specificationType.getInputs()) {
@@ -64,10 +63,10 @@ public class Specification {
 
                     StringBuilder APBuilder = new StringBuilder();
                     if(elements.size() == 0) {
-                        f = "";
+                        APBuilder.append("true");
                     }
                     else if(elements.size() == 1) {
-                        APBuilder.append(inputElements.get(0));
+                        APBuilder.append(inputElements.get(0).getElement());
                     }
                     else {
                         Iterator<InputElement> inputElementIterator = elements.iterator();
@@ -83,12 +82,13 @@ public class Specification {
                         }
                         APBuilder.append(")");
                     }
-                    f.replaceAll(input.getValue(), APBuilder.toString());
+                    f = f.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
                 }
-                sb.append(f + ";\n");
+                if(!f.equalsIgnoreCase(""))
+                    formulas.add(formula.getLanguage() + " " + f);
             }
         }
 
-        return sb.toString();
+        return formulas;
     }
 }

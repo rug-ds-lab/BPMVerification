@@ -23,8 +23,8 @@
 				</specification>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="$q">transition5</inputElement>
-						<inputElement target="$q">transition6</inputElement>
+						<inputElement target="$p">transition5</inputElement>
+						<inputElement target="$q">transition40</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>

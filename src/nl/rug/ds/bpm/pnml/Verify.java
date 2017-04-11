@@ -24,9 +24,10 @@ public class Verify implements VerificationEventListener, VerificationLogListene
 		File specificationFile = new File(specification);
 		File nusmv2Binary = new File(nusmv2);
 		
-		PnmlVerifier verifier = new PnmlVerifier(pnmlFile, specificationFile, nusmv2Binary);
+		PnmlVerifier verifier = new PnmlVerifier();
 		verifier.addLogListener(this);
 		verifier.addEventListener(this);
+		verifier.verify(pnmlFile, specificationFile, nusmv2Binary);
 	}
 	
 	@Override
@@ -35,7 +36,5 @@ public class Verify implements VerificationEventListener, VerificationLogListene
 	}
 	
 	@Override
-	public void verificationLogEvent(VerificationLogEvent event) {
-		System.out.println(event.toString());
-	}
+	public void verificationLogEvent(VerificationLogEvent event) { System.out.println(event.toString()); }
 }

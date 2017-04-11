@@ -9,10 +9,11 @@ import nl.rug.ds.bpm.pnml.marshallers.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.pnml.util.GroupMap;
 import nl.rug.ds.bpm.pnml.util.IDMap;
 import nl.rug.ds.bpm.pnml.util.SpecificationTypeMap;
-import nl.rug.ds.bpm.verification.models.conditional.ConditionalKripke;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,7 +25,7 @@ public class PnmlVerifier {
 	private GroupMap groupMap;
 	private SpecificationTypeMap specificationTypeMap;
 	
-	private Set<ConditionalKripke> kripkeStructures;
+	private Set<SpecificationSetVerifier> kripkeStructures;
 
     public PnmlVerifier() {
     	eventHandler = new EventHandler();
@@ -32,27 +33,27 @@ public class PnmlVerifier {
 		kripkeStructures = new HashSet<>();
     }
 	
-    public PnmlVerifier(File pnml, File specification, File nusmv2) {
-    	this();
-		
+    public void verify(File pnml, File specification, File nusmv2) {
 		if(!(pnml.exists() && pnml.isFile()))
 			eventHandler.logCritical("No such file " + pnml.toString());
 		if(!(specification.exists() && specification.isFile()))
 			eventHandler.logCritical("No such file " + specification.toString());
 		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
 			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
-		
+
 		eventHandler.logInfo("Loading configuration");
 		loadConfiguration();
 		
 		eventHandler.logInfo("Loading specification");
-		loadSpecification(specification);
+		List<SpecificationSetVerifier> verifiers = loadSpecification(specification);
 		
 		eventHandler.logInfo("Loading PNML");
-		loadPnml(pnml);
+		for (SpecificationSetVerifier verifier: verifiers)
+			verifier.buildKripke(pnml);
 		
 		eventHandler.logInfo("Calling model checker");
-		callModelChecker();
+		for (SpecificationSetVerifier verifier: verifiers)
+			verifier.verify(nusmv2);
 	}
     
 	public void addEventListener(VerificationEventListener verificationEventListener) {
@@ -68,31 +69,29 @@ public class PnmlVerifier {
 		unmarshaller.loadSpecificationTypes(specificationTypeMap);
 	}
 	
-	private void loadPnml(File pnml) {
-    	
-	}
-	
-	private void loadSpecification(File specification) {
+	private List<SpecificationSetVerifier> loadSpecification(File specification) {
+    	List<SpecificationSetVerifier> verifiers = new ArrayList<>();
+
 		SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, specification);
 		idMap = unmarshaller.getIdMap();
 		groupMap = unmarshaller.getGroupMap();
 		unmarshaller.loadSpecificationTypes(specificationTypeMap);
 		
 		for(SpecificationSet specificationSet: unmarshaller.getSpecificationSets()) {
-			ConditionalKripke kripke = new ConditionalKripke(eventHandler, specificationSet);
+			SpecificationSetVerifier setVerifier = new SpecificationSetVerifier(eventHandler, specificationSet);
+			verifiers.add(setVerifier);
 			eventHandler.logInfo("Adding conditional set and model");
 			
 			eventHandler.logVerbose("Conditions: ");
 			for(Condition condition: specificationSet.getConditions())
-				eventHandler.logVerbose("\t" + condition.toString());
+				eventHandler.logVerbose("\t" + condition.getCondition());
 			
 			eventHandler.logVerbose("Specifications:");
 			for (Specification s: specificationSet.getSpecifications())
-				eventHandler.logVerbose("\t" + specification.toString());
+				for(String formula: s.getFormulas())
+				eventHandler.logVerbose("\t" + formula);
 		}
+
+		return verifiers;
     }
-	
-	private void callModelChecker() {
-    	
-	}
 }
