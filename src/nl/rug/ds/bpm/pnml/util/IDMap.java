@@ -30,4 +30,8 @@ public class IDMap {
     public String getID(String ap) {
         return apToId.get(ap);
     }
+
+    public Set<String> getIDKeys() { return idToAp.keySet(); }
+
+    public Set<String> getAPKeys() { return  apToId.keySet(); }
 }

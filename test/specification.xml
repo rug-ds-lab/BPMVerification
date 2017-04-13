@@ -16,15 +16,15 @@
 			<specifications>
 				<specification id="s1" type="AlwaysFinally">
 					<inputElements>
-						<inputElement target="$p">start</inputElement>
-						<inputElement target="$q">transition8</inputElement>
-						<inputElement target="$q">transition9</inputElement>
+						<inputElement target="p">start</inputElement>
+						<inputElement target="q">transition8</inputElement>
+						<inputElement target="q">transition9</inputElement>
 					</inputElements>
 				</specification>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="$p">transition5</inputElement>
-						<inputElement target="$q">transition40</inputElement>
+						<inputElement target="p">transition5</inputElement>
+						<inputElement target="q">transition40</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>
@@ -34,11 +34,11 @@
 	<specificationTypes>
 		<specificationType id="AlwaysNext">
 			<inputs>
-				<input type="or">$p</input>
-				<input type="or">$q</input>
+				<input type="or">p</input>
+				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG($p -> A[$p U $q])</formula>
+				<formula language="CTLSPEC">AG(p -> A[p U q])</formula>
 			</formulas>
 		</specificationType>
 	</specificationTypes>

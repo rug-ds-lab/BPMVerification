@@ -51,29 +51,29 @@ public class SpecificationUnmarshaller {
 				for (InputElement inputElement: s.getInputElements()) {
 					idMap.addID(inputElement.getElement());
 					eventHandler.logVerbose("Mapping " + inputElement.getElement() + " to " + idMap.getAP(inputElement.getElement()));
-					inputElement.setElement(idMap.getAP(inputElement.getElement()));
+					//inputElement.setElement(idMap.getAP(inputElement.getElement()));
 				}
 		
 		for (Group group: specification.getGroups()) {
-			group.setId(idMap.getAP(group.getId()));
+			//group.setId(idMap.getAP(group.getId()));
 			for (Element element : group.getElements()) {
 				idMap.addID(element.getId());
 				eventHandler.logVerbose("Mapping " + element.getId() + " to " + idMap.getAP(element.getId()));
-				element.setId(idMap.getAP(element.getId()));
+				//element.setId(idMap.getAP(element.getId()));
 			}
 		}
 		
 		return idMap;
 	}
 	
-	public GroupMap getGroupMap() {
+	public GroupMap getGroupMap(IDMap idMap) {
 		GroupMap groupMap = new GroupMap();
 		
 		for (Group group: specification.getGroups()) {
-			groupMap.addGroup(group.getId());
+			groupMap.addGroup(idMap.getAP(group.getId()));
 			eventHandler.logVerbose("New group " + group.getId());
 			for (Element element: group.getElements()) {
-				groupMap.addToGroup(group.getId(), element.getId());
+				groupMap.addToGroup(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
 				eventHandler.logVerbose("\t " + element.getId());
 			}
 		}

@@ -51,7 +51,7 @@ public class PnmlVerifier {
 		for (SpecificationSetVerifier verifier: verifiers)
 			verifier.buildKripke(pnml);
 		
-		eventHandler.logInfo("Calling model checker");
+		eventHandler.logInfo("Verifying specification sets");
 		for (SpecificationSetVerifier verifier: verifiers)
 			verifier.verify(nusmv2);
 	}
@@ -74,11 +74,11 @@ public class PnmlVerifier {
 
 		SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, specification);
 		idMap = unmarshaller.getIdMap();
-		groupMap = unmarshaller.getGroupMap();
+		groupMap = unmarshaller.getGroupMap(idMap);
 		unmarshaller.loadSpecificationTypes(specificationTypeMap);
 		
 		for(SpecificationSet specificationSet: unmarshaller.getSpecificationSets()) {
-			SpecificationSetVerifier setVerifier = new SpecificationSetVerifier(eventHandler, specificationSet);
+			SpecificationSetVerifier setVerifier = new SpecificationSetVerifier(eventHandler, specificationSet, idMap, groupMap);
 			verifiers.add(setVerifier);
 			eventHandler.logInfo("Adding conditional set and model");
 			

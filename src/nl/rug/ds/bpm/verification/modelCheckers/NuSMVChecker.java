@@ -2,6 +2,7 @@ package nl.rug.ds.bpm.verification.modelCheckers;
 
 import nl.rug.ds.bpm.jaxb.specification.Specification;
 import nl.rug.ds.bpm.pnml.EventHandler;
+import nl.rug.ds.bpm.verification.formulas.NuSMVFormula;
 import nl.rug.ds.bpm.verification.models.kripke.Kripke;
 import nl.rug.ds.bpm.verification.models.kripke.State;
 
@@ -15,8 +16,8 @@ import java.util.List;
  */
 public class NuSMVChecker extends AbstractChecker {
 
-    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<Specification> specifications) {
-        super(eventHandler, checker, kripke, specifications);
+    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<NuSMVFormula> formulas) {
+        super(eventHandler, checker, kripke, formulas);
     }
 
     public void createInputData() {
@@ -114,35 +115,12 @@ public class NuSMVChecker extends AbstractChecker {
         }
     }
 
-    protected void checkResults(List<String> resultLines) {
+    protected List<String> getResults(List<String> resultLines) {
         List<String> results = new ArrayList<>();
         resultLines.forEach(line -> {
             if (line.contains("-- specification "))
                 results.add(line.replace("-- specification ", "").trim());
         });
-        for (String result : results) {
-            if (result.contains("is false")) {
-                eventHandler.logError("Specification evaluated false for formula " + result.replace("is false", ""));
-                Specification specification = getConstraintResult(result.replace("is false", ""));
-                if(specification != null)
-                    eventHandler.fireEvent(specification, false);
-            } else {
-                eventHandler.logInfo("Specification evaluated true for formula " + result.replace("is true", ""));
-                Specification specification = getConstraintResult(result.replace("is true", ""));
-                if(specification != null)
-                    eventHandler.fireEvent(specification, true);
-            }
-        }
-    }
-
-
-    private Specification getConstraintResult(String resultFormula) {
-        String formula = trimFormula(resultFormula);
-        Specification specification = specifications
-                .stream().filter(c -> trimFormula(c.toString()).equalsIgnoreCase(formula))
-                .findFirst().orElse(null);
-        if (specification == null)
-            eventHandler.logError("Specification matching failed for " + formula);
-        return specification;
+        return results;
     }
 }

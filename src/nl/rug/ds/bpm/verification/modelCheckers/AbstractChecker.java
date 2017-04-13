@@ -2,6 +2,7 @@ package nl.rug.ds.bpm.verification.modelCheckers;
 
 import nl.rug.ds.bpm.jaxb.specification.Specification;
 import nl.rug.ds.bpm.pnml.EventHandler;
+import nl.rug.ds.bpm.verification.formulas.NuSMVFormula;
 import nl.rug.ds.bpm.verification.models.kripke.Kripke;
 
 import java.io.*;
@@ -15,16 +16,16 @@ public abstract class AbstractChecker {
     protected StringBuilder inputChecker;
     protected StringBuilder outputChecker;
     protected Kripke kripke;
-    protected List<Specification> specifications;
+    protected List<NuSMVFormula> formulas;
     protected File file, checker;
     protected EventHandler eventHandler;
     protected List<String> results, errors;
 
-    public AbstractChecker(EventHandler eventHandler, File checker, Kripke kripke, List<Specification> specifications) {
+    public AbstractChecker(EventHandler eventHandler, File checker, Kripke kripke, List<NuSMVFormula> formulas) {
         this.eventHandler = eventHandler;
         this.checker = checker;
         this.kripke = kripke;
-        this.specifications = specifications;
+        this.formulas = formulas;
         outputChecker = new StringBuilder();
         results = new ArrayList<>();
         errors = new ArrayList<>();
@@ -42,9 +43,8 @@ public abstract class AbstractChecker {
 
     protected String convertFORMULAS() {
         StringBuilder f = new StringBuilder();
-        for (Specification specification: specifications)
-            for(String formula: specification.getFormulas())
-                f.append(formula + "\n");
+        for (NuSMVFormula formula: formulas)
+            f.append(formula.getFormula() + "\n");
         return f.toString();
     }
 
@@ -59,17 +59,17 @@ public abstract class AbstractChecker {
         }
     }
 
-    public void callModelChecker() {
+    public List<String> callModelChecker() {
         createInputFile();
         Process proc = createProcess();
         getInputStream(proc);
 
-        checkResults(results);
+        return getResults(results);
     }
 
     abstract Process createProcess();
 
-    abstract void checkResults(List<String> results);
+    abstract List<String> getResults(List<String> results);
 
     protected void getInputStream(Process proc) {
         try {
@@ -101,12 +101,5 @@ public abstract class AbstractChecker {
             eventHandler.logError("Could not call model checker");
             eventHandler.logError("No checks were performed");
         }
-    }
-
-    protected String trimFormula(String formula) {
-        String f = formula.replace("CTLSPEC ", "");
-        f = f.replace("LTLSPEC ", "");
-        f = f.replace("JUSTICE ", "");
-        return f.replaceAll("([\\(\\)\\s+])", "").trim();
     }
 }

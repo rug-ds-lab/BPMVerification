@@ -61,26 +61,22 @@ public class Specification {
                 for (Input input: specificationType.getInputs()) {
                     List<InputElement> elements = inputElements.stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
 
-                    StringBuilder APBuilder = new StringBuilder();
+                    String APBuilder = "";
                     if(elements.size() == 0) {
-                        APBuilder.append("true");
+                        APBuilder = "true";
                     }
                     else if(elements.size() == 1) {
-                        APBuilder.append(inputElements.get(0).getElement());
+                        APBuilder = elements.get(0).getElement();
                     }
                     else {
                         Iterator<InputElement> inputElementIterator = elements.iterator();
-                        APBuilder.append("(");
+                        APBuilder = inputElementIterator.next().getElement();
                         while (inputElementIterator.hasNext()) {
-                            APBuilder.append(inputElementIterator.next().getElement());
-                            if(inputElementIterator.hasNext()) {
-                                if (input.getType().equalsIgnoreCase("and"))
-                                    APBuilder.append(" & ");
-                                else
-                                    APBuilder.append(" | ");
-                            }
+                            if (input.getType().equalsIgnoreCase("and"))
+                                APBuilder = "(" + APBuilder + " & " + inputElementIterator.next().getElement() + ")";
+                            else
+                                APBuilder = "(" + APBuilder + " | " + inputElementIterator.next().getElement() + ")";
                         }
-                        APBuilder.append(")");
                     }
                     f = f.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
                 }

@@ -27,22 +27,21 @@ public class GroupMap {
 	public Set<String> getMembers(String group) {
 		return groups.get(group);
 	}
+
+	public Set<String> keySet() { return groups.keySet(); }
 	
 	public String toString(String group) {
-		StringBuilder sb = new StringBuilder();
+		String sb = "";
 		Set<String> members = groups.get(group);
 		if(members.size() == 1) {
-			sb.append(members.iterator().next());
+			sb = members.iterator().next();
 		}
 		else if(members.size() > 1) {
 			Iterator<String> iterator = members.iterator();
-			sb.append("(");
+			sb = iterator.next();
 			while (iterator.hasNext()) {
-				sb.append(iterator.next());
-				if(iterator.hasNext())
-					sb.append(" | ");
+				sb = "(" + sb + " | " + iterator.next() + ")";
 			}
-			sb.append(")");
 		}
 		//else empty
 		return sb.toString();

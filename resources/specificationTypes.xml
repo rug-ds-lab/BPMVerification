@@ -2,11 +2,11 @@
 	<specificationTypes>
 		<specificationType id="AlwaysFinally">
 			<inputs>
-				<input type="or">$p</input>
-				<input type="or">$q</input>
+				<input type="or">p</input>
+				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG($p -> AF$q)</formula>
+				<formula language="CTLSPEC">AG(p -> AFq)</formula>
 			</formulas>
 		</specificationType>
 	</specificationTypes>
