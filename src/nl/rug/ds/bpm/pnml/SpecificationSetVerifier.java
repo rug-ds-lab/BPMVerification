@@ -106,6 +106,7 @@ public class SpecificationSetVerifier {
 					eventHandler.logInfo("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated true for " + nuSMVFormula.getFormula());
 				else
 					eventHandler.logError("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated FALSE for " + nuSMVFormula.getFormula());
+				formulas.remove(nuSMVFormula);
 			}
 		}
 	}
