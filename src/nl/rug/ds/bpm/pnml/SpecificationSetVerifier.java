@@ -22,15 +22,15 @@ import java.util.regex.Matcher;
 public class SpecificationSetVerifier {
 	private Kripke kripke;
 	private EventHandler eventHandler;
-	private IDMap idMap;
+	private IDMap specIdMap;
 	private GroupMap groupMap;
 	private List<NuSMVFormula> formulas;
 	private List<Specification> specifications;
 	private List<Condition> conditions;
 	
-	public SpecificationSetVerifier(EventHandler eventHandler, SpecificationSet specificationSet, IDMap idMap, GroupMap groupMap) {
+	public SpecificationSetVerifier(EventHandler eventHandler, SpecificationSet specificationSet, IDMap specIdMap, GroupMap groupMap) {
 		this.eventHandler = eventHandler;
-		this.idMap = idMap;
+		this.specIdMap = specIdMap;
 		this.groupMap = groupMap;
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
@@ -47,7 +47,7 @@ public class SpecificationSetVerifier {
 		eventHandler.logInfo("Optimizing Kripke structure");
 		eventHandler.logInfo("Removing unused atomic propositions");
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
-		unusedAP.removeAll(idMap.getAPKeys());
+		unusedAP.removeAll(specIdMap.getAPKeys());
 		PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
@@ -93,8 +93,8 @@ public class SpecificationSetVerifier {
 			}
 
 			if(!found) {
-				for (String key: idMap.getAPKeys())
-					formula = formula.replaceAll(Matcher.quoteReplacement(key), idMap.getID(key));
+				for (String key: specIdMap.getAPKeys())
+					formula = formula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
 				if(eval)
 					eventHandler.logInfo("Failed to map " + formula + " to original specification while it evaluated true");
 				else
@@ -115,8 +115,8 @@ public class SpecificationSetVerifier {
 		for (Specification specification: specifications) {
 			for(String formula: specification.getFormulas()) {
 				String mappedFormula = formula;
-				for (String key: idMap.getIDKeys())
-					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), idMap.getAP(key));
+				for (String key: specIdMap.getIDKeys())
+					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getAP(key));
 				for (String key: groupMap.keySet())
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), groupMap.toString(key));
 
