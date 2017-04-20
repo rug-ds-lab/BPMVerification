@@ -45,7 +45,7 @@
 			 file="${file.jar}">
 			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
 			<manifest>
-				<attribute name="Main-Class" value="nl.rug.ds.bpm.pnml.Verify"/>
+				<attribute name="Main-Class" value="nl.rug.ds.bpm.pnml.PnmlVerifier"/>
 			</manifest>
 		</jar>
 	</target>
