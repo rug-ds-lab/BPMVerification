@@ -38,15 +38,15 @@ public class Kripke {
         return initial.add(s);
     }
 
-    public boolean addAtomicPropositions(List<String> ap) {
+    public boolean addAtomicPropositions(Set<String> ap) {
         return atomicPropositions.addAll(ap);
     }
 
-    public boolean addStates(List<State> s) {
+    public boolean addStates(Set<State> s) {
         return states.addAll(s);
     }
 
-    public boolean addInitials(List<State> s) {
+    public boolean addInitials(Set<State> s) {
         return initial.addAll(s);
     }
 

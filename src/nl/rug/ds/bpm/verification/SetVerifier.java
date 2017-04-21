@@ -72,7 +72,7 @@ public class SetVerifier {
 		PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
-		eventHandler.logInfo("Shrinking state space");
+		eventHandler.logInfo("Reducing state space");
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 		stutterOptimizer.optimize();
 		eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));

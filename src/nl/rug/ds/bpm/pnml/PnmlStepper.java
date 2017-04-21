@@ -25,7 +25,7 @@ public class PnmlStepper extends Stepper{
 	}
 	
 	@Override
-	public String fireTransition(String transition) {
+	public Set<String> fireTransition(String transition, Set<String> conditions) {
 		return null;
 	}
 }

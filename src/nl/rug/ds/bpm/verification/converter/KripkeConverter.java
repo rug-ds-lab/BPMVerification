@@ -1,29 +1,87 @@
 package nl.rug.ds.bpm.verification.converter;
 
 import nl.rug.ds.bpm.specification.jaxb.Condition;
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
+import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.verification.util.EventHandler;
 
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class KripkeConverter {
     private EventHandler eventHandler;
 	private Stepper paralelStepper;
     private Kripke kripke;
-    private List<Condition> conditions;
+    private Set<String> conditions;
+    private int eventCount = 16;
 
     public KripkeConverter(EventHandler eventHandler, Stepper paralelStepper, List<Condition> conditions) {
         this.eventHandler = eventHandler;
         this.paralelStepper = paralelStepper;
-        this.conditions = conditions;
+        
+        for (Condition condition: conditions)
+            this.conditions.add(condition.getCondition());
+    
+        State.resetStateId();
     }
 
     public Kripke convert() {
         kripke = new Kripke();
 
-		
+        String marking = paralelStepper.initialMarking();
+		for (Set<String> enabled: paralelStepper.parallelActivatedTransitions(marking)) {
+            TreeSet<String> ap = new TreeSet<String>(new StringComparator());
+            ap.addAll(enabled);
+            
+            kripke.addAtomicPropositions(ap);
+            
+            State found = new State(marking, ap);
+            kripke.addState(found);
+            kripke.addInitial(found);
+            
+            for (String transition: enabled)
+                for (String step: paralelStepper.fireTransition(transition, conditions))
+                    convertStep(step, found);
+        }
 		
         return kripke;
+    }
+    
+    private void convertStep(String marking, State previous) {
+        if (kripke.getStateCount() >= eventCount) {
+            eventHandler.logVerbose("Calculating state space (" + kripke.getStateCount() + ")");
+            eventCount *= 2;
+        }
+        
+        for (Set<String> enabled: paralelStepper.parallelActivatedTransitions(marking)) {
+            TreeSet<String> ap = new TreeSet<String>(new StringComparator());
+            ap.addAll(enabled);
+        
+            kripke.addAtomicPropositions(ap);
+        
+            State found = new State(marking, ap);
+            
+            State existing = kripke.getStates().ceiling(found);
+            if (found.equals(existing))
+                found = existing;
+            else
+                kripke.addState(found);
+    
+            previous.addNext(found);
+            found.addPrevious(previous);
+    
+            if (found != existing) {
+                if (enabled.isEmpty()) {
+                    found.addNext(found);
+                    found.addPrevious(found);
+                }
+                for (String transition: enabled)
+                    for (String step: paralelStepper.fireTransition(transition, conditions))
+                        convertStep(step, found);
+            }
+        }
     }
 }
