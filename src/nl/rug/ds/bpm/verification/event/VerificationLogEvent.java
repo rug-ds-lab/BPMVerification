@@ -8,6 +8,7 @@ public class VerificationLogEvent {
 	public static enum eventType {
 		VERBOSE,
 		INFO,
+		WARNING,
 		ERROR,
 		CRITICAL;
 	}
@@ -34,6 +35,8 @@ public class VerificationLogEvent {
 			sb.append("VERBOSE\t: ");
 		if(type == eventType.INFO)
 			sb.append("INFO\t: ");
+		if(type == eventType.WARNING)
+			sb.append("WARNING\t: ");
 		else if(type == eventType.ERROR)
 			sb.append("ERROR\t: ");
 		else if(type == eventType.CRITICAL)

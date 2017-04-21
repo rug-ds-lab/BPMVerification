@@ -116,7 +116,7 @@ public class SetVerifier {
 				for (String key: specIdMap.getAPKeys())
 					formula = formula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
 				if(eval)
-					eventHandler.logInfo("Failed to map " + formula + " to original specification while it evaluated true");
+					eventHandler.logWarning("Failed to map " + formula + " to original specification while it evaluated true");
 				else
 					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
 			}

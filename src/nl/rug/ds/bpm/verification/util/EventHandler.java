@@ -50,6 +50,13 @@ public class EventHandler {
 			listener.verificationLogEvent(verificationLogEvent);
 	}
 	
+	public void logWarning(String message) {
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.WARNING, message);
+		
+		for(VerificationLogListener listener: verificationLogListenerSet)
+			listener.verificationLogEvent(verificationLogEvent);
+	}
+	
 	public void logError(String message) {
 		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.ERROR, message);
 		
