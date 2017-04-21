@@ -57,7 +57,7 @@ public class SetVerifier {
 	}
 
 	public void buildKripke() {
-		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions);
+		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
 		eventHandler.logInfo("Creating Kripke structure");
 		kripke = converter.convert();
 		eventHandler.logVerbose("\n" + kripke.toString(true));
@@ -67,7 +67,6 @@ public class SetVerifier {
 		eventHandler.logInfo("Removing unused atomic propositions");
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
 		
-		//TODO
 		unusedAP.removeAll(specIdMap.getAPKeys());
 		PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));

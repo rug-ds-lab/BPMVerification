@@ -17,7 +17,7 @@ public abstract class Stepper {
 		}
 	}
 	
-	public abstract String initialMarking();
-	public abstract Set<Set<String>> parallelActivatedTransitions(String marking);
-	public abstract Set<String> fireTransition(String transition, Set<String> conditions);
+	public abstract Marking initialMarking();
+	public abstract Set<Set<String>> parallelActivatedTransitions(Marking marking);
+	public abstract Set<Marking> fireTransition(Marking marking, String transition, Set<String> conditions);
 }

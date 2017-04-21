@@ -49,7 +49,8 @@ public class SpecificationUnmarshaller {
 
 		for (SpecificationSet set: specification.getSpecificationSets())
 			for (Specification spec: set.getSpecifications())
-				spec.setSpecificationType(typeMap.getSpecificationType(spec.getType()));
+				if(typeMap.getSpecificationType(spec.getType()) != null)
+					spec.setSpecificationType(typeMap.getSpecificationType(spec.getType()));
 	}
 	
 	public BPMSpecification getSpecification() { return specification; }

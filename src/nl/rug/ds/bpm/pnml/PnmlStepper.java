@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.pnml;
 
+import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.io.File;
@@ -15,17 +16,22 @@ public class PnmlStepper extends Stepper{
 	}
 	
 	@Override
-	public String initialMarking() {
+	public Marking initialMarking() {
+		//TODO Nick
 		return null;
 	}
 	
 	@Override
-	public Set<Set<String>> parallelActivatedTransitions(String marking) {
+	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
+		//TODO Nick
 		return null;
 	}
 	
 	@Override
-	public Set<String> fireTransition(String transition, Set<String> conditions) {
+	public Set<Marking> fireTransition(Marking marking, String transition, Set<String> conditions) {
+		//TODO Nick
 		return null;
 	}
+	
+	
 }

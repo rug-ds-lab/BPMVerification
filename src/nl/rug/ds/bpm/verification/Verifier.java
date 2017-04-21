@@ -42,7 +42,7 @@ public class Verifier {
 			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
 
 		eventHandler.logInfo("Loading configuration");
-		loadConfiguration();
+		//loadConfiguration();
 		
 		eventHandler.logInfo("Loading specification");
 		List<SetVerifier> verifiers = loadSpecification(specification);
