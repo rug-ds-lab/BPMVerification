@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.util;
+package nl.rug.ds.bpm.verification.map;
 
 import java.util.*;
 

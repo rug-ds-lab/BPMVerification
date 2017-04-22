@@ -1,16 +1,12 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.specification.jaxb.Condition;
-import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.verification.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
-import nl.rug.ds.bpm.verification.util.EventHandler;
-import nl.rug.ds.bpm.verification.util.GroupMap;
-import nl.rug.ds.bpm.verification.util.IDMap;
-import nl.rug.ds.bpm.verification.util.SpecificationTypeMap;
+import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.map.SpecificationTypeMap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,7 +38,7 @@ public class Verifier {
 			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
 
 		eventHandler.logInfo("Loading configuration");
-		//loadConfiguration();
+		loadConfiguration();
 		
 		eventHandler.logInfo("Loading specification");
 		List<SetVerifier> verifiers = loadSpecification(specification);

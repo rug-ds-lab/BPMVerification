@@ -2,9 +2,9 @@ package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
-import nl.rug.ds.bpm.verification.util.EventHandler;
-import nl.rug.ds.bpm.verification.util.GroupMap;
-import nl.rug.ds.bpm.verification.util.IDMap;
+import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.map.GroupMap;
+import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.formula.NuSMVFormula;
 import nl.rug.ds.bpm.verification.checker.NuSMVChecker;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
