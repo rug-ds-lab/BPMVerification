@@ -51,6 +51,8 @@ public class SpecificationUnmarshaller {
 			for (Specification spec: set.getSpecifications())
 				if(typeMap.getSpecificationType(spec.getType()) != null)
 					spec.setSpecificationType(typeMap.getSpecificationType(spec.getType()));
+				else
+					eventHandler.logWarning("No such specification type: " + spec.getType());
 	}
 	
 	public BPMSpecification getSpecification() { return specification; }
