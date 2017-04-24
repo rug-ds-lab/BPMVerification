@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.event;
+package nl.rug.ds.bpm.event;
 
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 

@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.map;
+package nl.rug.ds.bpm.specification.map;
 
 import nl.rug.ds.bpm.specification.jaxb.SpecificationType;
 

@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification.checker;
 
-import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.formula.NuSMVFormula;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;

@@ -1,12 +1,12 @@
 package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
-import nl.rug.ds.bpm.verification.listener.VerificationEventListener;
-import nl.rug.ds.bpm.verification.listener.VerificationLogListener;
+import nl.rug.ds.bpm.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
-import nl.rug.ds.bpm.verification.event.EventHandler;
-import nl.rug.ds.bpm.verification.map.SpecificationTypeMap;
+import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +30,13 @@ public class Verifier {
     	specificationTypeMap = new SpecificationTypeMap();
 		kripkeStructures = new HashSet<>();
     }
+	
+	public Verifier(Stepper stepper, EventHandler eventHandler) {
+		this.stepper = stepper;
+		this.eventHandler = eventHandler;
+		specificationTypeMap = new SpecificationTypeMap();
+		kripkeStructures = new HashSet<>();
+	}
 	
     public void verify(File specification, File nusmv2) {
 		if(!(specification.exists() && specification.isFile()))
@@ -58,6 +65,14 @@ public class Verifier {
 	
 	public void addLogListener(VerificationLogListener verificationLogListener) {
     	eventHandler.addLogListener(verificationLogListener);
+	}
+	
+	public void removeEventListener(VerificationEventListener verificationEventListener) {
+		eventHandler.removeEventListener(verificationEventListener);
+	}
+	
+	public void removeLogListener(VerificationLogListener verificationLogListener) {
+		eventHandler.removeLogListener(verificationLogListener);
 	}
 		
 	private void loadConfiguration() {

@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.specification.marshaller;
 
-import nl.rug.ds.bpm.verification.event.EventHandler;
-import nl.rug.ds.bpm.verification.map.SpecificationTypeMap;
+import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.jaxb.*;
 
 import javax.xml.bind.JAXBContext;

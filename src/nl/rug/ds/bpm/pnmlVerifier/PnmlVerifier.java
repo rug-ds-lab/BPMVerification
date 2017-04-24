@@ -1,10 +1,10 @@
-package nl.rug.ds.bpm.pnml;
+package nl.rug.ds.bpm.pnmlVerifier;
 
 import nl.rug.ds.bpm.verification.Verifier;
-import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.event.VerificationLogEvent;
-import nl.rug.ds.bpm.verification.listener.VerificationEventListener;
-import nl.rug.ds.bpm.verification.listener.VerificationLogListener;
+import nl.rug.ds.bpm.event.VerificationEvent;
+import nl.rug.ds.bpm.event.VerificationLogEvent;
+import nl.rug.ds.bpm.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 
 import java.io.File;
 
@@ -37,6 +37,10 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		
 		//Start verification
 		verifier.verify(specificationFile, nusmv2Binary);
+		
+		//Remove listeners
+		verifier.removeLogListener(this);
+		verifier.removeEventListener(this);
 	}
 	
 	@Override

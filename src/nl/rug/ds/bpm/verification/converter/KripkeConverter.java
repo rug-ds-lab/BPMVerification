@@ -6,7 +6,7 @@ import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
-import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.IDMap;
 
 import java.util.HashSet;

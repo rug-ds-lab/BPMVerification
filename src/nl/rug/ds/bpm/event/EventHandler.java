@@ -1,10 +1,8 @@
-package nl.rug.ds.bpm.verification.event;
+package nl.rug.ds.bpm.event;
 
 import nl.rug.ds.bpm.specification.jaxb.Specification;
-import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.event.VerificationLogEvent;
-import nl.rug.ds.bpm.verification.listener.VerificationEventListener;
-import nl.rug.ds.bpm.verification.listener.VerificationLogListener;
+import nl.rug.ds.bpm.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -25,8 +23,16 @@ public class EventHandler {
 		verificationEventListenerSet.add(verificationEventListener);
 	}
 	
+	public void removeEventListener(VerificationEventListener verificationEventListener) {
+		verificationEventListenerSet.remove(verificationEventListener);
+	}
+	
 	public void addLogListener(VerificationLogListener verificationLogListener) {
 		verificationLogListenerSet.add(verificationLogListener);
+	}
+	
+	public void removeLogListener(VerificationLogListener verificationLogListener) {
+		verificationLogListenerSet.remove(verificationLogListener);
 	}
 	
 	public void fireEvent(Specification specification, boolean eval) {

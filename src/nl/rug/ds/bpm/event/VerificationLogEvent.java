@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.event;
+package nl.rug.ds.bpm.event;
 
 /**
  * Created by Heerko Groefsema on 10-Apr-17.

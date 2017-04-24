@@ -1,6 +1,6 @@
-package nl.rug.ds.bpm.verification.listener;
+package nl.rug.ds.bpm.event.listener;
 
-import nl.rug.ds.bpm.verification.event.VerificationLogEvent;
+import nl.rug.ds.bpm.event.VerificationLogEvent;
 
 /**
  * Created by Heerko Groefsema on 10-Apr-17.
