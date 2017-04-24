@@ -27,6 +27,12 @@
 						<inputElement target="q">transition40</inputElement>
 					</inputElements>
 				</specification>
+				<specification id="s3" type="AlwaysParallel">
+					<inputElements>
+						<inputElement target="p">transition9</inputElement>
+						<inputElement target="q">transition41</inputElement>
+					</inputElements>
+				</specification>
 			</specifications>
 		</specificationSet>
 	</specificationSets>

@@ -68,7 +68,7 @@
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p & q)</formula>
+				<formula language="CTLSPEC">AG(p &amp; q)</formula>
 			</formulas>
 		</specificationType>
 	</specificationTypes>
