@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.variability.specification.utils;
+package nl.rug.ds.bpm.variability.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

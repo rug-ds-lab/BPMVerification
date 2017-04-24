@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.eventstructure;
+package nl.rug.ds.bpm.eventStructure;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

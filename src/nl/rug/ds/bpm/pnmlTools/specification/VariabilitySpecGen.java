@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.variability.specification.tool;
+package nl.rug.ds.bpm.pnmlTools.specification;
 
 import java.awt.FileDialog;
 import java.awt.Frame;
@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rug.ds.bpm.variability.specification.SpecificationToXML;
-import nl.rug.ds.bpm.variability.specification.VariabilitySpecification;
+import nl.rug.ds.bpm.variability.SpecificationToXML;
+import nl.rug.ds.bpm.variability.VariabilitySpecification;
 
 public class VariabilitySpecGen {
 	

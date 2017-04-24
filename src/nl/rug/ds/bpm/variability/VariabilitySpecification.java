@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.variability.specification;
+package nl.rug.ds.bpm.variability;
 
 import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Transition;
@@ -17,7 +17,7 @@ import java.util.Set;
 
 import org.jdom.JDOMException;
 
-import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
+import nl.rug.ds.bpm.eventStructure.CombinedEventStructure;
 import ee.ut.nets.unfolding.BPstructBP.MODE;
 import ee.ut.nets.unfolding.Unfolder_PetriNet;
 import ee.ut.nets.unfolding.Unfolding2PES;

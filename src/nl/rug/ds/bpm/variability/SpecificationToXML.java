@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.variability.specification;
+package nl.rug.ds.bpm.variability;
 
 import java.util.HashMap;
 import java.util.List;

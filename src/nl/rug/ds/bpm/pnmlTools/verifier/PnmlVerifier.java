@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.pnmlVerifier;
+package nl.rug.ds.bpm.pnmlTools.verifier;
 
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.event.VerificationEvent;

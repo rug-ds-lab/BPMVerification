@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.pnmlVerifier;
+package nl.rug.ds.bpm.pnmlTools.verifier;
 
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
