@@ -14,7 +14,7 @@
 				<condition>y > 5</condition>
 			</conditions>
 			<specifications>
-				<specification id="s1" type="AlwaysFinally">
+				<specification id="s1" type="AlwaysResponse">
 					<inputElements>
 						<inputElement target="p">start</inputElement>
 						<inputElement target="q">transition8</inputElement>

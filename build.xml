@@ -9,14 +9,11 @@
 	
 	<path id="projectClasspath">
 		<fileset dir="lib">
-			<include name="ee.ut-log-pnml-utils.jar"/>
-			<include name="eventstr-comparison.jar"/>
 			<include name="guava-18.0.jar"/>
+			<include name="umaBPDiff-1.0.jar"/>
 			<include name="jaxen-1.1.6.jar"/>
 			<include name="jdom.jar"/>
-			<include name="PetriNets.jar"/>
 			<include name="pnapi-1.0.jar"/>
-			<include name="umaBPDiff-1.0.jar"/>
 			<include name="unfolding.jar"/>
 		</fileset>
 	</path>
@@ -26,7 +23,7 @@
 	</target>
 	
 	
-	<target name="init" depends="clean">
+	<target name="init">
 		<mkdir dir="${dir.build}"/>
 		<mkdir dir="${dir.build.production}"/>
 		<mkdir dir="${dir.build.artifacts}"/>
@@ -51,12 +48,9 @@
 		
 		<jar basedir="${dir.build.production}"
 			 file="${file.jar}">
-			<zipgroupfileset dir="lib" includes="ee.ut-log-pnml-utils.jar"/>
-			<zipgroupfileset dir="lib" includes="eventstr-comparison.jar"/>
 			<zipgroupfileset dir="lib" includes="guava-18.0.jar"/>
 			<zipgroupfileset dir="lib" includes="jaxen-1.1.6.jar"/>
 			<zipgroupfileset dir="lib" includes="jdom.jar"/>
-			<zipgroupfileset dir="lib" includes="PetriNets.jar"/>
 			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="unfolding.jar"/>
@@ -71,12 +65,9 @@
 		
 		<jar basedir="${dir.build.production}"
 			 file="${file.jar}">
-			<zipgroupfileset dir="lib" includes="ee.ut-log-pnml-utils.jar"/>
-			<zipgroupfileset dir="lib" includes="eventstr-comparison.jar"/>
 			<zipgroupfileset dir="lib" includes="guava-18.0.jar"/>
 			<zipgroupfileset dir="lib" includes="jaxen-1.1.6.jar"/>
 			<zipgroupfileset dir="lib" includes="jdom.jar"/>
-			<zipgroupfileset dir="lib" includes="PetriNets.jar"/>
 			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="unfolding.jar"/>

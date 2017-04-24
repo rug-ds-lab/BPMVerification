@@ -1,12 +1,74 @@
 <bpmSpecification>
 	<specificationTypes>
-		<specificationType id="AlwaysFinally">
+		<specificationType id="AlwaysResponse">
 			<inputs>
 				<input type="or">p</input>
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> AFq)</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="AlwaysImmediateResponse">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+				<input type="or">s</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> A[(p | s) U q])</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="AlwaysImmediatePrecedence">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">!E[!p U q]</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="ExistImmediateResponse">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+				<input type="or">s</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> E[(p | s) U q])</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="ExistResponse">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> EF q)</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="AlwaysConflict">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> AG !q)</formula>
+			</formulas>
+		</specificationType>
+		
+		<specificationType id="AlwaysParallel">
+			<inputs>
+				<input type="or">p</input>
+				<input type="or">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p & q)</formula>
 			</formulas>
 		</specificationType>
 	</specificationTypes>
