@@ -41,20 +41,5 @@ public class SpecificationUnmarshaller {
 		}
 	}
 	
-	public void loadSpecificationTypes(SpecificationTypeMap typeMap) {
-		for (SpecificationType specificationType: specification.getSpecificationTypes()) {
-			typeMap.addSpecificationType(specificationType);
-			eventHandler.logVerbose("Adding specification type " + specificationType.getId());
-		}
-
-		for (SpecificationSet set: specification.getSpecificationSets())
-			for (Specification spec: set.getSpecifications())
-				if(typeMap.getSpecificationType(spec.getType()) != null)
-					spec.setSpecificationType(typeMap.getSpecificationType(spec.getType()));
-				else
-					eventHandler.logWarning("No such specification type: " + spec.getType());
-	}
-	
 	public BPMSpecification getSpecification() { return specification; }
-	public List<SpecificationSet> getSpecificationSets() { return specification.getSpecificationSets();	}
 }

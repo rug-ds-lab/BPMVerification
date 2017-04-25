@@ -64,11 +64,10 @@
 		
 		<specificationType id="AlwaysParallel">
 			<inputs>
-				<input type="or">p</input>
-				<input type="or">q</input>
+				<input type="and">p</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p &amp; q)</formula>
+				<formula language="CTLSPEC">AG(p)</formula>
 			</formulas>
 		</specificationType>
 	</specificationTypes>

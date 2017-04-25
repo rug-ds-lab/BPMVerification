@@ -20,7 +20,7 @@ public class KripkeConverter {
     private Kripke kripke;
     private Set<String> conditions;
     private IDMap idMap;
-    private int eventCount = 16;
+    private int eventCount = 1000;
 
     public KripkeConverter(EventHandler eventHandler, Stepper paralelStepper, List<Condition> conditions, IDMap idMap) {
         this.eventHandler = eventHandler;
