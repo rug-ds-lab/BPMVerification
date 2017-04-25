@@ -1,12 +1,4 @@
 <bpmSpecification>
-	<elementGroups>
-		<group id="start">
-			<elements>
-				<element>transition5</element>
-			</elements>
-		</group>
-	</elementGroups>
-	
 	<specificationSets>
 		<specificationSet>
 			<conditions>
@@ -17,26 +9,29 @@
 				<specification id="s1" type="AlwaysResponse">
 					<inputElements>
 						<inputElement target="p">start</inputElement>
-						<inputElement target="q">transition8</inputElement>
-						<inputElement target="q">transition9</inputElement>
+						<inputElement target="q">transition3</inputElement>
+						<inputElement target="q">transition4</inputElement>
 					</inputElements>
 				</specification>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="p">transition5</inputElement>
-						<inputElement target="q">transition40</inputElement>
-					</inputElements>
-				</specification>
-				<specification id="s3" type="AlwaysParallel">
-					<inputElements>
-						<inputElement target="p">transition9</inputElement>
-						<inputElement target="q">transition41</inputElement>
+						<inputElement target="p">transition1</inputElement>
+						<inputElement target="q">transition3</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>
 		</specificationSet>
 	</specificationSets>
-	
+
+	<elementGroups>
+		<group id="start">
+			<elements>
+				<element>transition1</element>
+				<element>transition2</element>
+			</elements>
+		</group>
+	</elementGroups>
+
 	<specificationTypes>
 		<specificationType id="AlwaysNext">
 			<inputs>
