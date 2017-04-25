@@ -88,6 +88,7 @@ Specifications can be either generated automatically or defined manually.
     </bpmSpecification>
 
 For example, the listing above forms the following specification:
+
     AG((transition1 | transition2) -> AF(transition3 | transition4))
     AG(transition1 -> A[transition1 U transition3])
 
@@ -118,7 +119,8 @@ Your Stepper should implement the following three methods:
 	% Returns the initial marking of your net
 
 	public Set<Marking> fireTransition(Marking marking, String transition, Set<String> conditions)
-	% Given a current marking and the unique identifier of a transition, returns the marking after firing the transition starting from the given marking.
+	% Given a current marking, the unique identifier of a transition, and optional limiting
+	% conditions, returns the marking after firing the transition starting from the given marking.
 
 	public Set<Set<String>> parallelActivatedTransitions(Marking marking)
 	% Given a marking, returns Y_par(M) as defined in [2].
@@ -126,8 +128,8 @@ Your Stepper should implement the following three methods:
 ### Related publications
 For more information on the inner workings of this package, please see the following publications, or when incorporating this package into your work, please cite the following publications.
 
-[1] H. Groefsema (2016) Business Process Variability: A Study into Process Management and Verification. PhD thesis.
+[1] H. Groefsema **(2016)** _Business Process Variability: A Study into Process Management and Verification._ PhD thesis.
 
-[2] H. Groefsema, N. van Beest, and M. Aiello (2016) A Formal Model for Compliance Verification of Service Compositions. IEEE Transactions on Service Computing.
+[2] H. Groefsema, N. van Beest, and M. Aiello **(2016)** _A Formal Model for Compliance Verification of Service Compositions._ IEEE Transactions on Service Computing.
 
-[3] H. Groefsema and N. R. T. P. van Beest (2015) Design-time Compliance of Service Compositions in Dynamic Service Environments. In IEEE International Conference on Service Oriented Computing & Applications, 108–115.
+[3] H. Groefsema and N. R. T. P. van Beest **(2015)** _Design-time Compliance of Service Compositions in Dynamic Service Environments._ In IEEE International Conference on Service Oriented Computing & Applications, 108–115.
