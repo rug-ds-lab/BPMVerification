@@ -127,5 +127,7 @@ Your Stepper should implement the following three methods:
 For more information on the inner workings of this package, please see the following publications, or when incorporating this package into your work, please cite the following publications.
 
 [1] H. Groefsema (2016) Business Process Variability: A Study into Process Management and Verification. PhD thesis.
+
 [2] H. Groefsema, N. van Beest, and M. Aiello (2016) A Formal Model for Compliance Verification of Service Compositions. IEEE Transactions on Service Computing.
+
 [3] H. Groefsema and N. R. T. P. van Beest (2015) Design-time Compliance of Service Compositions in Dynamic Service Environments. In IEEE International Conference on Service Oriented Computing & Applications, 108–115.
