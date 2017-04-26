@@ -96,6 +96,7 @@ public class KripkeConverter {
         for (String id: ids) {
             idMap.addID(id);
             aps.add(idMap.getAP(id));
+            //eventHandler.logVerbose("Mapping " + id + " to " + idMap.getAP(id));
         }
         
         return aps;

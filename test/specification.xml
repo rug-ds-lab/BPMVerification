@@ -1,22 +1,18 @@
 <bpmSpecification>
 	<specificationSets>
 		<specificationSet>
-			<conditions>
-				<condition>x > 0</condition>
-				<condition>y > 5</condition>
-			</conditions>
 			<specifications>
 				<specification id="s1" type="AlwaysResponse">
 					<inputElements>
 						<inputElement target="p">start</inputElement>
-						<inputElement target="q">transition3</inputElement>
-						<inputElement target="q">transition4</inputElement>
+						<inputElement target="q">t5</inputElement>
+						<inputElement target="q">t11</inputElement>
 					</inputElements>
 				</specification>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="p">transition1</inputElement>
-						<inputElement target="q">transition3</inputElement>
+						<inputElement target="p">t4</inputElement>
+						<inputElement target="q">t5</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>
@@ -26,8 +22,7 @@
 	<elementGroups>
 		<group id="start">
 			<elements>
-				<element>transition1</element>
-				<element>transition2</element>
+				<element>t3</element>
 			</elements>
 		</group>
 	</elementGroups>
