@@ -1,12 +1,12 @@
 package nl.rug.ds.bpm.pnmlTools.verifier;
 
-import nl.rug.ds.bpm.verification.Verifier;
+import java.io.File;
+
 import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
-
-import java.io.File;
+import nl.rug.ds.bpm.verification.Verifier;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -16,8 +16,10 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public static void main(String [ ] args) {
 		if(args.length > 2) {
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[0], args[1], args[2]);
-		} else
+		} 
+		else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
+		}
 	}
 	
 	public PnmlVerifier(String pnml, String specification, String nusmv2) {
@@ -26,21 +28,28 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		File nusmv2Binary = new File(nusmv2);
 		
 		//Make step class for specific Petri net type
-		PnmlStepper stepper = new PnmlStepper(pnmlFile);
-		
-		//Make a verifier which uses that step class
-		Verifier verifier = new Verifier(stepper);
-		
-		//Add listeners to receive log and result notifications
-		verifier.addLogListener(this);
-		verifier.addEventListener(this);
-		
-		//Start verification
-		verifier.verify(specificationFile, nusmv2Binary);
-		
-		//Remove listeners
-		verifier.removeLogListener(this);
-		verifier.removeEventListener(this);
+		PnmlStepper stepper;
+		try {
+			stepper = new PnmlStepper(pnmlFile);
+			
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper);
+			
+			//Add listeners to receive log and result notifications
+			verifier.addLogListener(this);
+			verifier.addEventListener(this);
+			
+			//Start verification
+			verifier.verify(specificationFile, nusmv2Binary);
+			
+			//Remove listeners
+			verifier.removeLogListener(this);
+			verifier.removeEventListener(this);
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	@Override
