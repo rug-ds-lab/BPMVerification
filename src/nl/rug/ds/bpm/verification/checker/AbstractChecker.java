@@ -18,7 +18,7 @@ public abstract class AbstractChecker {
     protected List<NuSMVFormula> formulas;
     protected File file, checker;
     protected EventHandler eventHandler;
-    protected List<String> results, errors;
+    protected List<String> results;
 
     public AbstractChecker(EventHandler eventHandler, File checker, Kripke kripke, List<NuSMVFormula> formulas) {
         this.eventHandler = eventHandler;
@@ -27,7 +27,6 @@ public abstract class AbstractChecker {
         this.formulas = formulas;
         outputChecker = new StringBuilder();
         results = new ArrayList<>();
-        errors = new ArrayList<>();
     }
 
     public abstract void createInputData();
@@ -88,7 +87,7 @@ public abstract class AbstractChecker {
             InputStreamReader isr = new InputStreamReader(stderr);
             BufferedReader br = new BufferedReader(isr);
             while ((line = br.readLine()) != null) {
-                errors.add(line);
+                outputChecker.append(line + "\n");
             }
 
             br.close();

@@ -88,7 +88,9 @@ public class SetVerifier {
 		eventHandler.logVerbose("Model checker input\n" + nuSMVChecker.getInputChecker());
 
 		List<String> resultLines = nuSMVChecker.callModelChecker();
-		eventHandler.logVerbose("Model checker output\n" + nuSMVChecker.getOutputChecker());
+		if(!nuSMVChecker.getOutputChecker().isEmpty())
+			eventHandler.logCritical("Model checker error\n" + nuSMVChecker.getOutputChecker());
+		
 
 		eventHandler.logInfo("Collecting results");
 		for (String result: resultLines) {
