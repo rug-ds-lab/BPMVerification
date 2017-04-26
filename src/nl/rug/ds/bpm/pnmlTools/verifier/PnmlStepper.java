@@ -163,6 +163,7 @@ public class PnmlStepper extends Stepper {
 			}
 			else {
 				enabled = false;
+				break;
 			}
 		}
 		
