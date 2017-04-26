@@ -16,7 +16,7 @@ import java.util.TreeSet;
 
 public class KripkeConverter {
     private EventHandler eventHandler;
-	private Stepper paralelStepper;
+	private Stepper parallelStepper;
     private Kripke kripke;
     private Set<String> conditions;
     private IDMap idMap;
@@ -24,7 +24,7 @@ public class KripkeConverter {
 
     public KripkeConverter(EventHandler eventHandler, Stepper paralelStepper, List<Condition> conditions, IDMap idMap) {
         this.eventHandler = eventHandler;
-        this.paralelStepper = paralelStepper;
+        this.parallelStepper = paralelStepper;
         this.conditions = new HashSet<>();
         
         for (Condition condition: conditions)
@@ -38,8 +38,8 @@ public class KripkeConverter {
     public Kripke convert() {
         kripke = new Kripke();
 
-        Marking marking = paralelStepper.initialMarking();
-		for (Set<String> enabled: paralelStepper.parallelActivatedTransitions(marking)) {
+        Marking marking = parallelStepper.initialMarking();
+		for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
             TreeSet<String> ap = mapAp(enabled);
             
             kripke.addAtomicPropositions(ap);
@@ -49,7 +49,7 @@ public class KripkeConverter {
             kripke.addInitial(found);
             
             for (String transition: enabled)
-                for (Marking step: paralelStepper.fireTransition(marking, transition, conditions))
+                for (Marking step: parallelStepper.fireTransition(marking, transition, conditions))
                     convertStep(step, found);
         }
 		
@@ -62,7 +62,7 @@ public class KripkeConverter {
             eventCount *= 2;
         }
         
-        for (Set<String> enabled: paralelStepper.parallelActivatedTransitions(marking)) {
+        for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
             TreeSet<String> ap = mapAp(enabled);
         
             kripke.addAtomicPropositions(ap);
@@ -84,7 +84,7 @@ public class KripkeConverter {
                     found.addPrevious(found);
                 }
                 for (String transition: enabled)
-                    for (Marking step: paralelStepper.fireTransition(marking, transition, conditions))
+                    for (Marking step: parallelStepper.fireTransition(marking, transition, conditions))
                         convertStep(step, found);
             }
         }
