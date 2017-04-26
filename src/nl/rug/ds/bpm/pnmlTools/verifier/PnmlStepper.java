@@ -23,7 +23,7 @@ import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
 
 /**
- * Created by Heerko Groefsema, Nick van Beest.
+ * Created by Nick van Beest on 26-04-2017
  */
 public class PnmlStepper extends Stepper {
 	
@@ -57,62 +57,7 @@ public class PnmlStepper extends Stepper {
 		}
 	}
 	
-	@Override
-	public Marking initialMarking() {
-		Marking initial = new Marking();
-		
-		for (Place p: pn.getPlaces()) {
-			if (p.getIncoming().size() == 0) {
-				initial.addTokens(p.getUniqueIdentifier(), 1);
-			}
-		}
-		
-		return initial;
-	}
-	
-	public Set<String> getEnabledTransitions(Marking marking) {
-		return getEnabledPresets(marking).keySet();
-	}
-	
-	@Override
-	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
-		Set<Set<String>> ypar = new HashSet<Set<String>>();
-		
-		Map<String, BitSet> enabledpresets = getEnabledPresets(marking);
-
-		ypar = new HashSet<Set<String>>(Sets.powerSet(enabledpresets.keySet()));
-		
-		ypar.remove(new HashSet<String>());
-
-		BitSet overlap;
-		for (Set<String> sim: new HashSet<Set<String>>(ypar)) {
-			overlap = new BitSet();
-			for (String t: sim) {
-				if (!overlap.intersects(enabledpresets.get(t))) {
-					overlap.or(enabledpresets.get(t));
-				}
-				else {
-					ypar.remove(sim);
-					break;
-				}
-			}
-		}
-				
-		Set<Set<String>> subsets = new HashSet<Set<String>>();
-		
-		for (Set<String> par1: ypar) {
-			for (Set<String> par2: ypar) {
-				if ((par1.containsAll(par2)) && (par1.size() != par2.size())) {
-					subsets.add(par2);
-				}
-			}
-		}
-		
-		ypar.removeAll(subsets);
-		
-		return ypar;
-	}
-	
+	// Create a map with all enabled transitions and their corresponding bitset presets
 	private Map<String, BitSet> getEnabledPresets(Marking marking) {
 		List<Place> filled = new ArrayList<Place>();
 		Set<Transition> enabled = new HashSet<Transition>();
@@ -135,6 +80,7 @@ public class PnmlStepper extends Stepper {
 		return enabledpresets;
 	}
 	
+	// Create a bitset that holds the positions in the list allplaces that are part of the preset of trans
 	private BitSet getPresetBitSet(Transition trans, List<Place> allplaces) {
 		BitSet b = new BitSet();
 		
@@ -143,6 +89,68 @@ public class PnmlStepper extends Stepper {
 		}
 		
 		return b;
+	}
+	
+	@Override
+	public Marking initialMarking() {
+		Marking initial = new Marking();
+		
+		// add all places with no incoming arcs to initial marking
+		for (Place p: pn.getPlaces()) {
+			if (p.getIncoming().size() == 0) {
+				initial.addTokens(p.getUniqueIdentifier(), 1);
+			}
+		}
+		
+		return initial;
+	}
+	
+	public Set<String> getEnabledTransitions(Marking marking) {
+		return getEnabledPresets(marking).keySet();
+	}
+	
+	@Override
+	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
+		Set<Set<String>> ypar = new HashSet<Set<String>>();
+		
+		Map<String, BitSet> enabledpresets = getEnabledPresets(marking);
+
+		// create a power set of all curently enabled transitions
+		ypar = new HashSet<Set<String>>(Sets.powerSet(enabledpresets.keySet()));
+		
+		// remove empty set
+		ypar.remove(new HashSet<String>());
+
+		BitSet overlap;
+		for (Set<String> sim: new HashSet<Set<String>>(ypar)) {
+			overlap = new BitSet();
+			for (String t: sim) {
+				// check if presets overlap for the set of transitions
+				// if yes, remove (i.e. they cannot fire simultaneously)
+				if (!overlap.intersects(enabledpresets.get(t))) {
+					overlap.or(enabledpresets.get(t));
+				}
+				else {
+					ypar.remove(sim);
+					break;
+				}
+			}
+		}
+		
+		Set<Set<String>> subsets = new HashSet<Set<String>>();
+		
+		// remove subsets to obtain the largest sets
+		for (Set<String> par1: ypar) {
+			for (Set<String> par2: ypar) {
+				if ((par1.containsAll(par2)) && (par1.size() != par2.size())) {
+					subsets.add(par2);
+				}
+			}
+		}
+		
+		ypar.removeAll(subsets);
+		
+		return ypar;
 	}
 	
 	@Override
