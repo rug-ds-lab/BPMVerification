@@ -45,7 +45,7 @@ public class PnmlStepper extends Stepper {
 	private void initializeTransitionMap() {
 		transitionmap = new HashMap<String, Transition>();
 		for (Transition t: pn.getTransitions()) {
-			transitionmap.put(t.getUniqueIdentifier(), t);
+			transitionmap.put(getId(t), t);
 		}
 	}
 	
@@ -53,7 +53,7 @@ public class PnmlStepper extends Stepper {
 		placemap = new HashMap<String, Place>();
 		
 		for (Place p: pn.getPlaces()) {
-			placemap.put(p.getUniqueIdentifier(), p);
+			placemap.put(getId(p), p);
 		}
 	}
 	
@@ -73,7 +73,7 @@ public class PnmlStepper extends Stepper {
 				enabled.remove(t);
 			}
 			else {
-				enabledpresets.put(t.getUniqueIdentifier(), getPresetBitSet(t, filled));
+				enabledpresets.put(getId(t), getPresetBitSet(t, filled));
 			}
 		}
 		
@@ -91,6 +91,14 @@ public class PnmlStepper extends Stepper {
 		return b;
 	}
 	
+	private String getId(Place p) {
+		return p.getName() + "(" + p.id + ")";
+	}
+	
+	private String getId(Transition t) {
+		return t.getName() + "(" + t.id + ")";
+	}
+	
 	@Override
 	public Marking initialMarking() {
 		Marking initial = new Marking();
@@ -98,7 +106,7 @@ public class PnmlStepper extends Stepper {
 		// add all places with no incoming arcs to initial marking
 		for (Place p: pn.getPlaces()) {
 			if (p.getIncoming().size() == 0) {
-				initial.addTokens(p.getUniqueIdentifier(), 1);
+				initial.addTokens(getId(p), 1);
 			}
 		}
 		
@@ -166,8 +174,8 @@ public class PnmlStepper extends Stepper {
 		// check if selected transition is indeed enabled
 		Set<String> placeIds = new HashSet<String>();
 		for (Place p: selected.getPreSet()) {
-			if (currentfire.hasTokens(p.getUniqueIdentifier())) {
-				placeIds.add(p.getUniqueIdentifier());
+			if (currentfire.hasTokens(getId(p))) {
+				placeIds.add(getId(p));
 			}
 			else {
 				enabled = false;
@@ -182,7 +190,7 @@ public class PnmlStepper extends Stepper {
 			
 			// place 1 token in each outgoing place
 			for (Place p: selected.getPostSet()) {
-				currentfire.addTokens(p.getUniqueIdentifier(), 1);
+				currentfire.addTokens(getId(p), 1);
 			}
 		}
 		
