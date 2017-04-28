@@ -94,9 +94,11 @@ public class KripkeConverter {
         TreeSet<String> aps = new TreeSet<String>(new StringComparator());
         
         for (String id: ids) {
-            idMap.addID(id);
+            if(!idMap.getIdToAp().containsKey(id)) {
+                idMap.addID(id);
+                eventHandler.logVerbose("Mapping " + id + " to " + idMap.getAP(id));
+            }
             aps.add(idMap.getAP(id));
-            //eventHandler.logVerbose("Mapping " + id + " to " + idMap.getAP(id));
         }
         
         return aps;

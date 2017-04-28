@@ -28,9 +28,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		File nusmv2Binary = new File(nusmv2);
 		
 		//Make step class for specific Petri net type
-		PnmlStepper stepper;
+		ExtPnmlStepper stepper;
 		try {
-			stepper = new PnmlStepper(pnmlFile);
+			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper);
