@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.pnmlTools.verifier;
 
+import nl.rug.ds.bpm.pnmlTools.reader.PNMLReader;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 
@@ -17,7 +18,6 @@ import org.jdom.JDOMException;
 
 import com.google.common.collect.Sets;
 
-import ee.ut.pnml.PNMLReader;
 import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
@@ -158,7 +158,18 @@ public class PnmlStepper extends Stepper {
 		
 		ypar.removeAll(subsets);
 		
-		return ypar;
+		// remove parentheses from transition id's to obtain transition labels
+		Set<Set<String>> corrected_ypar = new HashSet<Set<String>>();
+		Set<String> cur_par;
+		for (Set<String> y: ypar) {
+			cur_par = new HashSet<String>();
+			for (String c: y) {
+				cur_par.add(c.substring(0, c.lastIndexOf("(")));
+			}
+			corrected_ypar.add(cur_par);
+		}
+		
+		return corrected_ypar;
 	}
 	
 	@Override
