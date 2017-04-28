@@ -58,7 +58,7 @@ public class KripkeConverter {
     
     private void convertStep(Marking marking, State previous) {
         if (kripke.getStateCount() >= eventCount) {
-            eventHandler.logVerbose("Calculating state space (" + kripke.getStateCount() + ")");
+            eventHandler.logInfo("Calculating state space (at " + kripke.getStateCount() + " states)");
             eventCount *= 2;
         }
         

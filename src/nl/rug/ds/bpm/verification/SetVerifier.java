@@ -60,7 +60,10 @@ public class SetVerifier {
 	public void buildKripke() {
 		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
 		eventHandler.logInfo("Calculating Kripke structure");
+		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
+		long t1 = System.currentTimeMillis();
+		eventHandler.logInfo("Calculation took " + (t1 - t0) + " ms");
 		eventHandler.logVerbose("\n" + kripke.toString(true));
 
 		eventHandler.logInfo("Optimizing Kripke structure");
