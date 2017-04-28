@@ -114,7 +114,7 @@ inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTIC
 The verification classes can be easily extended to allow the use of other Petri net formats. All that is required is a
 class that extends nl.rug.ds.bpm.verification.stepper.Stepper, which is then passed to nl.rug.ds.bpm.verification.Verifier.
 
-Thee Stepper should implement the following three methods:
+The Stepper should implement the following three methods:
 
 	public Marking initialMarking()
 	% Returns the initial marking of your net
