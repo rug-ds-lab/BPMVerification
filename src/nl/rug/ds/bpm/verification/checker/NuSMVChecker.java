@@ -22,7 +22,7 @@ public class NuSMVChecker extends AbstractChecker {
     public void createInputData() {
         inputChecker = new StringBuilder();
 
-        inputChecker.append("MODULE PnmlVerifier\n");
+        inputChecker.append("MODULE main\n");
         inputChecker.append(convertVAR());
         inputChecker.append(convertDEFINE());
         inputChecker.append(convertASSIGN());
@@ -78,7 +78,7 @@ public class NuSMVChecker extends AbstractChecker {
         while (j.hasNext()) {
             State s = j.next();
             a.append("\t\t\t\tstate = " + s.getID() + " : {");
-
+    
             Iterator<State> k = s.getNextStates().iterator();
             if (k.hasNext())
                 while (k.hasNext()) {
@@ -86,7 +86,8 @@ public class NuSMVChecker extends AbstractChecker {
                     if (k.hasNext()) a.append(",");
                 }
             a.append("};\n");
-        }
+            }
+        
         a.append("\t\t\tesac;\n");
 
         return a.toString();

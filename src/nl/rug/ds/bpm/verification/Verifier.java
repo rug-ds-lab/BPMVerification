@@ -78,19 +78,19 @@ public class Verifier {
 		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
 			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
 
-		eventHandler.logInfo("Loading configuration");
+		eventHandler.logInfo("Loading configuration file");
 		loadConfiguration();
 
-		eventHandler.logInfo("Loading specification");
+		eventHandler.logInfo("Loading specification file");
 		List<SetVerifier> verifiers = loadSpecification(bpmSpecification);
-
-		eventHandler.logInfo("Loading PNML");
-		for (SetVerifier verifier: verifiers)
-			verifier.buildKripke();
-
+		
 		eventHandler.logInfo("Verifying specification sets");
-		for (SetVerifier verifier: verifiers)
+		int setid = 0;
+		for (SetVerifier verifier: verifiers) {
+			eventHandler.logInfo("Verifying set " + ++setid);
+			verifier.buildKripke();
 			verifier.verify(nusmv2);
+		}
 	}
 		
 	private void loadConfiguration() {

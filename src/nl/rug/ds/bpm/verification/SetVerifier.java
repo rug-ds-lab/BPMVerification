@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.specification.jaxb.*;
+import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
@@ -41,7 +42,7 @@ public class SetVerifier {
 		conditions = specificationSet.getConditions();
 		formulas = new ArrayList<>();
 		
-		eventHandler.logInfo("Creating new conditional set and model");
+		eventHandler.logInfo("Loading specification set");
 		
 		eventHandler.logVerbose("Conditions: ");
 		for(Condition condition: conditions)
@@ -58,10 +59,9 @@ public class SetVerifier {
 
 	public void buildKripke() {
 		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
-		eventHandler.logInfo("Creating Kripke structure");
+		eventHandler.logInfo("Calculating Kripke structure");
 		kripke = converter.convert();
 		eventHandler.logVerbose("\n" + kripke.toString(true));
-		eventHandler.logInfo("\n" + kripke.toString(false));
 
 		eventHandler.logInfo("Optimizing Kripke structure");
 		eventHandler.logInfo("Removing unused atomic propositions");
@@ -75,6 +75,11 @@ public class SetVerifier {
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 		stutterOptimizer.optimize();
 		eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
+		
+		for(State s: kripke.getSinkStates()) {
+			s.addNext(s);
+			s.addPrevious(s);
+		}
 	}
 
 	public void verify(File nusmv2) {
@@ -123,11 +128,15 @@ public class SetVerifier {
 					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
 			}
 			else {
-				eventHandler.fireEvent(nuSMVFormula.getSpecification(), eval);
+				String mappedFormula = nuSMVFormula.getFormula();
+				for (String key: specIdMap.getAPKeys())
+					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
+				
+				eventHandler.fireEvent(nuSMVFormula.getSpecification(), mappedFormula, eval);
 				if(eval)
-					eventHandler.logInfo("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated true for " + nuSMVFormula.getFormula());
+					eventHandler.logInfo("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
 				else
-					eventHandler.logError("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated FALSE for " + nuSMVFormula.getFormula());
+					eventHandler.logError("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
 				formulas.remove(nuSMVFormula);
 			}
 		}
@@ -141,7 +150,7 @@ public class SetVerifier {
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getAP(key));
 				for (String key: groupMap.keySet())
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), groupMap.toString(key));
-
+				
 				formulas.add(new NuSMVFormula(mappedFormula, specification));
 			}
 		}
@@ -173,6 +182,7 @@ public class SetVerifier {
 		GroupMap groupMap = new GroupMap();
 		
 		for (Group group: specification.getGroups()) {
+			idMap.addID(group.getId());
 			groupMap.addGroup(idMap.getAP(group.getId()));
 			eventHandler.logVerbose("New group " + group.getId());
 			for (Element element: group.getElements()) {

@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.pnmlTools.reader;
+package nl.rug.ds.bpm.pnml.reader;
 
 import hub.top.petrinet.Node;
 import hub.top.petrinet.PetriNet;

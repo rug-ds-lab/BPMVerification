@@ -35,13 +35,11 @@ public class PropositionOptimizer {
 	
 	public String toString(boolean fullOutput) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Reduction of " + optimizedPropositions.size() + " propositions ");
 		if (fullOutput) {
-			sb.append("\nproposition Optimized Transitions:\n");
 			for (String s : optimizedPropositions)
-				sb.append(s.toString() + "\n");
+				sb.append(s.toString() + " ");
 		}
-		
-		sb.append("Number of proposition Optimized transitions: " + optimizedPropositions.size() + "\n");
 		
 		return sb.toString();
 	}

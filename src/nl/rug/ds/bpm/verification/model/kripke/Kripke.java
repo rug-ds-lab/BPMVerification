@@ -3,10 +3,8 @@ package nl.rug.ds.bpm.verification.model.kripke;
 import nl.rug.ds.bpm.verification.comparator.StateComparator;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Kripke {
     private TreeSet<String> atomicPropositions;
@@ -84,7 +82,11 @@ public class Kripke {
         State[] sArray = new State[initial.size()];
         return initial.toArray(sArray);
     }
-
+    
+    public Set<State> getSinkStates() {
+        return states.stream().filter(s -> s.getNextStates().isEmpty()).collect(Collectors.toSet());
+    }
+    
     public int getStateCount() {
         return states.size();
     }

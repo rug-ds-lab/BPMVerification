@@ -1,8 +1,4 @@
-package nl.rug.ds.bpm.pnmlTools.verifier;
-
-import nl.rug.ds.bpm.pnmlTools.reader.PNMLReader;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
+package nl.rug.ds.bpm.pnml.verifier;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,20 +14,23 @@ import org.jdom.JDOMException;
 
 import com.google.common.collect.Sets;
 
-import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
+import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
+import nl.rug.ds.bpm.pnml.reader.ExtPNMLReader;
+import nl.rug.ds.bpm.verification.stepper.Marking;
+import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 /**
  * Created by Nick van Beest on 26-04-2017
  */
-public class PnmlStepper extends Stepper {
+public class ExtPnmlStepper extends Stepper {
 	
-	private PetriNet pn;
+	private ExtPetriNet pn;
 	private Map<String, Transition> transitionmap;
 	private Map<String, Place> placemap;
 
-	public PnmlStepper(File pnml) throws JDOMException, IOException {
+	public ExtPnmlStepper(File pnml) throws JDOMException, IOException {
 		super(pnml);
 		getPN();
 		initializeTransitionMap();
@@ -39,7 +38,7 @@ public class PnmlStepper extends Stepper {
 	}
 	
 	private void getPN() throws JDOMException, IOException {
-		pn = PNMLReader.parse(net);
+		pn = ExtPNMLReader.parse(net);
 	}
 	
 	private void initializeTransitionMap() {
@@ -96,7 +95,8 @@ public class PnmlStepper extends Stepper {
 	}
 	
 	private String getId(Transition t) {
-		return t.getName() + "(" + t.id + ")";
+//		return t.getName() + "(" + t.id + ")";
+		return t.getUniqueIdentifier();
 	}
 	
 	@Override
@@ -158,18 +158,7 @@ public class PnmlStepper extends Stepper {
 		
 		ypar.removeAll(subsets);
 		
-		// remove parentheses from transition id's to obtain transition labels
-		Set<Set<String>> corrected_ypar = new HashSet<Set<String>>();
-		Set<String> cur_par;
-		for (Set<String> y: ypar) {
-			cur_par = new HashSet<String>();
-			for (String c: y) {
-				cur_par.add(c.substring(0, c.lastIndexOf("(")));
-			}
-			corrected_ypar.add(cur_par);
-		}
-		
-		return corrected_ypar;
+		return ypar;
 	}
 	
 	@Override

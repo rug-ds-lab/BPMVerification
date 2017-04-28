@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.pnmlTools.verifier;
+package nl.rug.ds.bpm.pnml.verifier;
 
 import java.io.File;
 
@@ -49,16 +49,18 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 	}
 	
 	@Override
 	public void verificationEvent(VerificationEvent event) {
-		System.out.println(event.toString());
+		//Use for feedback
+		System.out.println("FEEDBACK: " + event.toString());
 	}
 	
 	@Override
 	public void verificationLogEvent(VerificationLogEvent event) {
-		System.out.println(event.toString());
+		if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
+			System.out.println(event.toString());
 	}
 }

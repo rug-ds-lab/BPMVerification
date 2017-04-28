@@ -35,43 +35,43 @@ public class EventHandler {
 		verificationLogListenerSet.remove(verificationLogListener);
 	}
 	
-	public void fireEvent(Specification specification, boolean eval) {
-		VerificationEvent verificationEvent = new VerificationEvent(specification, eval);
+	public void fireEvent(Specification specification, String formula, boolean eval) {
+		VerificationEvent verificationEvent = new VerificationEvent(specification, formula, eval);
 		
 		for (VerificationEventListener listener: verificationEventListenerSet)
 			listener.verificationEvent(verificationEvent);
 	}
 	
 	public void logVerbose(String message) {
-		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.VERBOSE, message);
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.VERBOSE, message);
 		
 		for(VerificationLogListener listener: verificationLogListenerSet)
 			listener.verificationLogEvent(verificationLogEvent);
 	}
 	
 	public void logInfo(String message) {
-		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.INFO, message);
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.INFO, message);
 		
 		for(VerificationLogListener listener: verificationLogListenerSet)
 			listener.verificationLogEvent(verificationLogEvent);
 	}
 	
 	public void logWarning(String message) {
-		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.WARNING, message);
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.WARNING, message);
 		
 		for(VerificationLogListener listener: verificationLogListenerSet)
 			listener.verificationLogEvent(verificationLogEvent);
 	}
 	
 	public void logError(String message) {
-		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.ERROR, message);
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.ERROR, message);
 		
 		for(VerificationLogListener listener: verificationLogListenerSet)
 			listener.verificationLogEvent(verificationLogEvent);
 	}
 	
 	public void logCritical(String message) {
-		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.eventType.CRITICAL, message);
+		VerificationLogEvent verificationLogEvent = new VerificationLogEvent(VerificationLogEvent.CRITICAL, message);
 		
 		for(VerificationLogListener listener: verificationLogListenerSet)
 			listener.verificationLogEvent(verificationLogEvent);

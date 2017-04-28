@@ -9,10 +9,15 @@
 						<inputElement target="q">t11</inputElement>
 					</inputElements>
 				</specification>
+			</specifications>
+		</specificationSet>
+		
+		<specificationSet>
+			<specifications>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="p">t4</inputElement>
-						<inputElement target="q">t5</inputElement>
+						<inputElement target="p">t5</inputElement>
+						<inputElement target="q">t4</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>

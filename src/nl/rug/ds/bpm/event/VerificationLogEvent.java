@@ -5,24 +5,22 @@ package nl.rug.ds.bpm.event;
  */
 
 public class VerificationLogEvent {
-	public static enum eventType {
-		VERBOSE,
-		INFO,
-		WARNING,
-		ERROR,
-		CRITICAL;
-	}
+	public static final int VERBOSE = 0;
+	public static final int INFO = 1;
+	public static final int WARNING = 2;
+	public static final int ERROR = 3;
+	public static final int CRITICAL = 4;
 	
-	private eventType type;
+	private int logLevel;
 	private String message;
 	
-	public VerificationLogEvent(eventType type, String message) {
-		this.type = type;
+	public VerificationLogEvent(int logLevel, String message) {
+		this.logLevel = logLevel;
 		this.message = message;
 	}
 	
-	public eventType getType() {
-		return type;
+	public int getLogLevel() {
+		return logLevel;
 	}
 	
 	public String getMessage() {
@@ -31,15 +29,15 @@ public class VerificationLogEvent {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if(type == eventType.VERBOSE)
+		if(logLevel == VERBOSE)
 			sb.append("VERBOSE\t: ");
-		if(type == eventType.INFO)
+		if(logLevel == INFO)
 			sb.append("INFO\t: ");
-		if(type == eventType.WARNING)
+		if(logLevel == WARNING)
 			sb.append("WARNING\t: ");
-		else if(type == eventType.ERROR)
+		else if(logLevel == ERROR)
 			sb.append("ERROR\t: ");
-		else if(type == eventType.CRITICAL)
+		else if(logLevel == CRITICAL)
 			sb.append("CRITICAL: ");
 		sb.append(message);
 		return sb.toString();

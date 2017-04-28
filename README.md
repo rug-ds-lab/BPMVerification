@@ -14,7 +14,8 @@ The package is structured as followed:
   * event
     * listener
   * eventStructure
-  * pnmlTools
+  * pnml
+    * reader
     * specification
     * verifier
   * specification
@@ -39,7 +40,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.Verifier
 
-Self explanatory examples using these classes can be found in nl.rug.ds.bpm.pnmlTools.
+Self explanatory examples using these classes can be found in nl.rug.ds.bpm.pnml.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
@@ -113,7 +114,7 @@ inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTIC
 The verification classes can be easily extended to allow the use of other Petri net formats. All that is required is a
 class that extends nl.rug.ds.bpm.verification.stepper.Stepper, which is then passed to nl.rug.ds.bpm.verification.Verifier.
 
-Your Stepper should implement the following three methods:
+Thee Stepper should implement the following three methods:
 
 	public Marking initialMarking()
 	% Returns the initial marking of your net

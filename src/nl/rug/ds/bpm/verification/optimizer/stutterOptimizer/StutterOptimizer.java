@@ -178,16 +178,15 @@ public class StutterOptimizer {
 	
 	public String toString(boolean fullOutput) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Reduction of " + stutterStates.size() + " states");
 		if (fullOutput) {
-			sb.append("\nUnstable Block Partition:\n");
+			sb.append("\nUnstable Block Partitions:\n");
 			for (Block b: toBeProcessed)
 				sb.append(b.toString() + "\n");
-			sb.append("\nStable Block Partition:\n");
+			sb.append("Stable Block Partitions:\n");
 			for (Block b: stable)
 				sb.append(b.toString() + "\n");
 		}
-		
-		sb.append("Number of stutter Optimized States: " + stutterStates.size() + "\n");
 		
 		return sb.toString();
 	}

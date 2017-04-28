@@ -26,6 +26,6 @@ public class NuSMVFormula {
         String f = formula.replace("CTLSPEC ", "");
         f = f.replace("LTLSPEC ", "");
         f = f.replace("JUSTICE ", "");
-        return f.replaceAll("([\\(\\)\\s+])", "").trim();
+        return f.replaceAll("\\s+", "").trim();
     }
 }
