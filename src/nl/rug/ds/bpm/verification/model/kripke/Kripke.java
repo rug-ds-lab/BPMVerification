@@ -139,17 +139,15 @@ public class Kripke {
             for (String s : propositionOptimized) {
                 propositionOp.append(s.toString() + "\n");
             }
-
-            ret = ap.toString() + st.toString() + rel.toString() + stutterOp.toString() + propositionOp.toString() + "\n";
-        } else {
-            StringBuilder count = new StringBuilder("Number of states: " + states.size() + "\n");
+    
+            StringBuilder count = new StringBuilder("\nNumber of states: " + states.size() + "\n");
             count.append("Number of relations: " + getRelationCount() + "\n");
             count.append("Number of AP: " + atomicPropositions.size() + "\n");
-
+    
             count.append("Number of proposition Optimized transitions: " + propositionOptimized.size() + "\n");
             count.append("Number of stutter Optimized States: " + stutterOptimizedStates.size() + "\n");
 
-            ret = count.toString();
+            ret = ap.toString() + st.toString() + rel.toString() + count.toString() + stutterOp.toString() + propositionOp.toString() + "\n";
         }
 
         return ret;
