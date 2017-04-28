@@ -78,11 +78,6 @@ public class SetVerifier {
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 		stutterOptimizer.optimize();
 		eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
-		
-		for(State s: kripke.getSinkStates()) {
-			s.addNext(s);
-			s.addPrevious(s);
-		}
 	}
 
 	public void verify(File nusmv2) {

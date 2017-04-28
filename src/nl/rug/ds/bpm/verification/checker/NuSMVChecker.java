@@ -65,6 +65,12 @@ public class NuSMVChecker extends AbstractChecker {
 
     private String convertASSIGN() {
         StringBuilder a = new StringBuilder("\tASSIGN\n\t\tinit(state) := {");
+    
+        //Safety
+        for(State s: kripke.getSinkStates()) {
+            s.addNext(s);
+            s.addPrevious(s);
+        }
 
         Iterator<State> i = kripke.getInitial().iterator();
         while (i.hasNext()) {
@@ -86,7 +92,7 @@ public class NuSMVChecker extends AbstractChecker {
                     if (k.hasNext()) a.append(",");
                 }
             a.append("};\n");
-            }
+        }
         
         a.append("\t\t\tesac;\n");
 
