@@ -99,14 +99,15 @@ public class SetVerifier {
 	}
 
 	public void verify(File nusmv2) {
-		eventHandler.logInfo("Collecting specifications");
+		//eventHandler.logInfo("Collecting specifications");
 		mapFormulas();
 
 		eventHandler.logInfo("Calling Model Checker");
 		NuSMVChecker nuSMVChecker = new NuSMVChecker(eventHandler, nusmv2, kripke, formulas);
-
+		
+		eventHandler.logVerbose("Generating model checker input");
 		nuSMVChecker.createInputData();
-		eventHandler.logVerbose("Model checker input\n" + nuSMVChecker.getInputChecker());
+		eventHandler.logVerbose("\n" + nuSMVChecker.getInputChecker());
 
 		List<String> resultLines = nuSMVChecker.callModelChecker();
 		if(!nuSMVChecker.getOutputChecker().isEmpty())
