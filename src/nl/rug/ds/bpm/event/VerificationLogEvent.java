@@ -30,15 +30,15 @@ public class VerificationLogEvent {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if(logLevel == VERBOSE)
-			sb.append("VERBOSE\t: ");
+			sb.append("VERBOSE\t\t: ");
 		if(logLevel == INFO)
-			sb.append("INFO\t: ");
+			sb.append("INFO\t\t: ");
 		if(logLevel == WARNING)
-			sb.append("WARNING\t: ");
+			sb.append("WARNING\t\t: ");
 		else if(logLevel == ERROR)
-			sb.append("ERROR\t: ");
+			sb.append("ERROR\t\t: ");
 		else if(logLevel == CRITICAL)
-			sb.append("CRITICAL: ");
+			sb.append("CRITICAL\t: ");
 		sb.append(message);
 		return sb.toString();
 	}

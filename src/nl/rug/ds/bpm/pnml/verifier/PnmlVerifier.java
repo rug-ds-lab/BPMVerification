@@ -1,6 +1,9 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.VerificationLogEvent;
@@ -55,12 +58,12 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	@Override
 	public void verificationEvent(VerificationEvent event) {
 		//Use for feedback
-		System.out.println("FEEDBACK: " + event.toString());
+		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
 	}
 	
 	@Override
 	public void verificationLogEvent(VerificationLogEvent event) {
 		if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
-			System.out.println(event.toString());
+			System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}
 }
