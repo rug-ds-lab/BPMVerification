@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.specification.jaxb.*;
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
@@ -59,25 +60,42 @@ public class SetVerifier {
 
 	public void buildKripke() {
 		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
+		
 		eventHandler.logInfo("Calculating Kripke structure");
 		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
 		long t1 = System.currentTimeMillis();
-		eventHandler.logInfo("Calculation took " + (t1 - t0) + " ms");
-		eventHandler.logVerbose("\n" + kripke.toString(true));
+		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");
+		//eventHandler.logVerbose("\n" + kripke.toString(true));
 
 		eventHandler.logInfo("Optimizing Kripke structure");
 		eventHandler.logInfo("Removing unused atomic propositions");
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
+		TreeSet<String> unknownAP = new TreeSet<>(new StringComparator());
 		
 		unusedAP.removeAll(specIdMap.getAPKeys());
+		
+		unknownAP.addAll(specIdMap.getAPKeys());
+		unknownAP.removeAll(kripke.getAtomicPropositions());
+		
 		PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
 		eventHandler.logInfo("Reducing state space");
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
+		t0 = System.currentTimeMillis();
 		stutterOptimizer.optimize();
-		eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
+		t1 = System.currentTimeMillis();
+		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
+		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
+		
+		//Add ghost state with unknown AP for checker safety
+		State ghost = new State("ghost", unknownAP);
+		ghost.addNext(ghost);
+		ghost.addPrevious(ghost);
+		
+		kripke.addAtomicPropositions(unknownAP);
+		kripke.addState(ghost);
 	}
 
 	public void verify(File nusmv2) {

@@ -152,4 +152,14 @@ public class Kripke {
 
         return ret;
     }
+    
+    public String stats() {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("|S| = " + states.size() + ", ");
+        sb.append("|R| = " + states.stream().map(State::getNextStates).mapToInt(Set::size).sum() +", ");
+        sb.append("|AP| = " + atomicPropositions.size());
+        
+        return sb.toString();
+    }
 }

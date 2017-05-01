@@ -28,6 +28,7 @@
 		<group id="start">
 			<elements>
 				<element>t3</element>
+				<element>t666</element>
 			</elements>
 		</group>
 	</elementGroups>

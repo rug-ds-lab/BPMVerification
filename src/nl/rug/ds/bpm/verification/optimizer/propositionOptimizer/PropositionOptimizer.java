@@ -37,8 +37,10 @@ public class PropositionOptimizer {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Reduction of " + optimizedPropositions.size() + " propositions ");
 		if (fullOutput) {
+			sb.append("(");
 			for (String s : optimizedPropositions)
 				sb.append(s.toString() + " ");
+			sb.append(")");
 		}
 		
 		return sb.toString();
