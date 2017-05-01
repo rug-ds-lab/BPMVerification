@@ -63,7 +63,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	
 	@Override
 	public void verificationLogEvent(VerificationLogEvent event) {
-		if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
+		//if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
 			System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}
 }

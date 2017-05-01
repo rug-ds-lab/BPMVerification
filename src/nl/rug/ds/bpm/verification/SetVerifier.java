@@ -82,9 +82,24 @@ public class SetVerifier {
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
 		eventHandler.logInfo("Reducing state space");
-		StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
+		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
 		t0 = System.currentTimeMillis();
-		stutterOptimizer.optimize();
+		
+		int pass = 1;
+		int blockCount = 0;
+		boolean cont = true;
+		while (cont) {
+			eventHandler.logVerbose("Pass " + pass + " initialization");
+			int blocks = stutterOptimizer.preProcess();
+			eventHandler.logVerbose("Pass " + pass++ + " optimizer " + blocks);
+			stutterOptimizer.optimize();
+			
+			if(blockCount == blocks)
+				cont = false;
+			
+			blockCount = blocks;
+		}
+		
 		t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
 		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));

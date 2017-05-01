@@ -30,7 +30,7 @@ public class VerificationLogEvent {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if(logLevel == VERBOSE)
-			sb.append("VERBOSE\t\t: ");
+			sb.append("VERBOSE\t: ");
 		if(logLevel == INFO)
 			sb.append("INFO\t\t: ");
 		if(logLevel == WARNING)

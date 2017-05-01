@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.optimizer.stutterOptimizer;
 
+import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
@@ -9,11 +10,13 @@ import java.util.*;
  * Created by Heerko Groefsema on 06-Mar-17.
  */
 public class StutterOptimizer {
+	private EventHandler eventHandler;
 	private Kripke kripke;
 	private Set<State> stutterStates;
 	private List<Block> toBeProcessed, stable, BL;
 	
-	public StutterOptimizer(Kripke kripke) {
+	public StutterOptimizer(EventHandler eventHandler, Kripke kripke) {
+		this.eventHandler = eventHandler;
 		this.kripke = kripke;
 		
 		toBeProcessed = new LinkedList<>();
@@ -21,8 +24,6 @@ public class StutterOptimizer {
 		BL = new LinkedList<>();
 
 		stutterStates = new HashSet<State>();
-		
-		preProcess();
 	}
 	
 	public int optimize() {
@@ -130,7 +131,7 @@ public class StutterOptimizer {
 		return stutterStates.size();
 	}
 	
-	private void preProcess() {
+	public int preProcess() {
 		for(State s: kripke.getInitial()) {
 			Block b = new Block();
 			b.addState(s);
@@ -140,17 +141,20 @@ public class StutterOptimizer {
 			preProcessBSF(s);
 		}
 		
+		eventHandler.logVerbose("Block init");
 		for(Block b: toBeProcessed)
 			b.init();
+		
+		return toBeProcessed.size();
 	}
 	
 	private void preProcessBSF(State s) {
 		for(State next: s.getNextStates()) {
-			if(s.APequals(next)) {
+			if(s.APequals(next) && s.getBlock().size() < 10000) {
 				if(next.getBlock() == null) {
 					s.getBlock().addState(next);
 					next.setBlock(s.getBlock());
-
+					
 					preProcessBSF(next);
 				}
 				else {
