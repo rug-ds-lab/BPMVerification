@@ -20,7 +20,7 @@ public class KripkeConverter {
     private Kripke kripke;
     private Set<String> conditions;
     private IDMap idMap;
-    private int eventCount = 1000;
+    private int eventCount = 16000;
 
     public KripkeConverter(EventHandler eventHandler, Stepper paralelStepper, List<Condition> conditions, IDMap idMap) {
         this.eventHandler = eventHandler;
@@ -59,7 +59,7 @@ public class KripkeConverter {
     private void convertStep(Marking marking, State previous) {
         if (kripke.getStateCount() >= eventCount) {
             eventHandler.logInfo("Calculating state space (at " + kripke.getStateCount() + " states)");
-            eventCount *= 2;
+            eventCount += 16000;
         }
         
         for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
