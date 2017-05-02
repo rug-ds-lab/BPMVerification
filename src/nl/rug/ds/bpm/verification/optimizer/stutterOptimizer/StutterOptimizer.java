@@ -24,6 +24,8 @@ public class StutterOptimizer {
 		BL = new LinkedList<>();
 
 		stutterStates = new HashSet<State>();
+
+		preProcess();
 	}
 	
 	public int optimize() {
@@ -131,7 +133,7 @@ public class StutterOptimizer {
 		return stutterStates.size();
 	}
 	
-	public int preProcess() {
+	private void preProcess() {
 		for(State s: kripke.getInitial()) {
 			Block b = new Block();
 			b.addState(s);
@@ -144,13 +146,11 @@ public class StutterOptimizer {
 		eventHandler.logVerbose("Block init");
 		for(Block b: toBeProcessed)
 			b.init();
-		
-		return toBeProcessed.size();
 	}
 	
 	private void preProcessBSF(State s) {
 		for(State next: s.getNextStates()) {
-			if(s.APequals(next) && s.getBlock().size() < 10000) {
+			if(s.APequals(next)) {
 				if(next.getBlock() == null) {
 					s.getBlock().addState(next);
 					next.setBlock(s.getBlock());

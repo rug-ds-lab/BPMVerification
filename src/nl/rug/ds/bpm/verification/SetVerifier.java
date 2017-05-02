@@ -3,6 +3,7 @@ package nl.rug.ds.bpm.verification;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
+import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.QuickOptimizer;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
@@ -82,24 +83,17 @@ public class SetVerifier {
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
 		eventHandler.logInfo("Reducing state space");
-		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
+
+		eventHandler.logInfo("Optimizing state space (pass 1)");
 		t0 = System.currentTimeMillis();
-		
-		int pass = 1;
-		int blockCount = 0;
-		boolean cont = true;
-		while (cont) {
-			eventHandler.logVerbose("Pass " + pass + " initialization");
-			int blocks = stutterOptimizer.preProcess();
-			eventHandler.logVerbose("Pass " + pass++ + " optimizer " + blocks);
-			stutterOptimizer.optimize();
-			
-			if(blockCount == blocks)
-				cont = false;
-			
-			blockCount = blocks;
-		}
-		
+		QuickOptimizer quickOptimizer = new QuickOptimizer(eventHandler, kripke);
+		t1 = System.currentTimeMillis();
+		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
+
+		eventHandler.logInfo("Optimizing state space (pass 2)");
+		t0 = System.currentTimeMillis();
+		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
+		stutterOptimizer.optimize();
 		t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
 		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));

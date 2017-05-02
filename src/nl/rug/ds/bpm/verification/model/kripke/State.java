@@ -59,6 +59,8 @@ public class State implements Comparable<State> {
         return nextStates;
     }
 
+    public void setNextStates(HashSet<State> nextStates) { this.nextStates = nextStates; }
+
     public boolean addPrevious(State s) {
         return previousStates.add(s);
     }
@@ -70,6 +72,8 @@ public class State implements Comparable<State> {
     public Set<State> getPreviousStates() {
         return previousStates;
     }
+
+    public void setPreviousStates(HashSet<State> previousStates) { this.previousStates = previousStates; }
 
     public String toFriendlyString() {
         StringBuilder st = new StringBuilder(getID() + ": {" + marking + " = ");
