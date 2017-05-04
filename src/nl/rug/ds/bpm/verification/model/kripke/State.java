@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.model.kripke;
 
+import nl.rug.ds.bpm.verification.comparator.StateComparator;
 import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.Block;
 
 import java.util.HashSet;
@@ -10,10 +11,10 @@ import java.util.TreeSet;
 public class State implements Comparable<State> {
     private static int stateID = 0;
     private String id;
-    private String AP;
+    private String AP, reducedAP;
     private String marking;
     private Set<String> atomicPropositions;
-    private HashSet<State> nextStates, previousStates;
+    private Set<State> nextStates, previousStates;
     //stutter variables
     private boolean flag = false;
     private Block block;
@@ -22,8 +23,8 @@ public class State implements Comparable<State> {
         this.id = "S" + stateID++;
         this.marking = marking;
         this.atomicPropositions = atomicPropositions;
-        nextStates = new HashSet<State>();
-        previousStates = new HashSet<State>();
+        nextStates = new HashSet<>();
+        previousStates = new HashSet<>();
 
         AP = marking + "=";
         Iterator<String> api = atomicPropositions.iterator();
@@ -35,6 +36,7 @@ public class State implements Comparable<State> {
     public static void resetStateId(){
         State.stateID = 0;
     }
+    
     public Set<String> getAtomicPropositions() {
         return atomicPropositions;
     }
@@ -59,7 +61,7 @@ public class State implements Comparable<State> {
         return nextStates;
     }
 
-    public void setNextStates(HashSet<State> nextStates) { this.nextStates = nextStates; }
+    public void setNextStates(Set<State> nextStates) { this.nextStates = nextStates; }
 
     public boolean addPrevious(State s) {
         return previousStates.add(s);
@@ -73,7 +75,7 @@ public class State implements Comparable<State> {
         return previousStates;
     }
 
-    public void setPreviousStates(HashSet<State> previousStates) { this.previousStates = previousStates; }
+    public void setPreviousStates(Set<State> previousStates) { this.previousStates = previousStates; }
 
     public String toFriendlyString() {
         StringBuilder st = new StringBuilder(getID() + ": {" + marking + " = ");
@@ -111,19 +113,33 @@ public class State implements Comparable<State> {
     }
 
     public boolean APequals(State n) {
+    /*  if(atomicPropositions.isEmpty() && n.getAtomicPropositions().isEmpty())
+            return true;
+        boolean equal = atomicPropositions.size() == n.getAtomicPropositions().size();
+        if (!equal)
+            return false;
+        
         Iterator<String> i = atomicPropositions.iterator();
         Iterator<String> j = n.getAtomicPropositions().iterator();
-        boolean equal = true;
 
         while (i.hasNext() && j.hasNext() && equal)
             equal = i.next().equals(j.next());
 
         return equal && (i.hasNext() == j.hasNext());
+        */
+        return reducedAP.equals(n.getReducedAP());
     }
 
-    public void clearMarking() {
-        marking = "";
+    public void setReducedAP() {
+        reducedAP = "";
+        Iterator<String> api = atomicPropositions.iterator();
+        while (api.hasNext()) {
+            reducedAP = reducedAP + api.next();
+            if (api.hasNext()) reducedAP = reducedAP + " ";
+        }
     }
+    
+    public String getReducedAP() { return reducedAP; }
     
     public void setFlag(boolean flag) {
         this.flag = flag;

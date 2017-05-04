@@ -27,8 +27,10 @@ public class PropositionOptimizer {
 	public void optimize(Set<String> AP) {
 		optimizedPropositions.addAll(AP);
 		
-		for (State s : kripke.getStates())
+		for (State s : kripke.getStates()) {
 			s.removeAP(AP);
+			s.setReducedAP();
+		}
 		
 		kripke.getAtomicPropositions().removeAll(AP);
 	}

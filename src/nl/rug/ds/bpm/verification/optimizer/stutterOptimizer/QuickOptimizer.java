@@ -28,28 +28,33 @@ public class QuickOptimizer {
         Iterator<State> iterator = kripke.getStates().iterator();
         while (iterator.hasNext()) {
             State s = iterator.next();
-            if(count >= eventCount) {
-                eventHandler.logInfo("Optimizing state space (pass 1, at " + count + "/" + kripke.getStates().size() + " states");
-                eventCount += 16000;
-            }
-            count++;
-
-            Iterator<State> j = s.getNextStates().iterator();
-            boolean allStutter = j.hasNext();
-            while (j.hasNext() && allStutter)
-                allStutter = s.APequals(j.next());
-
-            if(allStutter) {
-                for (State n : s.getNextStates()) {
-                    n.getPreviousStates().remove(s);
-                    n.getPreviousStates().addAll(s.getPreviousStates());
+            if(!s.getPreviousStates().isEmpty()) {
+                if (count >= eventCount) {
+                    eventHandler.logInfo("Optimizing state space (pass 1, at " + kripke.getStates().size() + " states)");
+                    eventCount += 16000;
                 }
-
-                for (State p : s.getPreviousStates()) {
-                    p.getNextStates().remove(s);
-                    p.getNextStates().addAll(s.getNextStates());
+                count++;
+    
+                Iterator<State> j = s.getNextStates().iterator();
+                boolean allStutter = j.hasNext();
+                while (j.hasNext() && allStutter)
+                    allStutter = s.APequals(j.next());
+    
+                if (allStutter) {
+                    s.getNextStates().remove(s);
+                    s.getPreviousStates().remove(s);
+                    
+                    for (State n : s.getNextStates()) {
+                        n.getPreviousStates().addAll(s.getPreviousStates());
+                        n.getPreviousStates().remove(s);
+                    }
+        
+                    for (State p : s.getPreviousStates()) {
+                        p.getNextStates().addAll(s.getNextStates());
+                        p.getNextStates().remove(s);
+                    }
+                    iterator.remove();
                 }
-                iterator.remove();
             }
         }
     }
