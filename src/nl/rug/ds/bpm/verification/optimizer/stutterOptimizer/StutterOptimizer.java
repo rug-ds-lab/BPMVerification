@@ -30,6 +30,7 @@ public class StutterOptimizer {
 	
 	public int optimize() {
 		while(!toBeProcessed.isEmpty()) {
+			eventHandler.logInfo("Processing blocks " + toBeProcessed.size() + "/" + (toBeProcessed.size() + stable.size() + BL.size()));
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
 			for(State entryState: bAccent.getEntry()) {
@@ -142,8 +143,7 @@ public class StutterOptimizer {
 			
 			preProcessBSF(s);
 		}
-		
-		eventHandler.logVerbose("Block init");
+
 		for(Block b: toBeProcessed)
 			b.init();
 	}

@@ -11,7 +11,7 @@ import java.util.TreeSet;
 public class State implements Comparable<State> {
     private static int stateID = 0;
     private String id;
-    private String AP, reducedAP;
+    private int hashCode, APHashCode;
     private String marking;
     private Set<String> atomicPropositions;
     private Set<State> nextStates, previousStates;
@@ -26,27 +26,32 @@ public class State implements Comparable<State> {
         nextStates = new HashSet<>();
         previousStates = new HashSet<>();
 
-        AP = marking + "=";
+        String M = marking + "=";
+        String AP = "";
         Iterator<String> api = atomicPropositions.iterator();
         while (api.hasNext()) {
             AP = AP + api.next();
             if (api.hasNext()) AP = AP + " ";
         }
+        M = M + AP;
+        hashCode = M.hashCode();
+        APHashCode = AP.hashCode();
     }
     public static void resetStateId(){
         State.stateID = 0;
     }
-    
-    public Set<String> getAtomicPropositions() {
-        return atomicPropositions;
-    }
-
-    public String getAPString() {
-        return AP;
-    }
 
     public String getID() {
         return id;
+    }
+
+    @Override
+    public int hashCode() { return hashCode; }
+
+    public int APHashCode() { return APHashCode; }
+
+    public Set<String> getAtomicPropositions() {
+        return atomicPropositions;
     }
 
     public boolean addNext(State s) {
@@ -77,7 +82,8 @@ public class State implements Comparable<State> {
 
     public void setPreviousStates(Set<State> previousStates) { this.previousStates = previousStates; }
 
-    public String toFriendlyString() {
+    @Override
+    public String toString() {
         StringBuilder st = new StringBuilder(getID() + ": {" + marking + " = ");
         Iterator<String> api = getAtomicPropositions().iterator();
         while (api.hasNext()) {
@@ -89,58 +95,25 @@ public class State implements Comparable<State> {
     }
 
     @Override
-    public String toString() {
-        return id + ": {" + getAPString() + "}";
-    }
+    public int compareTo(State o) { return (o == null ? -1 : hashCode - o.hashCode()); }
 
     @Override
-    public int compareTo(State o) {
-        return (o == null ? 0 : getAPString().compareTo(o.getAPString()));
-    }
-
-    @Override
-    public boolean equals(Object arg0) {
-        return (arg0 != null && getAPString().equals(((State) arg0).getAPString()));
-    }
-
-    @Override
-    public int hashCode() {
-        return getAPString().hashCode();
-    }
+    public boolean equals(Object arg0) { return (arg0 != null && hashCode == ((State) arg0).hashCode()); }
 
     public void removeAP(Set<String> APs) {
         atomicPropositions.removeAll(APs);
-    }
 
-    public boolean APequals(State n) {
-    /*  if(atomicPropositions.isEmpty() && n.getAtomicPropositions().isEmpty())
-            return true;
-        boolean equal = atomicPropositions.size() == n.getAtomicPropositions().size();
-        if (!equal)
-            return false;
-        
-        Iterator<String> i = atomicPropositions.iterator();
-        Iterator<String> j = n.getAtomicPropositions().iterator();
-
-        while (i.hasNext() && j.hasNext() && equal)
-            equal = i.next().equals(j.next());
-
-        return equal && (i.hasNext() == j.hasNext());
-        */
-        return reducedAP.equals(n.getReducedAP());
-    }
-
-    public void setReducedAP() {
-        reducedAP = "";
+        String AP = "";
         Iterator<String> api = atomicPropositions.iterator();
         while (api.hasNext()) {
-            reducedAP = reducedAP + api.next();
-            if (api.hasNext()) reducedAP = reducedAP + " ";
+            AP = AP + api.next();
+            if (api.hasNext()) AP = AP + " ";
         }
+        APHashCode = AP.hashCode();
     }
-    
-    public String getReducedAP() { return reducedAP; }
-    
+
+    public boolean APequals(State n) { return APHashCode == n.APHashCode(); }
+
     public void setFlag(boolean flag) {
         this.flag = flag;
     }

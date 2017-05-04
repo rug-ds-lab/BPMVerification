@@ -67,7 +67,7 @@ public class SetVerifier {
 		kripke = converter.convert();
 		long t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");
-		//eventHandler.logVerbose("\n" + kripke.toString(true));
+		//eventHandler.logInfo("\n" + kripke.toString());
 
 		eventHandler.logInfo("Optimizing Kripke structure");
 		eventHandler.logInfo("Removing unused atomic propositions");
@@ -97,13 +97,13 @@ public class SetVerifier {
 		t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
 		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
+		//eventHandler.logVerbose("\n" + kripke.toString());
 		
 		//Add ghost state with unknown AP for checker safety
 		State ghost = new State("ghost", unknownAP);
 		ghost.addNext(ghost);
 		ghost.addPrevious(ghost);
-		
-		kripke.addAtomicPropositions(unknownAP);
+
 		kripke.addState(ghost);
 	}
 

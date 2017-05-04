@@ -40,12 +40,7 @@ public class KripkeConverter {
 
         Marking marking = parallelStepper.initialMarking();
 		for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
-            TreeSet<String> ap = mapAp(enabled);
-            
-            kripke.addAtomicPropositions(ap);
-            
-            State found = new State(marking.toString(), ap);
-            kripke.addState(found);
+            State found = new State(marking.toString(), mapAp(enabled));
             kripke.addInitial(found);
             
             for (String transition: enabled)
@@ -63,29 +58,17 @@ public class KripkeConverter {
         }
         
         for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
-            TreeSet<String> ap = mapAp(enabled);
-        
-            kripke.addAtomicPropositions(ap);
-        
-            State found = new State(marking.toString(), ap);
-            
-            State existing = kripke.getStates().ceiling(found);
-            if (found.equals(existing))
-                found = existing;
-            else
-                kripke.addState(found);
+            State found = new State(marking.toString(), mapAp(enabled));
+            State existing = kripke.addNext(previous, found);
     
-            previous.addNext(found);
-            found.addPrevious(previous);
-    
-            if (found != existing) {
+            if (found == existing) {
                 if (enabled.isEmpty()) {
                     found.addNext(found);
                     found.addPrevious(found);
                 }
                 for (String transition: enabled)
                     for (Marking step: parallelStepper.fireTransition(marking, transition, conditions))
-                        convertStep(step, found);
+                        convertStep(step, existing);
             }
         }
     }

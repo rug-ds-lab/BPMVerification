@@ -176,7 +176,7 @@ public class Block {
 
 		Iterator<State> bi = bottom.iterator();
 		while(bi.hasNext()) {
-			sb.append(bi.next().toFriendlyString());
+			sb.append(bi.next().toString());
 			if (bi.hasNext())
 				sb.append(", ");
 		}
@@ -185,7 +185,7 @@ public class Block {
 		if(nbi.hasNext())
 			sb.append(" | ");
 		while(nbi.hasNext()) {
-			sb.append(nbi.next().toFriendlyString());
+			sb.append(nbi.next().toString());
 			if (nbi.hasNext())
 				sb.append(", ");
 		}
