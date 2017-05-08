@@ -24,13 +24,13 @@ public class StutterOptimizer {
 		BL = new LinkedList<>();
 
 		stutterStates = new HashSet<State>();
-
+		
 		preProcess();
 	}
 	
 	public int optimize() {
 		while(!toBeProcessed.isEmpty()) {
-			eventHandler.logInfo("Processing blocks " + toBeProcessed.size() + "/" + (toBeProcessed.size() + stable.size() + BL.size()));
+			eventHandler.logInfo("Processing stutter block (" + toBeProcessed.size() + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
 			for(State entryState: bAccent.getEntry()) {
@@ -87,10 +87,14 @@ public class StutterOptimizer {
 			if(b.size() > 1) {
 				Iterator<State> i = b.getBottom().iterator();
 				State s = i.next();  //there shouldn't exist empty blocks
+				s.resetBlock();
+				
 				Set<State> previous = new HashSet<State>(s.getPreviousStates());
 				Set<State> next = new HashSet<State>(s.getNextStates());
 				while (i.hasNext()) {
 					State n = i.next();
+					n.resetBlock();
+					
 					stutterStates.add(n);
 					previous.addAll(n.getPreviousStates());
 					next.addAll(n.getNextStates());
@@ -99,6 +103,8 @@ public class StutterOptimizer {
 				Iterator<State> j = b.getNonbottom().iterator();
 				while (j.hasNext()) {
 					State n = j.next();
+					n.resetBlock();
+					
 					stutterStates.add(n);
 					previous.addAll(n.getPreviousStates());
 					next.addAll(n.getNextStates());
@@ -126,11 +132,27 @@ public class StutterOptimizer {
 
 				s.addNext(next);
 				s.addPrevious(previous);
+				
+				//if block contains initial states, remove them and add the stutter state
+				b.getNonbottom().retainAll(kripke.getInitial());
+				b.getBottom().retainAll(kripke.getInitial());
+				
+				if(b.getNonbottom().size() > 0) {
+					kripke.getInitial().removeAll(b.getNonbottom());
+					kripke.getInitial().add(s);
+				}
+				if(b.getBottom().size() > 0) {
+					kripke.getInitial().removeAll(b.getBottom());
+					kripke.getInitial().add(s);
+				}
 			}
 		}
 
 		kripke.getStates().removeAll(stutterStates);
 		
+		stutterStates.retainAll(kripke.getStates());
+		for (State z: stutterStates)
+			eventHandler.logVerbose("Stutterstate: " + z.getID());
 		return stutterStates.size();
 	}
 	
@@ -143,7 +165,7 @@ public class StutterOptimizer {
 			
 			preProcessBSF(s);
 		}
-
+		
 		for(Block b: toBeProcessed)
 			b.init();
 	}
@@ -154,7 +176,7 @@ public class StutterOptimizer {
 				if(next.getBlock() == null) {
 					s.getBlock().addState(next);
 					next.setBlock(s.getBlock());
-					
+
 					preProcessBSF(next);
 				}
 				else {

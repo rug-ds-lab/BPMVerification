@@ -4,9 +4,8 @@
 			<specifications>
 				<specification id="s1" type="AlwaysResponse">
 					<inputElements>
-						<inputElement target="p">start</inputElement>
-						<inputElement target="q">t5</inputElement>
-						<inputElement target="q">t11</inputElement>
+						<inputElement target="p">t9</inputElement>
+						<inputElement target="q">t39</inputElement>
 					</inputElements>
 				</specification>
 			</specifications>

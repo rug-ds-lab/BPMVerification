@@ -60,9 +60,9 @@ public class KripkeConverter {
         for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
             State found = new State(marking.toString(), mapAp(enabled));
             State existing = kripke.addNext(previous, found);
-    
-            if (found == existing) {
-                if (enabled.isEmpty()) {
+        
+            if (found == existing) { //if found is a new state
+                if (enabled.isEmpty()) { //if state is a sink
                     found.addNext(found);
                     found.addPrevious(found);
                 }

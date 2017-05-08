@@ -11,8 +11,7 @@ import java.util.TreeSet;
 public class State implements Comparable<State> {
     private static int stateID = 0;
     private String id;
-    private int hashCode, APHashCode;
-    private String marking;
+    private String hash, APHash;
     private Set<String> atomicPropositions;
     private Set<State> nextStates, previousStates;
     //stutter variables
@@ -21,7 +20,6 @@ public class State implements Comparable<State> {
 
     public State(String marking, TreeSet<String> atomicPropositions) {
         this.id = "S" + stateID++;
-        this.marking = marking;
         this.atomicPropositions = atomicPropositions;
         nextStates = new HashSet<>();
         previousStates = new HashSet<>();
@@ -34,9 +32,10 @@ public class State implements Comparable<State> {
             if (api.hasNext()) AP = AP + " ";
         }
         M = M + AP;
-        hashCode = M.hashCode();
-        APHashCode = AP.hashCode();
+        hash = M;
+        APHash = AP;
     }
+        
     public static void resetStateId(){
         State.stateID = 0;
     }
@@ -46,9 +45,10 @@ public class State implements Comparable<State> {
     }
 
     @Override
-    public int hashCode() { return hashCode; }
+    public int hashCode() { return hash.hashCode(); }
 
-    public int APHashCode() { return APHashCode; }
+    public String hash() { return  hash; }
+    public String APHash() { return APHash; }
 
     public Set<String> getAtomicPropositions() {
         return atomicPropositions;
@@ -84,7 +84,7 @@ public class State implements Comparable<State> {
 
     @Override
     public String toString() {
-        StringBuilder st = new StringBuilder(getID() + ": {" + marking + " = ");
+        StringBuilder st = new StringBuilder(getID() + ": {" + hash + " = ");
         Iterator<String> api = getAtomicPropositions().iterator();
         while (api.hasNext()) {
             st.append(api.next());
@@ -95,10 +95,26 @@ public class State implements Comparable<State> {
     }
 
     @Override
-    public int compareTo(State o) { return (o == null ? -1 : hashCode - o.hashCode()); }
+    public int compareTo(State o) {
+        if (this == o)
+            return 0;
+        if(o == null)
+            return -1;
+        if(this.getClass() != o.getClass())
+            return -1;
+        return hash.compareTo(o.hash());
+    }
 
     @Override
-    public boolean equals(Object arg0) { return (arg0 != null && hashCode == ((State) arg0).hashCode()); }
+    public boolean equals(Object arg0) {
+        if(this == arg0)
+            return true;
+        if(arg0 == null)
+            return false;
+        if(this.getClass() != arg0.getClass())
+            return false;
+        return hash.equals(((State) arg0).hash());
+    }
 
     public void removeAP(Set<String> APs) {
         atomicPropositions.removeAll(APs);
@@ -109,10 +125,10 @@ public class State implements Comparable<State> {
             AP = AP + api.next();
             if (api.hasNext()) AP = AP + " ";
         }
-        APHashCode = AP.hashCode();
+        APHash = AP;
     }
 
-    public boolean APequals(State n) { return APHashCode == n.APHashCode(); }
+    public boolean APequals(State n) { return APHash.equals(n.APHash()); }
 
     public void setFlag(boolean flag) {
         this.flag = flag;

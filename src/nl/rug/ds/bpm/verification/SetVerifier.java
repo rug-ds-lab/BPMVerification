@@ -84,18 +84,18 @@ public class SetVerifier {
 
 		eventHandler.logInfo("Reducing state space");
 
-		eventHandler.logInfo("Optimizing state space (pass 1)");
-		t0 = System.currentTimeMillis();
-		QuickOptimizer quickOptimizer = new QuickOptimizer(eventHandler, kripke);
-		t1 = System.currentTimeMillis();
-		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
+		//eventHandler.logInfo("Optimizing state space (pass 1)");
+		//t0 = System.currentTimeMillis();
+		//QuickOptimizer quickOptimizer = new QuickOptimizer(eventHandler, kripke);
+		//t1 = System.currentTimeMillis();
+		//eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
 
-		eventHandler.logInfo("Optimizing state space (pass 2)");
+		eventHandler.logInfo("Optimizing state space");
 		t0 = System.currentTimeMillis();
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
 		stutterOptimizer.optimize();
 		t1 = System.currentTimeMillis();
-		eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
+		eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
 		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
 		//eventHandler.logVerbose("\n" + kripke.toString());
 		

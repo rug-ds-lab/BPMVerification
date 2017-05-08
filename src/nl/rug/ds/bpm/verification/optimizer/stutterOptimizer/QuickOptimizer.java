@@ -13,14 +13,89 @@ import java.util.*;
 public class QuickOptimizer {
     private EventHandler eventHandler;
     private Kripke kripke;
-
+	
+	private int eventCount, count;
+	private HashSet<State> removed;
+	
     public QuickOptimizer(EventHandler eventHandler, Kripke kripke) {
         this.eventHandler = eventHandler;
         this.kripke = kripke;
-
+        
+        count = 0;
+		eventCount = 2000;
+		removed = new HashSet<>();
+		
         stutterOptimize();
+        
+        kripke.getStates().removeAll(removed);
+        removed.clear();
     }
+    
+    private void stutterOptimize() {
+    	for (State current: kripke.getInitial()) {
+			stutterStep(current);
+			count++;
+		}
+	}
+	
+	private void stutterStep(State current) {
+		Iterator<State> nextStates = current.getNextStates().iterator();
+		boolean allStutter = nextStates.hasNext();
+		while (nextStates.hasNext() && allStutter)
+			allStutter = current.APequals(nextStates.next());
+		
+		if(allStutter) {
+			Set<State> previous = new HashSet<State>(current.getPreviousStates());
+			Set<State> next = new HashSet<State>(current.getNextStates());
+			
+			for (State n : current.getNextStates()) {
+				previous.addAll(n.getPreviousStates());
+				next.addAll(n.getNextStates());
+				n.getPreviousStates().clear();
+				n.getNextStates().clear();
+				//System.out.println("Stutter "+s.toString()+" to "+n.toString());
+			}
+			removed.addAll(current.getNextStates());
+			
+			for (State prev : previous) {
+				prev.getNextStates().removeAll(current.getNextStates());
+				prev.addNext(current);
+			}
+			
+			for (State x : next) {
+				x.getPreviousStates().removeAll(current.getNextStates());
+				x.addPrevious(current);
+			}
+			
+			previous.removeAll(current.getNextStates());
+			previous.remove(current);
+			
+			next.removeAll(current.getNextStates());
+			next.remove(current);
+			
+			current.getPreviousStates().clear();
+			current.getNextStates().clear();
+			
+			current.setNextStates(next);
+			current.setPreviousStates(previous);
+			
+			for (State n: next)
+				stutterStep(n);
+		}
+		else {
+			for (State n: current.getNextStates())
+				if (n != current)
+					stutterStep(n);
+		}
+		
+		count++;
+		if (count >= eventCount) {
+			eventHandler.logInfo("Optimizing state space (pass 1, at " + count + " states)");
+			eventCount += 2000;
+		}
+	}
 
+    /*
     private void stutterOptimize() {
         int eventCount = 2000;
         int count = 0;
@@ -67,9 +142,9 @@ public class QuickOptimizer {
                 current.setNextStates(next);
                 current.setPreviousStates(previous);
 
-                count++;
             }
-
+    
+            count++;
             if (count >= eventCount) {
                 eventHandler.logInfo("Optimizing state space (pass 1, at " + count + " states)");
                 eventCount += 2000;
@@ -78,4 +153,5 @@ public class QuickOptimizer {
 
         kripke.getStates().removeAll(removed);
     }
+    */
 }
