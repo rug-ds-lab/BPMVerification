@@ -1,11 +1,10 @@
 package nl.rug.ds.bpm.verification.stepper;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Created by Nick van Beest 26-Apr-17.
@@ -16,7 +15,7 @@ public class Marking {
 	private Map<String, Integer> tokenmap;
 	
 	public Marking() {
-		tokenmap = new HashMap<String, Integer>();
+		tokenmap = new TreeMap<String, Integer>();
 	}
 	
 	public void addTokens(String placeId, int tokens) {
@@ -85,12 +84,12 @@ public class Marking {
 	public String toString() {
 		String s = "";
 		
-		List<String> places = new ArrayList<String>(tokenmap.keySet());
+		Iterator<String> p = tokenmap.keySet().iterator();
+		String placeId;
 		
-		Collections.sort(places);
-		
-		for (int i = 0; i < places.size(); i++) {
-			s = s + "+" + tokenmap.get(places.get(i)) + places.get(i);
+		while(p.hasNext()) {
+			placeId = p.next();
+			s = s + "+" + tokenmap.get(placeId) + placeId;
 		}
 		return (s.length() > 0 ? s.substring(1) : "");
 	}
