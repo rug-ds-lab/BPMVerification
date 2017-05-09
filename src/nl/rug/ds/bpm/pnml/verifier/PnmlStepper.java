@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.jdom.JDOMException;
 
@@ -30,11 +31,12 @@ public class PnmlStepper extends Stepper {
 	private PetriNet pn;
 	private Map<String, Transition> transitionmap;
 	private Map<String, Place> placemap;
+	private Map<String, Set<String>> transitionIdmap;
 
 	public PnmlStepper(File pnml) throws JDOMException, IOException {
 		super(pnml);
 		getPN();
-		initializeTransitionMap();
+		initializeTransitionMaps();
 		initializePlaceMap();
 	}
 	
@@ -42,14 +44,21 @@ public class PnmlStepper extends Stepper {
 		pn = PNMLReader.parse(net);
 	}
 	
-	private void initializeTransitionMap() {
+	protected void initializeTransitionMaps() {
 		transitionmap = new HashMap<String, Transition>();
+		transitionIdmap = new HashMap<String, Set<String>>();
+		
 		for (Transition t: pn.getTransitions()) {
 			transitionmap.put(getId(t), t);
+			
+			if (!transitionIdmap.containsKey(t.getName()))
+				transitionIdmap.put(t.getName(), new HashSet<String>());
+			
+			transitionIdmap.get(t.getName()).add(getId(t));
 		}
 	}
 	
-	private void initializePlaceMap() {
+	protected void initializePlaceMap() {
 		placemap = new HashMap<String, Place>();
 		
 		for (Place p: pn.getPlaces()) {
@@ -117,6 +126,10 @@ public class PnmlStepper extends Stepper {
 		return getEnabledPresets(marking).keySet();
 	}
 	
+	public Map<String, Set<String>> getTransitionIdMap() {
+		return transitionIdmap;
+	}
+	
 	@Override
 	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
 		Set<Set<String>> ypar = new HashSet<Set<String>>();
@@ -162,7 +175,7 @@ public class PnmlStepper extends Stepper {
 		Set<Set<String>> corrected_ypar = new HashSet<Set<String>>();
 		Set<String> cur_par;
 		for (Set<String> y: ypar) {
-			cur_par = new HashSet<String>();
+			cur_par = new TreeSet<String>();
 			for (String c: y) {
 				cur_par.add(c.substring(0, c.lastIndexOf("(")));
 			}

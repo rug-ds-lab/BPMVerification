@@ -29,11 +29,12 @@ public class ExtPnmlStepper extends Stepper {
 	private ExtPetriNet pn;
 	private Map<String, Transition> transitionmap;
 	private Map<String, Place> placemap;
+	private Map<String, Set<String>> transitionIdmap;
 
 	public ExtPnmlStepper(File pnml) throws JDOMException, IOException {
 		super(pnml);
 		getPN();
-		initializeTransitionMap();
+		initializeTransitionMaps();
 		initializePlaceMap();
 	}
 	
@@ -41,10 +42,17 @@ public class ExtPnmlStepper extends Stepper {
 		pn = ExtPNMLReader.parse(net);
 	}
 	
-	private void initializeTransitionMap() {
+	private void initializeTransitionMaps() {
 		transitionmap = new HashMap<String, Transition>();
+		transitionIdmap = new HashMap<String, Set<String>>();
+		
 		for (Transition t: pn.getTransitions()) {
 			transitionmap.put(getId(t), t);
+			
+			if (!transitionIdmap.containsKey(t.getName()))
+				transitionIdmap.put(t.getName(), new HashSet<String>());
+			
+			transitionIdmap.get(t.getName()).add(getId(t));
 		}
 	}
 	
@@ -117,6 +125,10 @@ public class ExtPnmlStepper extends Stepper {
 		return getEnabledPresets(marking).keySet();
 	}
 	
+	public Map<String, Set<String>> getTransitionIdMap() {
+		return transitionIdmap;
+	}
+
 	@Override
 	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
 		Set<Set<String>> ypar = new HashSet<Set<String>>();
