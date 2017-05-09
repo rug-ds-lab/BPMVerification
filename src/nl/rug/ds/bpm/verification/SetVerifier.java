@@ -3,7 +3,6 @@ package nl.rug.ds.bpm.verification;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
-import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.QuickOptimizer;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
@@ -83,20 +82,12 @@ public class SetVerifier {
 		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 
 		eventHandler.logInfo("Reducing state space");
-
-		//eventHandler.logInfo("Optimizing state space (pass 1)");
-		//t0 = System.currentTimeMillis();
-		//QuickOptimizer quickOptimizer = new QuickOptimizer(eventHandler, kripke);
-		//t1 = System.currentTimeMillis();
-		//eventHandler.logInfo("Reduced Kripke structure to " +kripke.stats() + " in " + (t1 - t0) + " ms");
-
-		eventHandler.logInfo("Optimizing state space");
 		t0 = System.currentTimeMillis();
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
 		stutterOptimizer.optimize();
 		t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
-		//eventHandler.logVerbose("\n" + stutterOptimizer.toString(true));
+		//eventHandler.logVerbose("\n" + stutterOptimizer.toString());
 		//eventHandler.logVerbose("\n" + kripke.toString());
 		
 		//Add ghost state with unknown AP for checker safety

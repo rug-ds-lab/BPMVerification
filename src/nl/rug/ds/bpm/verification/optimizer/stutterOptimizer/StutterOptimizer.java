@@ -30,7 +30,7 @@ public class StutterOptimizer {
 	
 	public int optimize() {
 		while(!toBeProcessed.isEmpty()) {
-			eventHandler.logInfo("Processing stutter block (" + toBeProcessed.size() + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
+			eventHandler.logInfo("Processing stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
 			for(State entryState: bAccent.getEntry()) {
@@ -82,81 +82,87 @@ public class StutterOptimizer {
 			toBeProcessed.remove(bAccent);
 		}
 
+		int blc = 1;
 		//merge blocks with size > 1
 		for(Block b: stable) {
+			eventHandler.logInfo("Merging stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()) + " (" + blc++  + "/" + stable.size() + ")");
 			if(b.size() > 1) {
-				Iterator<State> i = b.getBottom().iterator();
-				State s = i.next();  //there shouldn't exist empty blocks
-				s.resetBlock();
-				
-				Set<State> previous = new HashSet<State>(s.getPreviousStates());
-				Set<State> next = new HashSet<State>(s.getNextStates());
-				while (i.hasNext()) {
-					State n = i.next();
-					n.resetBlock();
-					
-					stutterStates.add(n);
-					previous.addAll(n.getPreviousStates());
-					next.addAll(n.getNextStates());
+				Set<State> previous = new HashSet<State>();
+				Set<State> next = new HashSet<State>();
+				State s = null;
+
+				for(State n: b.getBottom()) {
+					for (State prev: n.getPreviousStates())
+						if(prev.getBlock() != b)
+							previous.add(prev);
+
+					for (State ne: n.getNextStates())
+						if(ne.getBlock() != b)
+							next.add(ne);
+
+					if(s == null)
+						s = n;
+					else
+						stutterStates.add(n);
 				}
 
-				Iterator<State> j = b.getNonbottom().iterator();
-				while (j.hasNext()) {
-					State n = j.next();
-					n.resetBlock();
-					
-					stutterStates.add(n);
-					previous.addAll(n.getPreviousStates());
-					next.addAll(n.getNextStates());
+				for(State n: b.getNonbottom()) {
+					for (State prev: n.getPreviousStates())
+						if(prev.getBlock() != b)
+							previous.add(prev);
+
+					for (State ne: n.getNextStates())
+						if(ne.getBlock() != b)
+							next.add(ne);
+
+					if(s == null)
+						s = n;
+					else
+						stutterStates.add(n);
 				}
 
-				previous.removeAll(b.getBottom());
-				previous.removeAll(b.getNonbottom());
-				next.removeAll(b.getBottom());
-				next.removeAll(b.getNonbottom());
+				if(s != null) {
+					for (State p : previous) {
+						p.getNextStates().removeAll(b.getBottom());
+						p.getNextStates().removeAll(b.getNonbottom());
+						p.addNext(s);
+					}
 
-				for(State p: previous) {
-					p.getNextStates().removeAll(b.getBottom());
-					p.getNextStates().removeAll(b.getNonbottom());
-					p.addNext(s);
-				}
+					for (State n : next) {
+						n.getPreviousStates().removeAll(b.getBottom());
+						n.getPreviousStates().removeAll(b.getNonbottom());
+						n.addPrevious(s);
+					}
 
-				for(State n: next) {
-					n.getPreviousStates().removeAll(b.getBottom());
-					n.getPreviousStates().removeAll(b.getNonbottom());
-					n.addPrevious(s);
-				}
+					s.setNextStates(next);
+					s.setPreviousStates(previous);
 
-				s.getNextStates().clear();
-				s.getPreviousStates().clear();
+					//if block contains initial states, remove them and add the stutter state
+					b.getNonbottom().retainAll(kripke.getInitial());
+					b.getBottom().retainAll(kripke.getInitial());
 
-				s.addNext(next);
-				s.addPrevious(previous);
-				
-				//if block contains initial states, remove them and add the stutter state
-				b.getNonbottom().retainAll(kripke.getInitial());
-				b.getBottom().retainAll(kripke.getInitial());
-				
-				if(b.getNonbottom().size() > 0) {
-					kripke.getInitial().removeAll(b.getNonbottom());
-					kripke.getInitial().add(s);
-				}
-				if(b.getBottom().size() > 0) {
-					kripke.getInitial().removeAll(b.getBottom());
-					kripke.getInitial().add(s);
+					if (b.getNonbottom().size() > 0) {
+						kripke.getInitial().removeAll(b.getNonbottom());
+						kripke.getInitial().add(s);
+					}
+					if (b.getBottom().size() > 0) {
+						kripke.getInitial().removeAll(b.getBottom());
+						kripke.getInitial().add(s);
+					}
 				}
 			}
 		}
 
 		kripke.getStates().removeAll(stutterStates);
-		
-		stutterStates.retainAll(kripke.getStates());
-		for (State z: stutterStates)
-			eventHandler.logVerbose("Stutterstate: " + z.getID());
+
+		for (State z: kripke.getStates())
+			z.resetBlock();
+
 		return stutterStates.size();
 	}
 	
 	private void preProcess() {
+		eventHandler.logInfo("Partitioning states into stutter blocks");
 		for(State s: kripke.getInitial()) {
 			Block b = new Block();
 			b.addState(s);
@@ -172,30 +178,27 @@ public class StutterOptimizer {
 	
 	private void preProcessBSF(State s) {
 		for(State next: s.getNextStates()) {
-			if(s.APequals(next)) {
-				if(next.getBlock() == null) {
+			if(next.getBlock() == null) {
+				if(s.APequals(next)) {
 					s.getBlock().addState(next);
 					next.setBlock(s.getBlock());
 
 					preProcessBSF(next);
 				}
 				else {
-					if(s.getBlock() != next.getBlock()) {
-						Block merge = next.getBlock();
-						toBeProcessed.remove(merge);
-						s.getBlock().merge(merge);
-					}
-					//else both already in same block
-				}
-			}
-			else {
-				if(next.getBlock() == null) {
 					Block b = new Block();
 					b.addState(next);
 					next.setBlock(b);
 					toBeProcessed.add(b);
 
 					preProcessBSF(next);
+				}
+			}
+			else {
+				if(s.APequals(next) && s.getBlock() != next.getBlock()) {
+					Block merge = next.getBlock();
+					toBeProcessed.remove(merge);
+					s.getBlock().merge(merge);
 				}
 				//else already preprocessed correctly
 			}

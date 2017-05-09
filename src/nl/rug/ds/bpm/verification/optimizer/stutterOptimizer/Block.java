@@ -13,21 +13,21 @@ public class Block {
 
 	public Block() {
 		flag = false;
-		bottom = new LinkedList<>();
-		nonbottom = new LinkedList<>();
-		entry = new LinkedList<>();
+		bottom = new ArrayList<>();
+		nonbottom = new ArrayList<>();
+		entry = new ArrayList<>();
 	}
 
 	public Block(List<State> bottom, List<State> nonbottom) {
 		flag = false;
 		this.bottom = bottom;
 		this.nonbottom = nonbottom;
-		entry = new LinkedList<>();
+		entry = new ArrayList<>();
 	}
 
 	public Block split() {
-		List<State> bot = new LinkedList<>();
-		List<State> nonbot = new LinkedList<>();
+		List<State> bot = new ArrayList<>();
+		List<State> nonbot = new ArrayList<>();
 
 		for(State b: bottom)
 			if(!b.getFlag())
