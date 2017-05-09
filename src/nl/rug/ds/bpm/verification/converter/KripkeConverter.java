@@ -67,7 +67,7 @@ public class KripkeConverter {
                     found.addPrevious(found);
                 }
                 for (String transition: enabled)
-                    for (Marking step: parallelStepper.fireTransition(marking, transition, conditions))
+                    for (Marking step: parallelStepper.fireTransition(marking.clone(), transition, conditions))
                         convertStep(step, existing);
             }
         }

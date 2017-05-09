@@ -1,13 +1,8 @@
 package nl.rug.ds.bpm.verification.stepper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
+
+import java.util.*;
 
 /**
  * Created by Nick van Beest 26-Apr-17.
@@ -15,10 +10,10 @@ import java.util.TreeMap;
 public class Marking {
 	private static int maximumTokensAtPlaces = 9;
 	
-	private Map<String, Integer> tokenmap;
+	private SortedMap<String, Integer> tokenmap;
 	
 	public Marking() {
-		tokenmap = new TreeMap<String, Integer>();
+		tokenmap = new TreeMap<String, Integer>(new StringComparator());
 	}
 	
 	public void addTokens(String placeId, int tokens) {
@@ -76,40 +71,33 @@ public class Marking {
 	}
 	
 	public void copyFromMarking(Marking m) {
-		tokenmap = new HashMap<String, Integer>();
+		tokenmap = new TreeMap<String, Integer>();
 		
 		for (String placeId: m.getMarkedPlaces()) {
 			tokenmap.put(placeId, m.getTokensAtPlace(placeId));
 		}
 	}
 	
-//	@Override
-//	public String toString() {
-//		String s = "";
-//		
-//		Iterator<String> p = tokenmap.keySet().iterator();
-//		String placeId;
-//		
-//		while(p.hasNext()) {
-//			placeId = p.next();
-//			s = s + "+" + tokenmap.get(placeId) + placeId;
-//		}
-//		return (s.length() > 0 ? s.substring(1) : "");
-//	}
-
 	@Override
 	public String toString() {
 		String s = "";
-		
-		List<String> places = new ArrayList<String>(tokenmap.keySet());
-		Collections.sort(places);
-		
-		for(int i = 0; i < places.size(); i++) {
-			s = s + "+" + tokenmap.get(places.get(i)) + places.get(i);
+
+		Iterator<String> p = tokenmap.keySet().iterator();
+		String placeId;
+
+		while(p.hasNext()) {
+			placeId = p.next();
+			s = s + "+" + tokenmap.get(placeId) + placeId;
 		}
 		return (s.length() > 0 ? s.substring(1) : "");
 	}
-	
+
+	public Marking clone() {
+		Marking marking = new Marking();
+		marking.copyFromMarking(this);
+		return marking;
+	}
+
 	public static void setMaximumTokensAtPlaces(int maximum) {
 		maximumTokensAtPlaces = maximum;
 	}
