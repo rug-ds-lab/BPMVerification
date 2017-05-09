@@ -1,7 +1,10 @@
 package nl.rug.ds.bpm.verification.stepper;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -80,16 +83,29 @@ public class Marking {
 		}
 	}
 	
+//	@Override
+//	public String toString() {
+//		String s = "";
+//		
+//		Iterator<String> p = tokenmap.keySet().iterator();
+//		String placeId;
+//		
+//		while(p.hasNext()) {
+//			placeId = p.next();
+//			s = s + "+" + tokenmap.get(placeId) + placeId;
+//		}
+//		return (s.length() > 0 ? s.substring(1) : "");
+//	}
+
 	@Override
 	public String toString() {
 		String s = "";
 		
-		Iterator<String> p = tokenmap.keySet().iterator();
-		String placeId;
+		List<String> places = new ArrayList<String>(tokenmap.keySet());
+		Collections.sort(places);
 		
-		while(p.hasNext()) {
-			placeId = p.next();
-			s = s + "+" + tokenmap.get(placeId) + placeId;
+		for(int i = 0; i < places.size(); i++) {
+			s = s + "+" + tokenmap.get(places.get(i)) + places.get(i);
 		}
 		return (s.length() > 0 ? s.substring(1) : "");
 	}
