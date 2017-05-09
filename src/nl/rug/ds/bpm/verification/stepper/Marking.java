@@ -1,6 +1,9 @@
 package nl.rug.ds.bpm.verification.stepper;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -81,8 +84,13 @@ public class Marking {
 	@Override
 	public String toString() {
 		String s = "";
-		for (String placeId: tokenmap.keySet()) {
-			s = s + "+" + tokenmap.get(placeId) + placeId;
+		
+		List<String> places = new ArrayList<String>(tokenmap.keySet());
+		
+		Collections.sort(places);
+		
+		for (int i = 0; i < places.size(); i++) {
+			s = s + "+" + tokenmap.get(places.get(i)) + places.get(i);
 		}
 		return (s.length() > 0 ? s.substring(1) : "");
 	}
