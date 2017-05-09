@@ -93,12 +93,16 @@ public class StutterOptimizer {
 
 				for(State n: b.getBottom()) {
 					for (State prev: n.getPreviousStates())
-						if(prev.getBlock() != b)
+						if(prev.getBlock() != b) {
 							previous.add(prev);
+							prev.getNextStates().remove(n);
+						}
 
 					for (State ne: n.getNextStates())
-						if(ne.getBlock() != b)
+						if(ne.getBlock() != b) {
 							next.add(ne);
+							ne.getPreviousStates().remove(n);
+						}
 
 					if(s == null)
 						s = n;
@@ -108,12 +112,16 @@ public class StutterOptimizer {
 
 				for(State n: b.getNonbottom()) {
 					for (State prev: n.getPreviousStates())
-						if(prev.getBlock() != b)
+						if(prev.getBlock() != b) {
 							previous.add(prev);
+							prev.getNextStates().remove(n);
+						}
 
 					for (State ne: n.getNextStates())
-						if(ne.getBlock() != b)
+						if(ne.getBlock() != b) {
 							next.add(ne);
+							ne.getPreviousStates().remove(n);
+						}
 
 					if(s == null)
 						s = n;
@@ -122,17 +130,11 @@ public class StutterOptimizer {
 				}
 
 				if(s != null) {
-					for (State p : previous) {
-						p.getNextStates().removeAll(b.getBottom());
-						p.getNextStates().removeAll(b.getNonbottom());
+					for (State p : previous)
 						p.addNext(s);
-					}
 
-					for (State n : next) {
-						n.getPreviousStates().removeAll(b.getBottom());
-						n.getPreviousStates().removeAll(b.getNonbottom());
+					for (State n : next)
 						n.addPrevious(s);
-					}
 
 					s.setNextStates(next);
 					s.setPreviousStates(previous);
