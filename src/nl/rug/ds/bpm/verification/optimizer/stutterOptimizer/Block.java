@@ -96,13 +96,16 @@ public class Block {
 	}
 
 	public void init() {
-		for(State s: nonbottom) {
+		Iterator<State> iterator = nonbottom.iterator();
+		while (iterator.hasNext()) {
+			State s = iterator.next();
 			boolean isBottom = true;
 
 			Iterator<State> i = s.getNextStates().iterator();
 			while (i.hasNext() && isBottom) {
 				State state = i.next();
-				if(nonbottom.contains(state))
+				if(state.getBlock() == this)
+				//if(nonbottom.contains(state) || bottom.contains(state))
 					isBottom = false;
 			}
 
@@ -110,42 +113,40 @@ public class Block {
 				if(previous.getBlock() != this)
 					entry.add(previous);
 
-			if(isBottom)
+			if(isBottom) {
 				bottom.add(s);
+				iterator.remove();
+			}
 		}
-
-		nonbottom.removeAll(bottom);
 	}
 
 	public boolean reinit() {
 		List<State> newBottom = new ArrayList<>();
 		entry.clear();
-
-		for(State s: nonbottom) {
+		
+		Iterator<State> iterator = nonbottom.iterator();
+		while (iterator.hasNext()) {
+			State s = iterator.next();
 			boolean isBottom = true;
 
 			Iterator<State> i = s.getNextStates().iterator();
 			while (i.hasNext() && isBottom) {
 				State state = i.next();
-				if(nonbottom.contains(state) || bottom.contains(state))
+				if(state.getBlock() == this)
+				//if(nonbottom.contains(state) || bottom.contains(state))
 					isBottom = false;
 			}
 
-			for(State previous: s.getPreviousStates())
-				if(previous.getBlock() != this)
-					entry.add(previous);
-
-			if(isBottom)
-				newBottom.add(s);
+			if(isBottom) {
+				bottom.add(s);
+				iterator.remove();
+			}
 		}
 
 		for(State s: bottom)
 			for(State previous: s.getPreviousStates())
 				if(previous.getBlock() != this)
 					entry.add(previous);
-
-		bottom.addAll(newBottom);
-		nonbottom.removeAll(newBottom);
 
 		//return true if new bottom states were found
 		return !newBottom.isEmpty();

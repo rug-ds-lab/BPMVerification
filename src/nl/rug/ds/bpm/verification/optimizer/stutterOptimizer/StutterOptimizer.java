@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.optimizer.stutterOptimizer;
 
 import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
@@ -10,6 +11,7 @@ import java.util.*;
  * Created by Heerko Groefsema on 06-Mar-17.
  */
 public class StutterOptimizer {
+	private int count, eventCount;
 	private EventHandler eventHandler;
 	private Kripke kripke;
 	private Set<State> stutterStates;
@@ -23,14 +25,14 @@ public class StutterOptimizer {
 		stable = new LinkedList<>();
 		BL = new LinkedList<>();
 
+		count = 0;
+		eventCount = 160000;
 		stutterStates = new HashSet<State>();
-		
-		preProcess();
 	}
 	
 	public int optimize() {
 		while(!toBeProcessed.isEmpty()) {
-			eventHandler.logInfo("Processing stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
+			eventHandler.logVerbose("Processing stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
 			for(State entryState: bAccent.getEntry()) {
@@ -85,7 +87,7 @@ public class StutterOptimizer {
 		int blc = 1;
 		//merge blocks with size > 1
 		for(Block b: stable) {
-			eventHandler.logInfo("Merging stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()) + " (" + blc++  + "/" + stable.size() + ")");
+			eventHandler.logVerbose("Merging stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()) + " (" + blc++  + "/" + stable.size() + ")");
 			if(b.size() > 1) {
 				Set<State> previous = new HashSet<State>();
 				Set<State> next = new HashSet<State>();
@@ -140,15 +142,13 @@ public class StutterOptimizer {
 					s.setPreviousStates(previous);
 
 					//if block contains initial states, remove them and add the stutter state
-					b.getNonbottom().retainAll(kripke.getInitial());
-					b.getBottom().retainAll(kripke.getInitial());
-
-					if (b.getNonbottom().size() > 0) {
-						kripke.getInitial().removeAll(b.getNonbottom());
-						kripke.getInitial().add(s);
-					}
-					if (b.getBottom().size() > 0) {
-						kripke.getInitial().removeAll(b.getBottom());
+					Set<State> initRem = new HashSet<>();
+					for(State initial: kripke.getInitial())
+						if(initial.getBlock() == b)
+							initRem.add(initial);
+					
+					if(!initRem.isEmpty()) {
+						kripke.getInitial().removeAll(initRem);
 						kripke.getInitial().add(s);
 					}
 				}
@@ -163,38 +163,63 @@ public class StutterOptimizer {
 		return stutterStates.size();
 	}
 	
-	private void preProcess() {
-		eventHandler.logInfo("Partitioning states into stutter blocks");
-		for(State s: kripke.getInitial()) {
-			Block b = new Block();
+	public void linearPreProcess() {
+		SortedMap<String, Block> blocks = new TreeMap<>(new StringComparator());
+		
+		for(State s: kripke.getStates()) {
+			Block b = blocks.get(s.APHash());
+			if(b == null) {
+				b = new Block();
+				blocks.put(s.APHash(), b);
+				toBeProcessed.add(b);
+			}
 			b.addState(s);
 			s.setBlock(b);
-			toBeProcessed.add(b);
-			
-			preProcessBSF(s);
 		}
 		
 		for(Block b: toBeProcessed)
 			b.init();
 	}
 	
-	private void preProcessBSF(State s) {
+	public void treeSearchPreProcess() {
+		for(State s: kripke.getInitial()) {
+			Block b = new Block();
+			b.addState(s);
+			s.setBlock(b);
+			toBeProcessed.add(b);
+			
+			count++;
+			treeSearchPreProcess(s);
+		}
+		
+		int bc = 1;
+		for(Block b: toBeProcessed)
+			b.init();
+	}
+	
+	private void treeSearchPreProcess(State s) {
+		//Set<State> toPartion = new HashSet<>();
+		
 		for(State next: s.getNextStates()) {
 			if(next.getBlock() == null) {
 				if(s.APequals(next)) {
 					s.getBlock().addState(next);
 					next.setBlock(s.getBlock());
-
-					preProcessBSF(next);
 				}
 				else {
 					Block b = new Block();
 					b.addState(next);
 					next.setBlock(b);
 					toBeProcessed.add(b);
-
-					preProcessBSF(next);
 				}
+				//toPartion.add(next);
+				count++;
+				if (count >= eventCount) {
+					eventHandler.logInfo("Partitioning states into stutter blocks (at " + count + " states)");
+					eventCount += 160000;
+				}
+				
+				treeSearchPreProcess(next);
 			}
 			else {
 				if(s.APequals(next) && s.getBlock() != next.getBlock()) {
@@ -205,6 +230,8 @@ public class StutterOptimizer {
 				//else already preprocessed correctly
 			}
 		}
+		//for (State next: toPartion)
+			//treeSearchPreProcess(next);
 	}
 	
 	public String toString(boolean fullOutput) {

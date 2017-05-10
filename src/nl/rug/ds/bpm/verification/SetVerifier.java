@@ -84,6 +84,9 @@ public class SetVerifier {
 		eventHandler.logInfo("Reducing state space");
 		t0 = System.currentTimeMillis();
 		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
+		eventHandler.logInfo("Partitioning states into stutter blocks");
+		//stutterOptimizer.linearPreProcess();
+		stutterOptimizer.treeSearchPreProcess();
 		stutterOptimizer.optimize();
 		t1 = System.currentTimeMillis();
 		eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
