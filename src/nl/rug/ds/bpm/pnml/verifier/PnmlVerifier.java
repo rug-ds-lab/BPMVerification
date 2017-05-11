@@ -10,6 +10,7 @@ import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.stepper.Marking;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -29,7 +30,11 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		File pnmlFile = new File(pnml);
 		File specificationFile = new File(specification);
 		File nusmv2Binary = new File(nusmv2);
-		
+
+		//Set maximum amount of tokens at a single place
+		//Safety feature, prevents infinite models
+		Marking.setMaximumTokensAtPlaces(3);
+
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
 		try {
@@ -37,7 +42,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper);
-			
+
+			//Implement listeners and
 			//Add listeners to receive log and result notifications
 			verifier.addLogListener(this);
 			verifier.addEventListener(this);
@@ -54,15 +60,18 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		}
 		
 	}
-	
+
+	//Listener implementations
 	@Override
 	public void verificationEvent(VerificationEvent event) {
-		//Use for feedback
+		//Use for user feedback
+		//Event returns, specification id, formula, type, result, and specification itself
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
 	}
 	
 	@Override
 	public void verificationLogEvent(VerificationLogEvent event) {
+		//Use for log and textual user feedback
 		if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
 			System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}
