@@ -8,7 +8,7 @@ import java.util.*;
  * Created by Nick van Beest 26-Apr-17.
  */
 public class Marking {
-	private static int maximumTokensAtPlaces = 9;
+	private static int maximumTokensAtPlaces = 3;
 	
 	private SortedMap<String, Integer> tokenmap;
 	

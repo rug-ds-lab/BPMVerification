@@ -1,7 +1,6 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
 import java.io.File;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -10,7 +9,6 @@ import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
-import nl.rug.ds.bpm.verification.stepper.Marking;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -33,7 +31,15 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 		//Set maximum amount of tokens at a single place
 		//Safety feature, prevents infinite models
-		Marking.setMaximumTokensAtPlaces(3);
+		//Standard value of 3
+		Verifier.setMaximumTokensAtPlaces(3);
+		
+		//Set maximum size of state space
+		//Safety feature, prevents memory issues
+		//Standard value of 7 million
+		//(equals models of 4 parallel branches with each 50 activities)
+		//Lower if on machine with limited memory
+		Verifier.setMaximumStates(7000000);
 
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;

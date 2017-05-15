@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class KripkeConverter {
+    private static int maxStates = 7000000;
     private EventHandler eventHandler;
 	private Stepper parallelStepper;
     private Kripke kripke;
@@ -52,6 +53,9 @@ public class KripkeConverter {
     }
     
     private void convertStep(Marking marking, State previous) {
+        if(kripke.getStateCount() >= maxStates) {
+            eventHandler.logCritical("Maximum state space reached (at " + maxStates + " states)");
+        }
         if (kripke.getStateCount() >= eventCount) {
             eventHandler.logInfo("Calculating state space (at " + kripke.getStateCount() + " states)");
             eventCount += 16000;
@@ -86,4 +90,8 @@ public class KripkeConverter {
         
         return aps;
     }
+    
+    public static void setMaximumStates(int max) { maxStates = max; }
+    
+    public static int getMaximumStates() { return  maxStates; }
 }

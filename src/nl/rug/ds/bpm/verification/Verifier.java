@@ -7,6 +7,8 @@ import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationType;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
+import nl.rug.ds.bpm.verification.converter.KripkeConverter;
+import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
@@ -124,4 +126,21 @@ public class Verifier {
 				else
 					eventHandler.logWarning("No such specification type: " + spec.getType());
 	}
+	
+	
+	public static void setMaximumTokensAtPlaces(int maximum) {
+		Marking.setMaximumTokensAtPlaces(maximum);
+	}
+	
+	public static int getMaximumTokensAtPlaces() {
+    	return Marking.getMaximumTokensAtPlaces();
+	}
+	
+	public static void setMaximumStates(int max) {
+    	KripkeConverter.setMaximumStates(max);
+    }
+	
+	public static int getMaximumStates() {
+    	return KripkeConverter.getMaximumStates();
+    }
 }
