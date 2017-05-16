@@ -57,16 +57,33 @@ public class VariabilitySpecification {
 		}
 	}
 	
+	public VariabilitySpecification(PetriNet[] nets, String silentPrefix) {
+		ces = new CombinedEventStructure();
+		try {
+			for (PetriNet net: nets) {
+				ces.addPES(getUnfoldingPES(net, silentPrefix));
+			}
+			ces.findMutualRelations();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private Unfolding2PES getUnfoldingPES(String folder, String filename, String silentPrefix) throws JDOMException, IOException {
 		return getUnfoldingPES(folder + filename, silentPrefix);
 	}
 
 	private Unfolding2PES getUnfoldingPES(String fullfilename, String silentPrefix) throws JDOMException, IOException {
+		PetriNet net = PNMLReader.parse(new File(fullfilename));
+		return getUnfoldingPES(net, silentPrefix);
+	}
+	
+	private Unfolding2PES getUnfoldingPES(PetriNet net, String silentPrefix) {
 		PrintStream blackhole = new PrintStream(new ByteArrayOutputStream());
 		PrintStream stdout = System.out;
 		System.setOut(blackhole);
 		
-		PetriNet net = PNMLReader.parse(new File(fullfilename));
 		Set<String> labels = new HashSet<>();
 		for (Transition t: net.getTransitions()) {
 			if ((!t.getName().startsWith(silentPrefix)) || (silentPrefix.equals(""))) {
