@@ -6,13 +6,29 @@ import java.util.Map;
 
 public class SpecificationToXML {
 	
+	public static String[] getOutput(VariabilitySpecification vs, String silentprefix) {
+		String xml = "";
+		Map<String, String> labelidmap = getLabelIdMap(vs.getAllLabels(), silentprefix);
+		
+		String output[] = getSpecs(vs, labelidmap);		
+		
+		xml += "<variabilitySpecification>\n";
+		xml += getAPs(labelidmap);
+		xml += output[0];
+		xml += "</variabilitySpecification>";
+		
+		output[0] = xml;
+		
+		return output;
+	}
+	
 	public static String getXML(VariabilitySpecification vs, String silentprefix) {
 		String xml = "";
 		Map<String, String> labelidmap = getLabelIdMap(vs.getAllLabels(), silentprefix);
 		
 		xml += "<variabilitySpecification>\n";
 		xml += getAPs(labelidmap);
-		xml += getSpecs(vs, labelidmap);
+		xml += getSpecs(vs, labelidmap)[0];
 		xml += "</variabilitySpecification>";
 		
 		return xml;
@@ -46,38 +62,54 @@ public class SpecificationToXML {
 		return aps;
 	}
 	
-	private static String getSpecs(VariabilitySpecification vs, Map<String, String> labelidmap) {
+	private static String[] getSpecs(VariabilitySpecification vs, Map<String, String> labelidmap) {
+		String output[] = new String[2];
 		String specs = "";
+		String plaintext = "";
 		
 		specs += "\t<specifications>\n";
 		
 		for (String sp: vs.getViresp()) {
 			specs += getSpecLine(sp, "always immediate response", labelidmap, true);
+			plaintext += sp + "\n";
 		}
+		plaintext += "\n";
 		
 		for (String sp: vs.getViprec()) {
 			specs += getSpecLine(sp, "always immediate precedence", labelidmap, false);
+			plaintext += sp + "\n";
 		}
+		plaintext += "\n";
 		
 		for (String sp: vs.getVeiresp()) {
 			specs += getSpecLine(sp, "exist immediate response", labelidmap, true);
+			plaintext += sp + "\n";
 		}
+		plaintext += "\n";
 		
 		for (String sp: vs.getVerespReduced(false)) {
 			specs += getSpecLine(sp, "exist response", labelidmap, true);
+			plaintext += sp + "\n";
 		}
+		plaintext += "\n";
 		
 		for (String sp: vs.getVconf()) {
 			specs += getSpecLine(sp, "always conflict", labelidmap, true);
+			plaintext += sp + "\n";
 		}
+		plaintext += "\n";
 		
 		for (String sp: vs.getVpar()) {
 			specs += getSpecLine(sp, "exist parallel", labelidmap, true);
+			plaintext += sp + "\n";
 		}
 		
 		specs += "\t</specifications>\n";
 		
-		return specs;
+		output[0] = specs;
+		output[1] = plaintext;
+		
+		return output;
 	}
 	
 	private static String getSpecLine(String spec, String type, Map<String, String> labelidmap, Boolean sourceIsFirstElement) {

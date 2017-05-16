@@ -407,7 +407,7 @@ public class CombinedEventStructure {
 			}
 		}
 		
-		System.out.println("Sync events: " + syncevents);
+//		System.out.println("Sync events: " + syncevents);
 	}
 		
 	private void addRelMap(BitSet br) {
