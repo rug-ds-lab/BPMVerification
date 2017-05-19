@@ -40,6 +40,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		//(equals models of 4 parallel branches with each 50 activities)
 		//Lower if on machine with limited memory
 		Verifier.setMaximumStates(7000000);
+		
+		//Set log level
+		Verifier.setLogLevel(VerificationLogEvent.INFO);
 
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
@@ -56,6 +59,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			
 			//Start verification
 			verifier.verify(specificationFile, nusmv2Binary);
+			//Or start with disabled reduction
+			//verifier.verify(specificationFile, nusmv2Binary, false);
 			
 			//Remove listeners
 			verifier.removeLogListener(this);
@@ -71,14 +76,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	@Override
 	public void verificationEvent(VerificationEvent event) {
 		//Use for user feedback
-		//Event returns, specification id, formula, type, result, and specification itself
+		//Event returns: specification id, formula, type, result, and specification itself
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
 	}
 	
 	@Override
 	public void verificationLogEvent(VerificationLogEvent event) {
 		//Use for log and textual user feedback
-		if(event.getLogLevel() > VerificationLogEvent.VERBOSE)
-			System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
+		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}
 }

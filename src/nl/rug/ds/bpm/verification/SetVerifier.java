@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification;
 
+import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
@@ -58,15 +59,17 @@ public class SetVerifier {
 		groupMap = getGroupMap(specIdMap);
 	}
 
-	public void buildKripke() {
+	public void buildKripke(boolean reduce) {
 		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
 		
 		eventHandler.logInfo("Calculating Kripke structure");
 		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
 		long t1 = System.currentTimeMillis();
+		
 		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");
-		//eventHandler.logInfo("\n" + kripke.toString());
+		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
+			eventHandler.logDebug("\n" + kripke.toString());
 
 		eventHandler.logInfo("Optimizing Kripke structure");
 		eventHandler.logInfo("Removing unused atomic propositions");
@@ -78,20 +81,25 @@ public class SetVerifier {
 		unknownAP.addAll(specIdMap.getAPKeys());
 		unknownAP.removeAll(kripke.getAtomicPropositions());
 		
-		PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
-		eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
-
-		eventHandler.logInfo("Reducing state space");
-		t0 = System.currentTimeMillis();
-		StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
-		eventHandler.logInfo("Partitioning states into stutter blocks");
-		//stutterOptimizer.linearPreProcess();
-		stutterOptimizer.treeSearchPreProcess();
-		stutterOptimizer.optimize();
-		t1 = System.currentTimeMillis();
-		eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
-		//eventHandler.logVerbose("\n" + stutterOptimizer.toString());
-		//eventHandler.logVerbose("\n" + kripke.toString());
+		if(reduce) {
+			PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
+			eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
+			
+			eventHandler.logInfo("Reducing state space");
+			t0 = System.currentTimeMillis();
+			StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
+			eventHandler.logInfo("Partitioning states into stutter blocks");
+			//stutterOptimizer.linearPreProcess();
+			stutterOptimizer.treeSearchPreProcess();
+			stutterOptimizer.optimize();
+			t1 = System.currentTimeMillis();
+			
+			eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
+			if (EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG) {
+				eventHandler.logDebug("\n" + stutterOptimizer.toString());
+				eventHandler.logDebug("\n" + kripke.toString());
+			}
+		}
 		
 		//Add ghost state with unknown AP for checker safety
 		State ghost = new State("ghost", unknownAP);
@@ -110,7 +118,9 @@ public class SetVerifier {
 		
 		eventHandler.logVerbose("Generating model checker input");
 		nuSMVChecker.createInputData();
-		eventHandler.logVerbose("\n" + nuSMVChecker.getInputChecker());
+		
+		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
+			eventHandler.logDebug("\n" + nuSMVChecker.getInputChecker());
 
 		List<String> resultLines = nuSMVChecker.callModelChecker();
 		if(!nuSMVChecker.getOutputChecker().isEmpty())

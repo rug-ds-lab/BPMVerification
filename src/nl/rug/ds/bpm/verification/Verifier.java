@@ -43,21 +43,29 @@ public class Verifier {
 		specificationTypeMap = new SpecificationTypeMap();
 		kripkeStructures = new HashSet<>();
 	}
+	
+	public void verify(File specification, File nusmv2, boolean doReduction) {
+		if(!(specification.exists() && specification.isFile()))
+			eventHandler.logCritical("No such file " + specification.toString());
+		
+		SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, specification);
+		bpmSpecification = unmarshaller.getSpecification();
+		
+		verify(nusmv2, doReduction);
+	}
+	
+	public void verify(BPMSpecification bpmSpecification, File nusmv2, boolean doReduction) {
+		this.bpmSpecification = bpmSpecification;
+		
+		verify(nusmv2, doReduction);
+	}
 
 	public void verify(BPMSpecification bpmSpecification, File nusmv2) {
-		this.bpmSpecification = bpmSpecification;
-
-		verify(nusmv2);
+    	verify(bpmSpecification, nusmv2, true);
 	}
 	
     public void verify(File specification, File nusmv2) {
-		if(!(specification.exists() && specification.isFile()))
-			eventHandler.logCritical("No such file " + specification.toString());
-
-		SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, specification);
-		bpmSpecification = unmarshaller.getSpecification();
-
-		verify(nusmv2);
+    	verify(specification, nusmv2, true);
 	}
     
 	public void addEventListener(VerificationEventListener verificationEventListener) {
@@ -76,7 +84,7 @@ public class Verifier {
 		eventHandler.removeLogListener(verificationLogListener);
 	}
 
-	private void verify(File nusmv2) {
+	private void verify(File nusmv2, boolean reduce) {
 		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
 			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
 
@@ -90,7 +98,7 @@ public class Verifier {
 		int setid = 0;
 		for (SetVerifier verifier: verifiers) {
 			eventHandler.logInfo("Verifying set " + ++setid);
-			verifier.buildKripke();
+			verifier.buildKripke(reduce);
 			verifier.verify(nusmv2);
 		}
 	}
@@ -140,7 +148,9 @@ public class Verifier {
     	KripkeConverter.setMaximumStates(max);
     }
 	
-	public static int getMaximumStates() {
-    	return KripkeConverter.getMaximumStates();
-    }
+	public static int getMaximumStates() { return KripkeConverter.getMaximumStates(); }
+	
+	public static void setLogLevel(int logLevel) { EventHandler.setLogLevel(logLevel); }
+	
+	public static int getLogLevel() { return EventHandler.getLogLevel(); }
 }
