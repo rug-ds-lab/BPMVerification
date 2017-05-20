@@ -8,6 +8,7 @@ import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationType;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
+import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
@@ -145,10 +146,10 @@ public class Verifier {
 	}
 	
 	public static void setMaximumStates(int max) {
-    	KripkeConverter.setMaximumStates(max);
+    	Kripke.setMaximumStates(max);
     }
 	
-	public static int getMaximumStates() { return KripkeConverter.getMaximumStates(); }
+	public static int getMaximumStates() { return Kripke.getMaximumStates(); }
 	
 	public static void setLogLevel(int logLevel) { EventHandler.setLogLevel(logLevel); }
 	

@@ -28,7 +28,7 @@ public class IDMap {
         this.apToId.putAll(apToId);
     }
 
-    public void addID(String id) {
+    public synchronized void addID(String id) {
         if(!idToAp.containsKey(id)) {
             String nid = ap + n++;
             idToAp.put(id, nid);
@@ -36,7 +36,7 @@ public class IDMap {
         }
     }
 
-    public void addID(String id, String ap) {
+    public synchronized void addID(String id, String ap) {
         if(idToAp.containsKey(id))
             apToId.remove(idToAp.get(id));
         idToAp.put(id, ap);
