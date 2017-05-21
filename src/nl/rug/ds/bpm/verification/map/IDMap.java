@@ -1,5 +1,7 @@
 package nl.rug.ds.bpm.verification.map;
 
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
+
 import java.util.*;
 
 /**
@@ -8,13 +10,13 @@ import java.util.*;
 public class IDMap {
     private int n;
     private String ap;
-    private HashMap<String, String> idToAp, apToId;
+    private TreeMap<String, String> idToAp, apToId;
 
     public IDMap() {
         ap = "n";
         n = 0;
-        idToAp = new HashMap<>();
-        apToId = new HashMap<>();
+        idToAp = new TreeMap<>(new StringComparator());
+        apToId = new TreeMap<>(new StringComparator());
     }
 
     public IDMap(String apIdentifier) {
@@ -22,7 +24,7 @@ public class IDMap {
         ap = apIdentifier;
     }
 
-    public IDMap(String apIdentifier, HashMap<String, String> idToAp, HashMap<String, String> apToId) {
+    public IDMap(String apIdentifier, Map<String, String> idToAp, Map<String, String> apToId) {
         this(apIdentifier);
         this.idToAp.putAll(idToAp);
         this.apToId.putAll(apToId);
@@ -55,7 +57,7 @@ public class IDMap {
 
     public Set<String> getAPKeys() { return  apToId.keySet(); }
 
-    public HashMap<String, String> getIdToAp() { return idToAp; }
+    public Map<String, String> getIdToAp() { return idToAp; }
 
-    public HashMap<String, String> getApToId() { return apToId; }
+    public Map<String, String> getApToId() { return apToId; }
 }

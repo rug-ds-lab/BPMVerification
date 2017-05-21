@@ -2,14 +2,9 @@ package nl.rug.ds.bpm.pnml.verifier;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import org.jdom.JDOMException;
 
 import com.google.common.collect.Sets;
@@ -43,8 +38,8 @@ public class ExtPnmlStepper extends Stepper {
 	}
 	
 	private void initializeTransitionMaps() {
-		transitionmap = new HashMap<String, Transition>();
-		transitionIdmap = new HashMap<String, Set<String>>();
+		transitionmap = new TreeMap<String, Transition>(new StringComparator());
+		transitionIdmap = new TreeMap<String, Set<String>>(new StringComparator());
 		
 		for (Transition t: pn.getTransitions()) {
 			transitionmap.put(getId(t), t);
@@ -57,7 +52,7 @@ public class ExtPnmlStepper extends Stepper {
 	}
 	
 	private void initializePlaceMap() {
-		placemap = new HashMap<String, Place>();
+		placemap = new TreeMap<String, Place>(new StringComparator());
 		
 		for (Place p: pn.getPlaces()) {
 			placemap.put(getId(p), p);

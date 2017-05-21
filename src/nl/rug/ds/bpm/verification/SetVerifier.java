@@ -71,8 +71,8 @@ public class SetVerifier {
 		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
 			eventHandler.logDebug("\n" + kripke.toString());
 
-		eventHandler.logInfo("Optimizing Kripke structure");
-		eventHandler.logInfo("Removing unused atomic propositions");
+		eventHandler.logInfo("Reducing Kripke structure");
+		eventHandler.logVerbose("Removing unused atomic propositions");
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
 		TreeSet<String> unknownAP = new TreeSet<>(new StringComparator());
 		
@@ -85,10 +85,10 @@ public class SetVerifier {
 			PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 			eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
 			
-			eventHandler.logInfo("Reducing state space");
+			eventHandler.logVerbose("Reducing state space");
 			t0 = System.currentTimeMillis();
 			StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
-			eventHandler.logInfo("Partitioning states into stutter blocks");
+			eventHandler.logVerbose("Partitioning states into stutter blocks");
 			//stutterOptimizer.linearPreProcess();
 			stutterOptimizer.treeSearchPreProcess();
 			stutterOptimizer.optimize();
