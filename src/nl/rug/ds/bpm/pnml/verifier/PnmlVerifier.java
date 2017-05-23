@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
@@ -21,6 +22,51 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		} 
 		else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
+		}
+	}
+	
+	public PnmlVerifier(PetriNet pn, String specxml, String nusmv2) {
+		File nusmv2Binary = new File(nusmv2);
+
+		//Set maximum amount of tokens at a single place
+		//Safety feature, prevents infinite models
+		//Standard value of 3
+		Verifier.setMaximumTokensAtPlaces(3);
+		
+		//Set maximum size of state space
+		//Safety feature, prevents memory issues
+		//Standard value of 7 million
+		//(equals models of 4 parallel branches with each 50 activities)
+		//Lower if on machine with limited memory
+		Verifier.setMaximumStates(7000000);
+		
+		//Set log level
+		Verifier.setLogLevel(VerificationLogEvent.INFO);
+
+		//Make step class for specific Petri net type
+		ExtPnmlStepper stepper;
+		try {
+			stepper = new ExtPnmlStepper(pn);
+			
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper);
+
+			//Implement listeners and
+			//Add listeners to receive log and result notifications
+			verifier.addLogListener(this);
+			verifier.addEventListener(this);
+			
+			//Start verification
+			verifier.verify(specxml, nusmv2Binary);
+			//Or start with disabled reduction
+			//verifier.verify(specificationFile, nusmv2Binary, false);
+			
+			//Remove listeners
+			verifier.removeLogListener(this);
+			verifier.removeEventListener(this);
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -69,7 +115,6 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	//Listener implementations

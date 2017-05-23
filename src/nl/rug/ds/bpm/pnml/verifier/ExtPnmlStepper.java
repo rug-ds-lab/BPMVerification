@@ -9,6 +9,8 @@ import org.jdom.JDOMException;
 
 import com.google.common.collect.Sets;
 
+import hub.top.petrinet.Arc;
+import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
 import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
@@ -32,9 +34,39 @@ public class ExtPnmlStepper extends Stepper {
 		initializeTransitionMaps();
 		initializePlaceMap();
 	}
-	
+
+	public ExtPnmlStepper(PetriNet pn) throws JDOMException, IOException {
+		super();
+		this.pn = getExtPN(pn);
+		initializeTransitionMaps();
+		initializePlaceMap();
+	}
+
 	private void getPN() throws JDOMException, IOException {
 		pn = ExtPNMLReader.parse(net);
+	}
+	
+	private ExtPetriNet getExtPN(PetriNet pn) {
+		ExtPetriNet epn = new ExtPetriNet();
+		
+		for (Transition t: pn.getTransitions()) {
+			epn.addTransition(t.getName());
+		}
+		
+		for (Place p: pn.getPlaces()) {
+			epn.addPlace(p.getName());
+		}
+		
+		for (Arc a: pn.getArcs()) {
+			if (a.getSource() instanceof Place) {
+				epn.addArc((Place)a.getSource(), (Transition)a.getTarget());
+			}
+			else {
+				epn.addArc((Transition)a.getSource(), (Place)a.getTarget());
+			}
+		}
+		
+		return epn;
 	}
 	
 	private void initializeTransitionMaps() {
