@@ -130,7 +130,7 @@ public class Verifier {
 //		try {
 //			InputStream targetStream = new FileInputStream("./resources/specificationTypes.xml");
 	
-			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, this.getClass().getResourceAsStream("./resources/specificationTypes.xml"));
+			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, this.getClass().getResourceAsStream("/resources/specificationTypes.xml"));
 			loadSpecificationTypes(unmarshaller.getSpecification(), specificationTypeMap);
 //		} 
 //		catch (FileNotFoundException e) {

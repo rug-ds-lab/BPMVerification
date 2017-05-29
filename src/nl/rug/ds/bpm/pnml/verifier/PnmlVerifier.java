@@ -5,10 +5,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import hub.top.petrinet.PetriNet;
+import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
+import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
+import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
 
 /**
@@ -71,8 +75,18 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	}
 	
 	public PnmlVerifier(String pnml, String specification, String nusmv2) {
+		//Manual text input parser
+		SetParser parser = new SetParser();
+		parser.addLogListener(this);
+		parser.parse("Group(start, t3, \"t666\")");
+		parser.parse("AlwaysResponse  (start, \"t5\")");
+		
+		//Get the specification
+		BPMSpecification bpmSpecification = parser.getSpecification();
+		//Use marshaller to write file if needed
+	
 		File pnmlFile = new File(pnml);
-		File specificationFile = new File(specification);
+		//File specificationFile = new File(specification);
 		File nusmv2Binary = new File(nusmv2);
 
 		//Set maximum amount of tokens at a single place
@@ -104,7 +118,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			verifier.addEventListener(this);
 			
 			//Start verification
-			verifier.verify(specificationFile, nusmv2Binary);
+			verifier.verify(bpmSpecification, nusmv2Binary);
 			//Or start with disabled reduction
 			//verifier.verify(specificationFile, nusmv2Binary, false);
 			
