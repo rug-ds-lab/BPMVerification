@@ -221,7 +221,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	}
 
 	public void setReduction(boolean reduce) {
-		this.reduce = true;
+		this.reduce = reduce;
 	}
 
 	public boolean getReduction() {
