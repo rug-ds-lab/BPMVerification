@@ -37,30 +37,34 @@ public class Parser {
 				spec.setType(specificationType.getId());
 				
 				String[] arguments = elements.split(",");
-				int i = 0;
-				
-				for(Input input: specificationType.getInputs()) {
-					if(i < arguments.length) {
-						InputElement element = new InputElement();
-						element.setTarget(input.getValue());
-						
-						Matcher quoteMatcher = quotePattern.matcher(arguments[i].trim());
-						if (quoteMatcher.matches()) {
-							String id = quoteMatcher.group().trim();
-							id = id.substring(1, id.length() -1 );
-							element.setElement(id);
+				if(arguments.length == specificationType.getInputs().size()) {
+					int i = 0;
+
+					for (Input input : specificationType.getInputs()) {
+						if (i < arguments.length) {
+							InputElement element = new InputElement();
+							element.setTarget(input.getValue());
+
+							Matcher quoteMatcher = quotePattern.matcher(arguments[i].trim());
+							if (quoteMatcher.matches()) {
+								String id = quoteMatcher.group().trim();
+								id = id.substring(1, id.length() - 1);
+								element.setElement(id);
+							} else
+								element.setElement(arguments[i].trim());
+
+							spec.addInputElement(element);
+						} else {
+							spec = null;
+							eventHandler.logError("Failed to find enough arguments for command: " + specification);
+							break;
 						}
-						else
-							element.setElement(arguments[i].trim());
-						
-						spec.addInputElement(element);
+						i++;
 					}
-					else {
-						spec = null;
-						eventHandler.logError("Failed to find enough arguments for command: " + specification);
-						break;
-					}
-					i++;
+				}
+				else {
+					spec = null;
+					eventHandler.logError("Failed to match specification type: " + specification);
 				}
 			}
 			else {

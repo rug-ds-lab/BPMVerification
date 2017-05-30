@@ -19,116 +19,133 @@ import nl.rug.ds.bpm.verification.Verifier;
  * Created by Heerko Groefsema on 07-Apr-17.
  */
 public class PnmlVerifier implements VerificationEventListener, VerificationLogListener {
-	
-	public static void main(String [ ] args) {
-		if(args.length > 2) {
-			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[0], args[1], args[2]);
-		} 
-		else {
+	private EventHandler eventHandler;
+	private SetParser setParser;
+	private File nusmv2Binary;
+	private boolean reduce;
+
+	public static void main(String[] args) {
+		if (args.length > 2) {
+			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
+			pnmlVerifier.setLogLevel(1);
+			pnmlVerifier.verify(args[0], args[1]);
+		} else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
 	}
-	
-	public PnmlVerifier(PetriNet pn, String specxml, String nusmv2) {
-		File nusmv2Binary = new File(nusmv2);
 
-		//Set maximum amount of tokens at a single place
-		//Safety feature, prevents infinite models
-		//Standard value of 3
-		Verifier.setMaximumTokensAtPlaces(3);
-		
-		//Set maximum size of state space
-		//Safety feature, prevents memory issues
-		//Standard value of 7 million
-		//(equals models of 4 parallel branches with each 50 activities)
-		//Lower if on machine with limited memory
-		Verifier.setMaximumStates(7000000);
-		
-		//Set log level
-		Verifier.setLogLevel(VerificationLogEvent.INFO);
+	public PnmlVerifier() {
+		reduce = true;
 
+		//Make a shared eventHandler
+		eventHandler = new EventHandler();
+		setParser = new SetParser(eventHandler);
+
+		//Implement listeners and
+		//Add listeners to receive log and result notifications
+		eventHandler.addLogListener(this);
+		eventHandler.addEventListener(this);
+	}
+
+	public PnmlVerifier(File nusmv2) {
+		this();
+		this.nusmv2Binary = nusmv2;
+
+		if (!(nusmv2Binary.exists() && nusmv2Binary.canExecute()))
+			eventHandler.logCritical("No such file: " + nusmv2Binary.getPath());
+	}
+
+	public PnmlVerifier(String nusmv2) {
+		this(new File(nusmv2));
+	}
+
+	public void verify(PetriNet pn, BPMSpecification specification) {
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pn);
-			
-			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper);
 
-			//Implement listeners and
-			//Add listeners to receive log and result notifications
-			verifier.addLogListener(this);
-			verifier.addEventListener(this);
-			
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper, eventHandler);
 			//Start verification
-			verifier.verify(specxml, nusmv2Binary);
-			//Or start with disabled reduction
-			//verifier.verify(specificationFile, nusmv2Binary, false);
-			
-			//Remove listeners
-			verifier.removeLogListener(this);
-			verifier.removeEventListener(this);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
+			verifier.verify(specification, nusmv2Binary, reduce);
+		} catch (Exception e) {
+			eventHandler.logCritical("Failed to load pnml");
 		}
 	}
-	
-	public PnmlVerifier(String pnml, String specification, String nusmv2) {
-		//Manual text input parser
-		SetParser parser = new SetParser();
-		parser.addLogListener(this);
-		parser.parse("Group(start, t3, \"t666\")");
-		parser.parse("AlwaysResponse  (start, \"t5\")");
-		
-		//Get the specification
-		BPMSpecification bpmSpecification = parser.getSpecification();
-		//Use marshaller to write file if needed
-	
-		File pnmlFile = new File(pnml);
-		//File specificationFile = new File(specification);
-		File nusmv2Binary = new File(nusmv2);
 
-		//Set maximum amount of tokens at a single place
-		//Safety feature, prevents infinite models
-		//Standard value of 3
-		Verifier.setMaximumTokensAtPlaces(3);
-		
-		//Set maximum size of state space
-		//Safety feature, prevents memory issues
-		//Standard value of 7 million
-		//(equals models of 4 parallel branches with each 50 activities)
-		//Lower if on machine with limited memory
-		Verifier.setMaximumStates(7000000);
-		
-		//Set log level
-		Verifier.setLogLevel(VerificationLogEvent.INFO);
+	public void verify(String pnml, String specification) {
+		File pnmlFile = new File(pnml);
+		File specificationFile = new File(specification);
 
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pnmlFile);
-			
-			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper);
 
-			//Implement listeners and
-			//Add listeners to receive log and result notifications
-			verifier.addLogListener(this);
-			verifier.addEventListener(this);
-			
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper, eventHandler);
+
 			//Start verification
-			verifier.verify(bpmSpecification, nusmv2Binary);
-			//Or start with disabled reduction
-			//verifier.verify(specificationFile, nusmv2Binary, false);
-			
-			//Remove listeners
-			verifier.removeLogListener(this);
-			verifier.removeEventListener(this);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
+			verifier.verify(specificationFile, nusmv2Binary, reduce);
 		}
+		catch (Exception e) {
+			eventHandler.logCritical("Failed to load pnml");
+		}
+	}
+
+	public void parseSpecification(String line) {
+		setParser.parse(line);
+	}
+
+	public void parseSpecifications(String[] lines) {
+		for (String line: lines)
+			parseSpecification(line);
+	}
+
+	public BPMSpecification getParsedSpecification() {
+		return setParser.getSpecification();
+	}
+
+	public void setReduction(boolean reduce) {
+		this.reduce = true;
+	}
+
+	public boolean getReduction() {
+		return reduce;
+	}
+
+	//Set maximum amount of tokens at a single place
+	//Safety feature, prevents infinite models
+	//Standard value of 3
+	public void setMaximumTokensAtPlaces(int amount) {
+		Verifier.setMaximumTokensAtPlaces(amount);
+	}
+
+	public int getMaximumTokensAtPlaces() {
+		return Verifier.getMaximumTokensAtPlaces();
+	}
+
+	//Set maximum size of state space
+	//Safety feature, prevents memory issues
+	//Standard value of 7 million
+	//(equals models of 4 parallel branches with each 50 activities)
+	//Lower if on machine with limited memory
+	public void setMaximumStates(int amount) {
+		Verifier.setMaximumStates(amount);
+	}
+
+	public int getMaximumStates() {
+		return Verifier.getMaximumStates();
+	}
+
+	//Set log level VerificationLogEvent.DEBUG to VerificationLogEvent.CRITICAL
+	public void setLogLevel(int level) {
+		Verifier.setLogLevel(level);
+	}
+
+	public int getLogLevel() {
+		return Verifier.getLogLevel();
 	}
 
 	//Listener implementations

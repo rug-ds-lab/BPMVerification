@@ -16,6 +16,7 @@ public class SetParser {
 	private BPMSpecification bpmSpecification;
 	private SpecificationSet specificationSet;
 	private Parser parser;
+	private int id = 0;
 	
 	public SetParser() {
 		eventHandler = new EventHandler();
@@ -28,6 +29,18 @@ public class SetParser {
 		
 		loadConfiguration();
 	}
+
+	public SetParser(EventHandler eventHandler) {
+		this.eventHandler = eventHandler;
+		specificationTypeMap = new SpecificationTypeMap();
+
+		parser = new Parser(eventHandler, specificationTypeMap);
+		bpmSpecification = new BPMSpecification();
+		specificationSet = new SpecificationSet();
+		bpmSpecification.addSpecificationSet(specificationSet);
+
+		loadConfiguration();
+	}
 	
 	public void parse(String string) {
 		if(string.toLowerCase().startsWith("group"))
@@ -38,8 +51,10 @@ public class SetParser {
 	
 	private void addSpecification(String specification) {
 		Specification spec = parser.parseSpecification(specification);
-		if(spec != null)
+		if(spec != null) {
+			spec.setId("parsed" + id++);
 			specificationSet.addSpecification(spec);
+		}
 	}
 	
 	private void addGroup(String group) {
