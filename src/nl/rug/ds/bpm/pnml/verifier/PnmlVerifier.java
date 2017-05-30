@@ -26,9 +26,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 	public static void main(String[] args) {
 		if (args.length > 2) {
-			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
-			pnmlVerifier.setLogLevel(1);
-			pnmlVerifier.verify(args[0], args[1]);
+			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[0], args[1], args[2]);
 		} else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
@@ -58,6 +56,36 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public PnmlVerifier(String nusmv2) {
 		this(new File(nusmv2));
 	}
+	
+	public PnmlVerifier(String pnml, String specification, String nusmv2) {
+		this(nusmv2);
+		verify(pnml, specification);
+	}
+	
+	public PnmlVerifier(PetriNet pn, String specification, String nusmv2) {
+		this(nusmv2);
+		verify(pn, specification);
+	}
+	
+	public PnmlVerifier(String pnml, BPMSpecification specification, String nusmv2) {
+		this(nusmv2);
+		verify(pnml, specification);
+	}
+	
+	public PnmlVerifier(String pnml, String specification, File nusmv2) {
+		this(nusmv2);
+		verify(pnml, specification);
+	}
+	
+	public PnmlVerifier(PetriNet pn, String specification, File nusmv2) {
+		this(nusmv2);
+		verify(pn, specification);
+	}
+	
+	public PnmlVerifier(String pnml, BPMSpecification specification, File nusmv2) {
+		this(nusmv2);
+		verify(pnml, specification);
+	}
 
 	public void verify(PetriNet pn, BPMSpecification specification) {
 		//Make step class for specific Petri net type
@@ -65,6 +93,37 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		try {
 			stepper = new ExtPnmlStepper(pn);
 
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper, eventHandler);
+			//Start verification
+			verifier.verify(specification, nusmv2Binary, reduce);
+		} catch (Exception e) {
+			eventHandler.logCritical("Failed to load pnml");
+		}
+	}
+	
+	public void verify(String pnml, BPMSpecification specification) {
+		File pnmlFile = new File(pnml);
+		//Make step class for specific Petri net type
+		ExtPnmlStepper stepper;
+		try {
+			stepper = new ExtPnmlStepper(pnmlFile);
+			
+			//Make a verifier which uses that step class
+			Verifier verifier = new Verifier(stepper, eventHandler);
+			//Start verification
+			verifier.verify(specification, nusmv2Binary, reduce);
+		} catch (Exception e) {
+			eventHandler.logCritical("Failed to load pnml");
+		}
+	}
+	
+	public void verify(PetriNet pn, String specification) {
+		//Make step class for specific Petri net type
+		ExtPnmlStepper stepper;
+		try {
+			stepper = new ExtPnmlStepper(pn);
+			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, eventHandler);
 			//Start verification
