@@ -38,18 +38,17 @@ public class Verifier {
     public Verifier(Stepper stepper) {
     	this.stepper = stepper;
     	eventHandler = new EventHandler();
-    	specificationTypeMap = new SpecificationTypeMap();
-		kripkeStructures = new HashSet<>();
     }
 	
 	public Verifier(Stepper stepper, EventHandler eventHandler) {
 		this.stepper = stepper;
 		this.eventHandler = eventHandler;
-		specificationTypeMap = new SpecificationTypeMap();
-		kripkeStructures = new HashSet<>();
 	}
 	
 	public void verify(File specification, File nusmv2, boolean doReduction) {
+		specificationTypeMap = new SpecificationTypeMap();
+		kripkeStructures = new HashSet<>();
+		
 		if(!(specification.exists() && specification.isFile()))
 			eventHandler.logCritical("No such file " + specification.toString());
 		
@@ -60,6 +59,9 @@ public class Verifier {
 	}
 	
 	public void verify(String specxml, File nusmv2, boolean doReduction) {
+		specificationTypeMap = new SpecificationTypeMap();
+		kripkeStructures = new HashSet<>();
+		
 		SpecificationUnmarshaller unmarshaller;
 		try {
 			unmarshaller = new SpecificationUnmarshaller(eventHandler, new ByteArrayInputStream(specxml.getBytes("UTF-8")));
@@ -74,6 +76,9 @@ public class Verifier {
 	}
 	
 	public void verify(BPMSpecification bpmSpecification, File nusmv2, boolean doReduction) {
+		specificationTypeMap = new SpecificationTypeMap();
+		kripkeStructures = new HashSet<>();
+		
 		this.bpmSpecification = bpmSpecification;
 		
 		verify(nusmv2, doReduction);
