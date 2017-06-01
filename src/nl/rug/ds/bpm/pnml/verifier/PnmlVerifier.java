@@ -110,9 +110,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 			//Start verification
-			verifier.verify(getSpecifications(), nusmv2Binary, reduce);
+			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");
 		}
@@ -125,9 +125,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 			//Start verification
-			verifier.verify(getSpecifications(), nusmv2Binary, reduce);
+			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");
 		}
@@ -140,9 +140,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 			//Start verification
-			verifier.verify(specification, nusmv2Binary, reduce);
+			verifier.verify(specification, reduce);
 		} catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");
 		}
@@ -156,9 +156,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 			//Start verification
-			verifier.verify(specification, nusmv2Binary, reduce);
+			verifier.verify(specification, reduce);
 		} catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");
 		}
@@ -171,9 +171,9 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 			//Start verification
-			verifier.verify(specification, nusmv2Binary, reduce);
+			verifier.verify(specification, reduce);
 		} catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");
 		}
@@ -189,10 +189,10 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler);
+			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
 
 			//Start verification
-			verifier.verify(specificationFile, nusmv2Binary, reduce);
+			verifier.verify(specificationFile, reduce);
 		}
 		catch (Exception e) {
 			eventHandler.logCritical("Failed to load pnml");

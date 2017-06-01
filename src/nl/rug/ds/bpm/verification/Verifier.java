@@ -30,22 +30,31 @@ import nl.rug.ds.bpm.verification.stepper.Stepper;
 public class Verifier {
 	private EventHandler eventHandler;
 	private Stepper stepper;
+	private File nusmv2;
 	private BPMSpecification bpmSpecification;
 	private SpecificationTypeMap specificationTypeMap;
 	
 	private Set<SetVerifier> kripkeStructures;
 
-    public Verifier(Stepper stepper) {
+    public Verifier(Stepper stepper, File nusmv2) {
+	    if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
+		    eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
+
+	    this.nusmv2 = nusmv2;
     	this.stepper = stepper;
     	eventHandler = new EventHandler();
     }
 	
-	public Verifier(Stepper stepper, EventHandler eventHandler) {
+	public Verifier(Stepper stepper, EventHandler eventHandler, File nusmv2) {
+		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
+			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
+
+    	this.nusmv2 = nusmv2;
 		this.stepper = stepper;
 		this.eventHandler = eventHandler;
 	}
 	
-	public void verify(File specification, File nusmv2, boolean doReduction) {
+	public void verify(File specification, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
 		kripkeStructures = new HashSet<>();
 		
@@ -55,10 +64,10 @@ public class Verifier {
 		SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, specification);
 		bpmSpecification = unmarshaller.getSpecification();
 		
-		verify(nusmv2, doReduction);
+		verify(doReduction);
 	}
 	
-	public void verify(String specxml, File nusmv2, boolean doReduction) {
+	public void verify(String specxml, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
 		kripkeStructures = new HashSet<>();
 		
@@ -72,28 +81,28 @@ public class Verifier {
 			return;
 		}
 		
-		verify(nusmv2, doReduction);
+		verify(doReduction);
 	}
 	
-	public void verify(BPMSpecification bpmSpecification, File nusmv2, boolean doReduction) {
+	public void verify(BPMSpecification bpmSpecification, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
 		kripkeStructures = new HashSet<>();
 		
 		this.bpmSpecification = bpmSpecification;
 		
-		verify(nusmv2, doReduction);
+		verify(doReduction);
 	}
 
-	public void verify(BPMSpecification bpmSpecification, File nusmv2) {
-    	verify(bpmSpecification, nusmv2, true);
+	public void verify(BPMSpecification bpmSpecification) {
+    	verify(bpmSpecification, true);
 	}
 	
-    public void verify(File specification, File nusmv2) {
-    	verify(specification, nusmv2, true);
+    public void verify(File specification) {
+    	verify(specification, true);
 	}
     
-    public void verify(String specxml, File nusmv2) {
-    	verify(specxml, nusmv2, true);
+    public void verify(String specxml) {
+    	verify(specxml, true);
     }
     
 	public void addEventListener(VerificationEventListener verificationEventListener) {
@@ -112,10 +121,7 @@ public class Verifier {
 		eventHandler.removeLogListener(verificationLogListener);
 	}
 
-	private void verify(File nusmv2, boolean reduce) {
-		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
-			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
-
+	private void verify(boolean reduce) {
 		eventHandler.logInfo("Loading configuration file");
 		loadConfiguration();
 
