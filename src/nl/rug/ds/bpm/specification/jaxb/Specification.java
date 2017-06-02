@@ -50,41 +50,4 @@ public class Specification {
         if(specificationType.getId().equals(type))
             this.specificationType = specificationType;
     }
-
-    public List<String> getFormulas() {
-        List<String> formulas = new ArrayList<>();
-
-        if(specificationType != null) {
-            for (Formula formula: specificationType.getFormulas()) {
-                String f = formula.getFormula();
-
-                for (Input input: specificationType.getInputs()) {
-                    List<InputElement> elements = inputElements.stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
-
-                    String APBuilder = "";
-                    if(elements.size() == 0) {
-                        APBuilder = "true";
-                    }
-                    else if(elements.size() == 1) {
-                        APBuilder = elements.get(0).getElement();
-                    }
-                    else {
-                        Iterator<InputElement> inputElementIterator = elements.iterator();
-                        APBuilder = inputElementIterator.next().getElement();
-                        while (inputElementIterator.hasNext()) {
-                            if (input.getType().equalsIgnoreCase("and"))
-                                APBuilder = "(" + APBuilder + " & " + inputElementIterator.next().getElement() + ")";
-                            else
-                                APBuilder = "(" + APBuilder + " | " + inputElementIterator.next().getElement() + ")";
-                        }
-                    }
-                    f = f.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
-                }
-                if(!f.equalsIgnoreCase(""))
-                    formulas.add(formula.getLanguage() + " " + f);
-            }
-        }
-
-        return formulas;
-    }
 }

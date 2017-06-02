@@ -18,6 +18,7 @@ import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -50,13 +51,13 @@ public class SetVerifier {
 		for(Condition condition: conditions)
 			eventHandler.logVerbose("\t" + condition.getCondition());
 		
-		eventHandler.logVerbose("Specifications:");
-		for (Specification s: specifications)
-			for(String formula: s.getFormulas())
-				eventHandler.logVerbose("\t" + formula);
-		
 		specIdMap = getIdMap();
 		groupMap = getGroupMap(specIdMap);
+		
+		eventHandler.logInfo("Collecting specifications");
+		mapFormulas();
+		for (NuSMVFormula formula: formulas)
+			eventHandler.logVerbose("\t" + formula.getFormula());
 	}
 
 	public void buildKripke(boolean reduce) {
@@ -110,9 +111,6 @@ public class SetVerifier {
 	}
 
 	public void verify(File nusmv2) {
-		//eventHandler.logInfo("Collecting specifications");
-		mapFormulas();
-
 		eventHandler.logInfo("Calling Model Checker");
 		NuSMVChecker nuSMVChecker = new NuSMVChecker(eventHandler, nusmv2, kripke, formulas);
 		
@@ -174,13 +172,38 @@ public class SetVerifier {
 
 	private void mapFormulas() {
 		for (Specification specification: specifications) {
-			for(String formula: specification.getFormulas()) {
-				String mappedFormula = formula;
-				for (String key: specIdMap.getIDKeys())
-					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getAP(key));
-				for (String key: groupMap.keySet())
-					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), groupMap.toString(key));
+			for(Formula formula: specification.getSpecificationType().getFormulas()) {
+				String mappedFormula = formula.getFormula();
 				
+				for (Input input: specification.getSpecificationType().getInputs()) {
+					List<InputElement> elements = specification.getInputElements().stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
+
+					String APBuilder = "";
+					if(elements.size() == 0) {
+						APBuilder = "true";
+					}
+					else if(elements.size() == 1) {
+						String mapID = specIdMap.getAP(elements.get(0).getElement());
+						if(groupMap.keySet().contains(mapID))
+							mapID = groupMap.toString(mapID);
+						APBuilder = mapID;
+					}
+					else {
+						Iterator<InputElement> inputElementIterator = elements.iterator();
+						String mapID = specIdMap.getAP(inputElementIterator.next().getElement());
+						if(groupMap.keySet().contains(mapID))
+							mapID = groupMap.toString(mapID);
+						APBuilder = mapID;
+						while (inputElementIterator.hasNext()) {
+							mapID = specIdMap.getAP(inputElementIterator.next().getElement());
+							if(groupMap.keySet().contains(mapID))
+								mapID = groupMap.toString(mapID);
+							APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + mapID + ")";
+						}
+					}
+					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
+				}
+				mappedFormula = formula.getLanguage() + " " + mappedFormula;
 				formulas.add(new NuSMVFormula(mappedFormula, specification));
 			}
 		}
@@ -214,7 +237,7 @@ public class SetVerifier {
 		for (Group group: specification.getGroups()) {
 			idMap.addID(group.getId());
 			groupMap.addGroup(idMap.getAP(group.getId()));
-			eventHandler.logVerbose("New group " + group.getId());
+			eventHandler.logVerbose("New group " + group.getId() + " as " + idMap.getAP(group.getId()));
 			for (Element element: group.getElements()) {
 				groupMap.addToGroup(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
 				eventHandler.logVerbose("\t " + element.getId());
