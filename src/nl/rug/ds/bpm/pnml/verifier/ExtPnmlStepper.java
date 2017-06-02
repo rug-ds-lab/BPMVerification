@@ -10,6 +10,7 @@ import org.jdom.JDOMException;
 import com.google.common.collect.Sets;
 
 import hub.top.petrinet.Arc;
+import hub.top.petrinet.Node;
 import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
@@ -48,22 +49,23 @@ public class ExtPnmlStepper extends Stepper {
 	
 	private ExtPetriNet getExtPN(PetriNet pn) {
 		ExtPetriNet epn = new ExtPetriNet();
-		
+		HashMap<Node, Object> map = new HashMap<>();
+
 		for (Transition t: pn.getTransitions()) {
-			epn.addTransition(t.getName());
+			Object tNew  = epn.addTransition(t.getName());
+			map.put(t, tNew);
 		}
 		
 		for (Place p: pn.getPlaces()) {
-			epn.addPlace(p.getName());
+			Object pNew = epn.addPlace(p.getName());
+			map.put(p, pNew);
 		}
 		
 		for (Arc a: pn.getArcs()) {
-			if (a.getSource() instanceof Place) {
-				epn.addArc((Place)a.getSource(), (Transition)a.getTarget());
-			}
-			else {
-				epn.addArc((Transition)a.getSource(), (Place)a.getTarget());
-			}
+			if (a.getSource() instanceof Place)
+				epn.addArc((Place)map.get(a.getSource()), (Transition)map.get(a.getTarget()));
+			else
+				epn.addArc((Transition)map.get(a.getSource()), (Place)map.get(a.getTarget()));
 		}
 		
 		return epn;
@@ -132,6 +134,7 @@ public class ExtPnmlStepper extends Stepper {
 	private String getId(Transition t) {
 //		return t.getName() + "(" + t.id + ")";
 		return t.getUniqueIdentifier();
+//		return t.getName();
 	}
 	
 	@Override
