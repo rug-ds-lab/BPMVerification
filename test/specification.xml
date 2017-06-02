@@ -5,7 +5,7 @@
 				<specification id="s1" type="AlwaysResponse">
 					<inputElements>
 						<inputElement target="p">start</inputElement>
-						<inputElement target="q">t5</inputElement>
+						<inputElement target="q">A</inputElement>
 						<inputElement target="q">t11</inputElement>
 					</inputElements>
 				</specification>
@@ -16,7 +16,7 @@
 			<specifications>
 				<specification id="s2" type="AlwaysNext">
 					<inputElements>
-						<inputElement target="p">t5</inputElement>
+						<inputElement target="p">A</inputElement>
 						<inputElement target="q">t4</inputElement>
 					</inputElements>
 				</specification>
