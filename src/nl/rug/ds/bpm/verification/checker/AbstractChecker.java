@@ -42,7 +42,7 @@ public abstract class AbstractChecker {
     protected String convertFORMULAS() {
         StringBuilder f = new StringBuilder();
         for (NuSMVFormula formula: formulas)
-            f.append(formula.getFormula() + "\n");
+            f.append(formula.getNusmvFormula() + "\n");
         return f.toString();
     }
 

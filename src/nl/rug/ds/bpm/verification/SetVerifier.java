@@ -57,7 +57,7 @@ public class SetVerifier {
 		eventHandler.logInfo("Collecting specifications");
 		mapFormulas();
 		for (NuSMVFormula formula: formulas)
-			eventHandler.logVerbose("\t" + formula.getFormula());
+			eventHandler.logVerbose("\t" + formula.getNusmvFormula());
 	}
 
 	public void buildKripke(boolean reduce) {
@@ -156,7 +156,7 @@ public class SetVerifier {
 					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
 			}
 			else {
-				String mappedFormula = nuSMVFormula.getFormula();
+				String mappedFormula = nuSMVFormula.getNusmvFormula();
 				for (String key: specIdMap.getAPKeys())
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
 				
@@ -204,7 +204,7 @@ public class SetVerifier {
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
 				}
 				mappedFormula = formula.getLanguage() + " " + mappedFormula;
-				formulas.add(new NuSMVFormula(mappedFormula, specification));
+				formulas.add(new NuSMVFormula(mappedFormula, formula, specification));
 			}
 		}
 	}
