@@ -133,8 +133,8 @@ public class ExtPnmlStepper extends Stepper {
 	
 	private String getId(Transition t) {
 //		return t.getName() + "(" + t.id + ")";
-		return t.getUniqueIdentifier();
-//		return t.getName();
+//		return t.getUniqueIdentifier();
+		return t.getName();
 	}
 	
 	@Override
