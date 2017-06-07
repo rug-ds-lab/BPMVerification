@@ -34,7 +34,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
 	
-	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
+	public PnmlVerifierAPM(PetriNet pn, String nusmv2) {
 		reduce = true;
 
 		//Make a shared eventHandler
@@ -55,17 +55,20 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		if (!(nusmv2Binary.exists() && nusmv2Binary.canExecute())) {
 			eventHandler.logCritical("No such file: " + nusmv2Binary.getPath());
 		}
+	}
+
+	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
+		this(pn, nusmv2);
 		
-		SpecificationUnmarshaller unmarshaller;
-		try {
-			unmarshaller = new SpecificationUnmarshaller(eventHandler, new ByteArrayInputStream(specxml.getBytes("UTF-8")));
-			bpmSpecification = unmarshaller.getSpecification();
-		} 
-		catch (UnsupportedEncodingException e) {
-			eventHandler.logCritical("Invalid specification xml");
-			return;
-		}
+		addSpecificationFromXML(specxml);
+	}
+	
+	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2) {
+		this(pn, nusmv2);
 		
+		addSpecifications(specifications);
+		
+		bpmSpecification = getSpecifications();
 	}
 	
 	public List<String> verify() {
@@ -75,6 +78,10 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public List<String> verify(Boolean getAllOutput) {
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
+		
+		if (bpmSpecification == null) {
+			bpmSpecification = getSpecifications();
+		}
 		
 		try {
 			stepper = new ExtPnmlStepper(pn);
@@ -90,6 +97,18 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		System.out.println(eventoutput);
 		
 		return feedback;
+	}
+	
+	public void addSpecificationFromXML(String specxml) {
+		SpecificationUnmarshaller unmarshaller;
+		try {
+			unmarshaller = new SpecificationUnmarshaller(eventHandler, new ByteArrayInputStream(specxml.getBytes("UTF-8")));
+			bpmSpecification = unmarshaller.getSpecification();
+		} 
+		catch (UnsupportedEncodingException e) {
+			eventHandler.logCritical("Invalid specification xml");
+			return;
+		}
 	}
 
 	public void addSpecification(String line) {
