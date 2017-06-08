@@ -2,14 +2,15 @@ package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.specification.jaxb.*;
+import nl.rug.ds.bpm.verification.checker.AbstractFormula;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
-import nl.rug.ds.bpm.verification.formula.NuSMVFormula;
-import nl.rug.ds.bpm.verification.checker.NuSMVChecker;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFormula;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVChecker;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
 import nl.rug.ds.bpm.verification.optimizer.propositionOptimizer.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.StutterOptimizer;
@@ -29,7 +30,7 @@ public class SetVerifier {
 	private Stepper stepper;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
-	private List<NuSMVFormula> formulas;
+	private List<AbstractFormula> formulas;
 	private BPMSpecification specification;
 	private SpecificationSet specificationSet;
 	private List<Specification> specifications;
@@ -56,8 +57,8 @@ public class SetVerifier {
 		
 		eventHandler.logInfo("Collecting specifications");
 		mapFormulas();
-		for (NuSMVFormula formula: formulas)
-			eventHandler.logVerbose("\t" + formula.getNusmvFormula());
+		for (AbstractFormula formula: formulas)
+			eventHandler.logVerbose("\t" + formula.getFormulaString());
 	}
 
 	public void buildKripke(boolean reduce) {
@@ -136,14 +137,14 @@ public class SetVerifier {
 				eval = true;
 			}
 
-			NuSMVFormula nuSMVFormula = null;
+			AbstractFormula abstractFormula = null;
 			boolean found = false;
-			Iterator<NuSMVFormula> nuSMVFormulaIterator = formulas.iterator();
-			while (nuSMVFormulaIterator.hasNext() && !found) {
-				NuSMVFormula f = nuSMVFormulaIterator.next();
+			Iterator<AbstractFormula> abstractFormulaIterator = formulas.iterator();
+			while (abstractFormulaIterator.hasNext() && !found) {
+				AbstractFormula f = abstractFormulaIterator.next();
 				if(f.equals(formula)) {
 					found = true;
-					nuSMVFormula = f;
+					abstractFormula = f;
 				}
 			}
 
@@ -156,16 +157,16 @@ public class SetVerifier {
 					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
 			}
 			else {
-				String mappedFormula = nuSMVFormula.getNusmvFormula();
+				String mappedFormula = abstractFormula.getFormulaString();
 				for (String key: specIdMap.getAPKeys())
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
 				
-				eventHandler.fireEvent(nuSMVFormula.getSpecification(), nuSMVFormula.getFormula(), mappedFormula, eval);
+				eventHandler.fireEvent(abstractFormula.getSpecification(), abstractFormula.getFormula(), mappedFormula, eval);
 				if(eval)
-					eventHandler.logInfo("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
+					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
 				else
-					eventHandler.logError("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
-				formulas.remove(nuSMVFormula);
+					eventHandler.logError("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
+				formulas.remove(abstractFormula);
 			}
 		}
 	}
@@ -203,7 +204,6 @@ public class SetVerifier {
 					}
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
 				}
-				mappedFormula = formula.getLanguage() + " " + mappedFormula;
 				formulas.add(new NuSMVFormula(mappedFormula, formula, specification));
 			}
 		}
