@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.checker;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.verification.formula.NuSMVFormula;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFormula;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 
 import java.io.*;
@@ -15,12 +15,12 @@ public abstract class AbstractChecker {
     protected StringBuilder inputChecker;
     protected StringBuilder outputChecker;
     protected Kripke kripke;
-    protected List<NuSMVFormula> formulas;
+    protected List<AbstractFormula> formulas;
     protected File file, checker;
     protected EventHandler eventHandler;
     protected List<String> results;
 
-    public AbstractChecker(EventHandler eventHandler, File checker, Kripke kripke, List<NuSMVFormula> formulas) {
+    public AbstractChecker(EventHandler eventHandler, File checker, Kripke kripke, List<AbstractFormula> formulas) {
         this.eventHandler = eventHandler;
         this.checker = checker;
         this.kripke = kripke;
@@ -37,13 +37,6 @@ public abstract class AbstractChecker {
 
     public String getOutputChecker() {
         return outputChecker.toString();
-    }
-
-    protected String convertFORMULAS() {
-        StringBuilder f = new StringBuilder();
-        for (NuSMVFormula formula: formulas)
-            f.append(formula.getNusmvFormula() + "\n");
-        return f.toString();
     }
 
     protected void createInputFile() {
@@ -65,9 +58,9 @@ public abstract class AbstractChecker {
         return getResults(results);
     }
 
-    abstract Process createProcess();
+    public abstract Process createProcess();
 
-    abstract List<String> getResults(List<String> results);
+    public abstract List<String> getResults(List<String> results);
 
     protected void getInputStream(Process proc) {
         try {

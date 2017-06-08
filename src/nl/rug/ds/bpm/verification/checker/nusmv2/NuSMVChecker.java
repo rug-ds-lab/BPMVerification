@@ -1,7 +1,8 @@
-package nl.rug.ds.bpm.verification.checker;
+package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.verification.formula.NuSMVFormula;
+import nl.rug.ds.bpm.verification.checker.AbstractChecker;
+import nl.rug.ds.bpm.verification.checker.AbstractFormula;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public class NuSMVChecker extends AbstractChecker {
 
-    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<NuSMVFormula> formulas) {
+    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<AbstractFormula> formulas) {
         super(eventHandler, checker, kripke, formulas);
     }
 
@@ -99,6 +100,12 @@ public class NuSMVChecker extends AbstractChecker {
         return a.toString();
     }
 
+    private String convertFORMULAS() {
+        StringBuilder f = new StringBuilder();
+        for (AbstractFormula formula: formulas)
+            f.append(formula.getFormulaString() + "\n");
+        return f.toString();
+    }
 
     private List<State> findStates(String ap) {
         List<State> sub = new ArrayList<State>(kripke.getStates().size() / kripke.getAtomicPropositions().size());
@@ -110,7 +117,7 @@ public class NuSMVChecker extends AbstractChecker {
         return sub;
     }
 
-    protected Process createProcess() {
+    public Process createProcess() {
         try {
             Process proc = Runtime.getRuntime().exec(checker.getAbsoluteFile() + " " + file.getAbsolutePath());
             return proc;
@@ -121,7 +128,7 @@ public class NuSMVChecker extends AbstractChecker {
         }
     }
 
-    protected List<String> getResults(List<String> resultLines) {
+    public List<String> getResults(List<String> resultLines) {
         List<String> results = new ArrayList<>();
         resultLines.forEach(line -> {
             if (line.contains("-- specification "))
