@@ -160,7 +160,7 @@ public class SetVerifier {
 				for (String key: specIdMap.getAPKeys())
 					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
 				
-				eventHandler.fireEvent(nuSMVFormula.getSpecification(), mappedFormula, eval);
+				eventHandler.fireEvent(nuSMVFormula.getSpecification(), nuSMVFormula.getFormula(), mappedFormula, eval);
 				if(eval)
 					eventHandler.logInfo("Specification " + nuSMVFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
 				else

@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.event;
 
+import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
@@ -37,8 +38,8 @@ public class EventHandler {
 		verificationLogListenerSet.remove(verificationLogListener);
 	}
 	
-	public void fireEvent(Specification specification, String formula, boolean eval) {
-		VerificationEvent verificationEvent = new VerificationEvent(specification, formula, eval);
+	public void fireEvent(Specification specification, Formula formula, String formulaString, boolean eval) {
+		VerificationEvent verificationEvent = new VerificationEvent(specification, formula, formulaString, eval);
 		
 		for (VerificationEventListener listener: verificationEventListenerSet)
 			listener.verificationEvent(verificationEvent);

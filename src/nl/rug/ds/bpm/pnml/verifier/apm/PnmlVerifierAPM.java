@@ -171,6 +171,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		feedback.add(event.toString());
+		//Really? Just do each update as events occur. This way you can call the verifier in a separate thread! :o
 	}
 	
 	@Override
