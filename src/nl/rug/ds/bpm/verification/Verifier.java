@@ -2,9 +2,6 @@ package nl.rug.ds.bpm.verification;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +17,7 @@ import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationType;
 import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
+import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
@@ -30,27 +28,20 @@ import nl.rug.ds.bpm.verification.stepper.Stepper;
 public class Verifier {
 	private EventHandler eventHandler;
 	private Stepper stepper;
-	private File nusmv2;
+	private CheckerFactory checkerFactory;
 	private BPMSpecification bpmSpecification;
 	private SpecificationTypeMap specificationTypeMap;
 	
 	private Set<SetVerifier> kripkeStructures;
 
-    public Verifier(Stepper stepper, File nusmv2) {
-	    if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
-		    eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
-
-	    this.nusmv2 = nusmv2;
+    public Verifier(Stepper stepper, CheckerFactory checkerFactory) {
+    	this.checkerFactory = checkerFactory;
     	this.stepper = stepper;
     	eventHandler = new EventHandler();
     }
 	
-	public Verifier(Stepper stepper, EventHandler eventHandler, File nusmv2) {
-		if(!(nusmv2.exists() && nusmv2.isFile() && nusmv2.canExecute()))
-			eventHandler.logCritical("Unable to call NuSMV2 binary at " + nusmv2.toString());
-
-    	this.nusmv2 = nusmv2;
-		this.stepper = stepper;
+	public Verifier(Stepper stepper, CheckerFactory checkerFactory, EventHandler eventHandler) {
+    	this(stepper, checkerFactory);
 		this.eventHandler = eventHandler;
 	}
 	
@@ -133,7 +124,7 @@ public class Verifier {
 		for (SetVerifier verifier: verifiers) {
 			eventHandler.logInfo("Verifying set " + ++setid);
 			verifier.buildKripke(reduce);
-			verifier.verify(nusmv2);
+			verifier.verify(checkerFactory.getChecker());
 		}
 	}
 		

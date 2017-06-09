@@ -1,36 +1,76 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.verification.checker.AbstractChecker;
-import nl.rug.ds.bpm.verification.checker.AbstractFormula;
+import nl.rug.ds.bpm.specification.jaxb.Formula;
+import nl.rug.ds.bpm.specification.jaxb.Specification;
+import nl.rug.ds.bpm.verification.checker.Checker;
+import nl.rug.ds.bpm.verification.checker.CheckerFormula;
+import nl.rug.ds.bpm.verification.map.GroupMap;
+import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by Mark Kloosterhuis.
+ * Created by
  */
-public class NuSMVChecker extends AbstractChecker {
-
-    public NuSMVChecker(EventHandler eventHandler, File checker, Kripke kripke, List<AbstractFormula> formulas) {
-        super(eventHandler, checker, kripke, formulas);
+public class NuSMVChecker extends Checker {
+	private File file;
+	
+    public NuSMVChecker(EventHandler eventHandler, File checker) {
+        super(eventHandler, checker);
     }
+	
+	@Override
+	public void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
+    	NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
+		formulas.add(nuSMVFormula);
+		eventHandler.logVerbose("Including specification formula " + nuSMVFormula.getoriginalFormula());
+	}
+	
+	@Override
+	public void createModel(Kripke kripke) {
+		inputChecker.append("MODULE main\n");
+		inputChecker.append(convertVAR(kripke));
+		inputChecker.append(convertDEFINE(kripke));
+		inputChecker.append(convertASSIGN(kripke));
+		inputChecker.append(convertFORMULAS());
+		
+		try {
+			file = File.createTempFile("model", ".smv");
+			PrintWriter writer = new PrintWriter(file, "UTF-8");
+			writer.println(inputChecker);
+			writer.close();
+		} catch (Throwable t) {
+			eventHandler.logCritical("Issue writing temporary file");
+		}
+	}
+	
+	@Override
+	public void checkModel() {
+		Process proc = createProcess();
+		
+		List<String> results = getResults(proc);
+		List<String> errors = getErrors(proc);
+		
+		parseResults(results);
+		for (String line: errors)
+			outputChecker.append(line + "\n");
+		
+		try {
+			proc.waitFor();
+			file.delete();
+			proc.destroy();
+		}
+		catch (Exception e) {
+		}
+	}
 
-    public void createInputData() {
-        inputChecker = new StringBuilder();
-
-        inputChecker.append("MODULE main\n");
-        inputChecker.append(convertVAR());
-        inputChecker.append(convertDEFINE());
-        inputChecker.append(convertASSIGN());
-        inputChecker.append(convertFORMULAS());
-    }
-
-    private String convertVAR() {
+    private String convertVAR(Kripke kripke) {
         StringBuilder v = new StringBuilder("\tVAR\n\t\t state:{");
 
         Iterator<State> i = kripke.getStates().iterator();
@@ -44,7 +84,7 @@ public class NuSMVChecker extends AbstractChecker {
         return v.toString();
     }
 
-    private String convertDEFINE() {
+    private String convertDEFINE(Kripke kripke) {
         StringBuilder d = new StringBuilder("\tDEFINE\n");
 
         Iterator<String> i = kripke.getAtomicPropositions().iterator();
@@ -52,7 +92,7 @@ public class NuSMVChecker extends AbstractChecker {
             String ap = i.next();
             d.append("\t\t " + ap + " := ");
 
-            Iterator<State> j = findStates(ap).iterator();
+            Iterator<State> j = findStates(kripke, ap).iterator();
             while (j.hasNext()) {
                 State s = j.next();
                 d.append("( state = " + s.getID() + " )");
@@ -64,7 +104,7 @@ public class NuSMVChecker extends AbstractChecker {
         return d.toString();
     }
 
-    private String convertASSIGN() {
+    private String convertASSIGN(Kripke kripke) {
         StringBuilder a = new StringBuilder("\tASSIGN\n\t\tinit(state) := {");
     
         //Safety
@@ -102,12 +142,12 @@ public class NuSMVChecker extends AbstractChecker {
 
     private String convertFORMULAS() {
         StringBuilder f = new StringBuilder();
-        for (AbstractFormula formula: formulas)
-            f.append(formula.getFormulaString() + "\n");
+        for (CheckerFormula formula: formulas)
+            f.append(formula.getCheckerFormula() + "\n");
         return f.toString();
     }
 
-    private List<State> findStates(String ap) {
+    private List<State> findStates(Kripke kripke, String ap) {
         List<State> sub = new ArrayList<State>(kripke.getStates().size() / kripke.getAtomicPropositions().size());
 
         for (State s : kripke.getStates())
@@ -117,9 +157,9 @@ public class NuSMVChecker extends AbstractChecker {
         return sub;
     }
 
-    public Process createProcess() {
+    private Process createProcess() {
         try {
-            Process proc = Runtime.getRuntime().exec(checker.getAbsoluteFile() + " " + file.getAbsolutePath());
+            Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
             return proc;
         } catch (Throwable t) {
             eventHandler.logError("Could not call model checker NuSMV2");
@@ -127,13 +167,90 @@ public class NuSMVChecker extends AbstractChecker {
             return null;
         }
     }
+	
+	
+	private List<String> getResults(Process proc) {
+		List<String> results = new ArrayList<>();
+		try {
+			String line = null;
+			//inputStream
+			InputStream stdin = proc.getInputStream();
+			InputStreamReader in = new InputStreamReader(stdin);
+			BufferedReader bir = new BufferedReader(in);
+			while ((line = bir.readLine()) != null) {
+				if (line.contains("-- specification "))
+					results.add(line.replace("-- specification ", "").trim());
+			}
+			bir.close();
+			in.close();
+			
+		} catch (Throwable t) {
+			eventHandler.logError("Could not call model checker");
+			eventHandler.logCritical("No checks were performed");
+		}
+		
+		return results;
+	}
+	
+	private List<String> getErrors(Process proc) {
+		List<String> results = new ArrayList<>();
+		try {
+			String line = null;
+			//errorstream
+			InputStream stderr = proc.getErrorStream();
+			InputStreamReader isr = new InputStreamReader(stderr);
+			BufferedReader br = new BufferedReader(isr);
+			while ((line = br.readLine()) != null) {
+				results.add(line);
+			}
+			br.close();
+			
+		} catch (Throwable t) {
+			eventHandler.logError("Could not call model checker");
+			eventHandler.logCritical("No checks were performed");
+		}
+		
+		return results;
+	}
 
-    public List<String> getResults(List<String> resultLines) {
-        List<String> results = new ArrayList<>();
-        resultLines.forEach(line -> {
-            if (line.contains("-- specification "))
-                results.add(line.replace("-- specification ", "").trim());
-        });
-        return results;
+    private void parseResults(List<String> resultLines) {
+		eventHandler.logInfo("Collecting results");
+		for (String result: resultLines) {
+			String formula = result;
+			boolean eval = false;
+			if (formula.contains("is false")) {
+				formula = formula.replace("is false", "");
+			} else {
+				formula = formula.replace("is true", "");
+				eval = true;
+			}
+		
+			CheckerFormula abstractFormula = null;
+			boolean found = false;
+			Iterator<CheckerFormula> abstractFormulaIterator = formulas.iterator();
+			while (abstractFormulaIterator.hasNext() && !found) {
+				CheckerFormula f = abstractFormulaIterator.next();
+				if(f.equals(formula)) {
+					found = true;
+					abstractFormula = f;
+				}
+			}
+		
+			if(!found) {
+				if(eval)
+					eventHandler.logWarning("Failed to map " + formula + " to original specification while it evaluated true");
+				else
+					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
+			}
+			else {
+				String mappedFormula = abstractFormula.getoriginalFormula();
+				eventHandler.fireEvent(abstractFormula.getSpecification(), abstractFormula.getFormula(), mappedFormula, eval);
+				if(eval)
+					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
+				else
+					eventHandler.logError("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
+				formulas.remove(abstractFormula);
+			}
+		}
     }
 }
