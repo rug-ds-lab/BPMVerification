@@ -15,7 +15,9 @@ import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.checker.nuxmv.NuXMVFactory;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -23,7 +25,7 @@ import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 public class PnmlVerifier implements VerificationEventListener, VerificationLogListener {
 	private EventHandler eventHandler;
 	private SetParser setParser;
-	private NuSMVFactory nuSMVFactory;
+	private CheckerFactory factory;
 	private boolean reduce;
 
 	public static void main(String[] args) {
@@ -63,7 +65,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 	public PnmlVerifier(File nusmv2) {
 		this();
-		nuSMVFactory = new NuSMVFactory(eventHandler, nusmv2);
+		factory = new NuSMVFactory(eventHandler, nusmv2);
 	}
 
 	public PnmlVerifier(String nusmv2) {
@@ -108,7 +110,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
@@ -123,7 +125,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
@@ -138,7 +140,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
@@ -154,7 +156,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
@@ -169,7 +171,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
@@ -187,7 +189,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 
 			//Start verification
 			verifier.verify(specificationFile, reduce);

@@ -19,6 +19,7 @@ import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 
 /**
@@ -27,7 +28,7 @@ import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 public class PnmlVerifierAPM implements VerificationEventListener, VerificationLogListener {
 	private EventHandler eventHandler;
 	private SetParser setParser;
-	private NuSMVFactory nuSMVFactory;
+	private CheckerFactory factory;
 	private boolean reduce;
 	private PetriNet pn;
 
@@ -52,7 +53,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		this.pn = pn;
 		
-		nuSMVFactory = new NuSMVFactory(eventHandler, new File(nusmv2));
+		factory = new NuSMVFactory(eventHandler, new File(nusmv2));
 	}
 
 	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
@@ -85,7 +86,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 			//Start verification
 			verifier.verify(bpmSpecification, reduce);
 		} 
