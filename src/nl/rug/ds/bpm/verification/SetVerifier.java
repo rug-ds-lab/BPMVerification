@@ -2,24 +2,23 @@ package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.event.VerificationLogEvent;
 import nl.rug.ds.bpm.specification.jaxb.*;
-import nl.rug.ds.bpm.verification.checker.AbstractFormula;
+import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
-import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFormula;
-import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVChecker;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
 import nl.rug.ds.bpm.verification.optimizer.propositionOptimizer.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.StutterOptimizer;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 
-import java.io.File;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -30,7 +29,6 @@ public class SetVerifier {
 	private Stepper stepper;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
-	private List<AbstractFormula> formulas;
 	private BPMSpecification specification;
 	private SpecificationSet specificationSet;
 	private List<Specification> specifications;
@@ -44,7 +42,6 @@ public class SetVerifier {
 		
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
-		formulas = new ArrayList<>();
 		
 		eventHandler.logInfo("Loading specification set");
 		
@@ -54,11 +51,6 @@ public class SetVerifier {
 		
 		specIdMap = getIdMap();
 		groupMap = getGroupMap(specIdMap);
-		
-		eventHandler.logInfo("Collecting specifications");
-		mapFormulas();
-		for (AbstractFormula formula: formulas)
-			eventHandler.logVerbose("\t" + formula.getFormulaString());
 	}
 
 	public void buildKripke(boolean reduce) {
@@ -111,102 +103,22 @@ public class SetVerifier {
 		kripke.addState(ghost);
 	}
 
-	public void verify(File nusmv2) {
-		eventHandler.logInfo("Calling Model Checker");
-		NuSMVChecker nuSMVChecker = new NuSMVChecker(eventHandler, nusmv2, kripke, formulas);
+	public void verify(Checker checker) {
+		eventHandler.logInfo("Collecting specifications");
+		for (Specification specification: specifications)
+			for (Formula formula: specification.getSpecificationType().getFormulas())
+				checker.addFormula(formula, specification, specIdMap, groupMap);
 		
 		eventHandler.logVerbose("Generating model checker input");
-		nuSMVChecker.createInputData();
+		checker.createModel(kripke);
 		
 		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
-			eventHandler.logDebug("\n" + nuSMVChecker.getInputChecker());
-
-		List<String> resultLines = nuSMVChecker.callModelChecker();
-		if(!nuSMVChecker.getOutputChecker().isEmpty())
-			eventHandler.logCritical("Model checker error\n" + nuSMVChecker.getOutputChecker());
+			eventHandler.logDebug("\n" + checker.getInputChecker());
 		
-
-		eventHandler.logInfo("Collecting results");
-		for (String result: resultLines) {
-			String formula = result;
-			boolean eval = false;
-			if (formula.contains("is false")) {
-				formula = formula.replace("is false", "");
-			} else {
-				formula = formula.replace("is true", "");
-				eval = true;
-			}
-
-			AbstractFormula abstractFormula = null;
-			boolean found = false;
-			Iterator<AbstractFormula> abstractFormulaIterator = formulas.iterator();
-			while (abstractFormulaIterator.hasNext() && !found) {
-				AbstractFormula f = abstractFormulaIterator.next();
-				if(f.equals(formula)) {
-					found = true;
-					abstractFormula = f;
-				}
-			}
-
-			if(!found) {
-				for (String key: specIdMap.getAPKeys())
-					formula = formula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
-				if(eval)
-					eventHandler.logWarning("Failed to map " + formula + " to original specification while it evaluated true");
-				else
-					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
-			}
-			else {
-				String mappedFormula = abstractFormula.getFormulaString();
-				for (String key: specIdMap.getAPKeys())
-					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(key), specIdMap.getID(key));
-				
-				eventHandler.fireEvent(abstractFormula.getSpecification(), abstractFormula.getFormula(), mappedFormula, eval);
-				if(eval)
-					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
-				else
-					eventHandler.logError("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
-				formulas.remove(abstractFormula);
-			}
-		}
-	}
-
-	private void mapFormulas() {
-		for (Specification specification: specifications) {
-			for(Formula formula: specification.getSpecificationType().getFormulas()) {
-				String mappedFormula = formula.getFormula();
-				
-				for (Input input: specification.getSpecificationType().getInputs()) {
-					List<InputElement> elements = specification.getInputElements().stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
-
-					String APBuilder = "";
-					if(elements.size() == 0) {
-						APBuilder = "true";
-					}
-					else if(elements.size() == 1) {
-						String mapID = specIdMap.getAP(elements.get(0).getElement());
-						if(groupMap.keySet().contains(mapID))
-							mapID = groupMap.toString(mapID);
-						APBuilder = mapID;
-					}
-					else {
-						Iterator<InputElement> inputElementIterator = elements.iterator();
-						String mapID = specIdMap.getAP(inputElementIterator.next().getElement());
-						if(groupMap.keySet().contains(mapID))
-							mapID = groupMap.toString(mapID);
-						APBuilder = mapID;
-						while (inputElementIterator.hasNext()) {
-							mapID = specIdMap.getAP(inputElementIterator.next().getElement());
-							if(groupMap.keySet().contains(mapID))
-								mapID = groupMap.toString(mapID);
-							APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + mapID + ")";
-						}
-					}
-					mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
-				}
-				formulas.add(new NuSMVFormula(mappedFormula, formula, specification));
-			}
-		}
+		eventHandler.logInfo("Calling Model Checker");
+		checker.checkModel();
+		if(!checker.getOutputChecker().isEmpty())
+			eventHandler.logCritical("Model checker error\n" + checker.getOutputChecker());
 	}
 	
 	private IDMap getIdMap() {

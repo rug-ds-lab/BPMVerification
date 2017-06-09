@@ -19,6 +19,7 @@ import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 
 /**
  * Created by Nick van Beest on 02-June-17.
@@ -26,7 +27,7 @@ import nl.rug.ds.bpm.verification.Verifier;
 public class PnmlVerifierAPM implements VerificationEventListener, VerificationLogListener {
 	private EventHandler eventHandler;
 	private SetParser setParser;
-	private File nusmv2Binary;
+	private NuSMVFactory nuSMVFactory;
 	private boolean reduce;
 	private PetriNet pn;
 
@@ -49,12 +50,9 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		eventoutput = "";
 		feedback = new ArrayList<String>();
 		
-		this.nusmv2Binary = new File(nusmv2);
 		this.pn = pn;
 		
-		if (!(nusmv2Binary.exists() && nusmv2Binary.canExecute())) {
-			eventHandler.logCritical("No such file: " + nusmv2Binary.getPath());
-		}
+		nuSMVFactory = new NuSMVFactory(eventHandler, new File(nusmv2));
 	}
 
 	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
@@ -87,7 +85,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, eventHandler, nusmv2Binary);
+			Verifier verifier = new Verifier(stepper, nuSMVFactory, eventHandler);
 			//Start verification
 			verifier.verify(bpmSpecification, reduce);
 		} 
