@@ -65,6 +65,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 	public PnmlVerifier(File nusmv2) {
 		this();
+		
+		//Create the wanted model checker factory
 		factory = new NuSMVFactory(eventHandler, nusmv2);
 	}
 
