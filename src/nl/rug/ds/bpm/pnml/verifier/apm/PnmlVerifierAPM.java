@@ -53,6 +53,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		this.pn = pn;
 		
+		//Create the wanted model checker factory
 		factory = new NuSMVFactory(eventHandler, new File(nusmv2));
 	}
 
