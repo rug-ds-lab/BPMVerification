@@ -244,7 +244,7 @@ public class NuSMVChecker extends Checker {
 			}
 			else {
 				String mappedFormula = abstractFormula.getoriginalFormula();
-				eventHandler.fireEvent(abstractFormula.getSpecification(), abstractFormula.getFormula(), mappedFormula, eval);
+				eventHandler.fireEvent(abstractFormula, eval);
 				if(eval)
 					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
 				else

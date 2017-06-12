@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.event.VerificationLogEvent;
+import nl.rug.ds.bpm.event.VerificationLog;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
@@ -62,7 +62,7 @@ public class SetVerifier {
 		long t1 = System.currentTimeMillis();
 		
 		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");
-		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
+		if(EventHandler.getLogLevel() <= VerificationLog.DEBUG)
 			eventHandler.logDebug("\n" + kripke.toString());
 
 		eventHandler.logInfo("Reducing Kripke structure");
@@ -89,7 +89,7 @@ public class SetVerifier {
 			t1 = System.currentTimeMillis();
 			
 			eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
-			if (EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG) {
+			if (EventHandler.getLogLevel() <= VerificationLog.DEBUG) {
 				eventHandler.logDebug("\n" + stutterOptimizer.toString());
 				eventHandler.logDebug("\n" + kripke.toString());
 			}
@@ -112,7 +112,7 @@ public class SetVerifier {
 		eventHandler.logVerbose("Generating model checker input");
 		checker.createModel(kripke);
 		
-		if(EventHandler.getLogLevel() <= VerificationLogEvent.DEBUG)
+		if(EventHandler.getLogLevel() <= VerificationLog.DEBUG)
 			eventHandler.logDebug("\n" + checker.getInputChecker());
 		
 		eventHandler.logInfo("Calling Model Checker");

@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.checker;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationEvent;
+import nl.rug.ds.bpm.event.VerificationResult;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.verification.map.GroupMap;

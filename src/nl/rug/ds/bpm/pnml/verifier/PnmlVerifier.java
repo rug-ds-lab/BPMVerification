@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatter;
 
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationEvent;
-import nl.rug.ds.bpm.event.VerificationLogEvent;
+import nl.rug.ds.bpm.event.VerificationLog;
+import nl.rug.ds.bpm.event.VerificationResult;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
@@ -17,7 +17,6 @@ import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
-import nl.rug.ds.bpm.verification.checker.nuxmv.NuXMVFactory;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -32,19 +31,19 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		if (args.length > 2) {
 			//Normal call
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
-			pnmlVerifier.setLogLevel(VerificationLogEvent.INFO);
+			pnmlVerifier.setLogLevel(VerificationLog.INFO);
 			if(args.length > 3)
 				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
 			pnmlVerifier.verify(args[0], args[1]);
 			
 			//Custom Set Call
-			pnmlVerifier.addSpecification("Group(group1, t5, t3)");
-			pnmlVerifier.addSpecification("AlwaysResponse(group1, t11)");
+			//pnmlVerifier.addSpecification("Group(group1, t5, t3)");
+			//pnmlVerifier.addSpecification("AlwaysResponse(group1, t11)");
 			
 			//Save custom set (optional)
-			pnmlVerifier.saveSpecification(new File("./test/spec.xml"));
+			//pnmlVerifier.saveSpecification(new File("./test/spec.xml"));
 			
-			pnmlVerifier.verify(args[0]);
+			//pnmlVerifier.verify(args[0]);
 		} else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
@@ -254,7 +253,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		return Verifier.getMaximumStates();
 	}
 
-	//Set log level VerificationLogEvent.DEBUG to VerificationLogEvent.CRITICAL
+	//Set log level VerificationLog.DEBUG to VerificationLog.CRITICAL
 	public void setLogLevel(int level) {
 		Verifier.setLogLevel(level);
 	}
@@ -265,14 +264,14 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 	//Listener implementations
 	@Override
-	public void verificationEvent(VerificationEvent event) {
+	public void verificationEvent(VerificationResult event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
 	}
 	
 	@Override
-	public void verificationLogEvent(VerificationLogEvent event) {
+	public void verificationLogEvent(VerificationLog event) {
 		//Use for log and textual user feedback
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}

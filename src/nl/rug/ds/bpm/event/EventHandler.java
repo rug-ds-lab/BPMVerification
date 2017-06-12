@@ -1,9 +1,8 @@
 package nl.rug.ds.bpm.event;
 
-import nl.rug.ds.bpm.specification.jaxb.Formula;
-import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
+import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,40 +37,40 @@ public class EventHandler {
 		verificationLogListenerSet.remove(verificationLogListener);
 	}
 	
-	public void fireEvent(Specification specification, Formula formula, String formulaString, boolean eval) {
-		VerificationEvent verificationEvent = new VerificationEvent(specification, formula, formulaString, eval);
+	public void fireEvent(CheckerFormula formula, boolean eval) {
+		VerificationResult verificationResult = new VerificationResult(formula, eval);
 		
 		for (VerificationEventListener listener: verificationEventListenerSet)
-			listener.verificationEvent(verificationEvent);
+			listener.verificationEvent(verificationResult);
 	}
 	
 	public void logDebug(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.DEBUG, message));
+		pushLog(new VerificationLog(VerificationLog.DEBUG, message));
 	}
 	
 	public void logVerbose(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.VERBOSE, message));
+		pushLog(new VerificationLog(VerificationLog.VERBOSE, message));
 	}
 	
 	public void logInfo(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.INFO, message));
+		pushLog(new VerificationLog(VerificationLog.INFO, message));
 	}
 	
 	public void logWarning(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.WARNING, message));
+		pushLog(new VerificationLog(VerificationLog.WARNING, message));
 	}
 	
 	public void logError(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.ERROR, message));
+		pushLog(new VerificationLog(VerificationLog.ERROR, message));
 	}
 	
 	public void logCritical(String message) {
-		pushLog(new VerificationLogEvent(VerificationLogEvent.CRITICAL, message));
+		pushLog(new VerificationLog(VerificationLog.CRITICAL, message));
 		
 		System.exit(-1);
 	}
 	
-	private void pushLog(VerificationLogEvent e) {
+	private void pushLog(VerificationLog e) {
 		if(e.getLogLevel() >= EventHandler.logLevel)
 			for(VerificationLogListener listener: verificationLogListenerSet)
 				listener.verificationLogEvent(e);

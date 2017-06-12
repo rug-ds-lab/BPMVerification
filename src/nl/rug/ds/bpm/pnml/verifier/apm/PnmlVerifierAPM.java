@@ -10,8 +10,8 @@ import java.util.List;
 
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationEvent;
-import nl.rug.ds.bpm.event.VerificationLogEvent;
+import nl.rug.ds.bpm.event.VerificationLog;
+import nl.rug.ds.bpm.event.VerificationResult;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
@@ -156,7 +156,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		return Verifier.getMaximumStates();
 	}
 
-	//Set log level VerificationLogEvent.DEBUG to VerificationLogEvent.CRITICAL
+	//Set log level VerificationLog.DEBUG to VerificationLog.CRITICAL
 	public void setLogLevel(int level) {
 		Verifier.setLogLevel(level);
 	}
@@ -167,7 +167,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 
 	//Listener implementations
 	@Override
-	public void verificationEvent(VerificationEvent event) {
+	public void verificationEvent(VerificationResult event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		feedback.add(event.toString());
@@ -175,7 +175,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	}
 	
 	@Override
-	public void verificationLogEvent(VerificationLogEvent event) {
+	public void verificationLogEvent(VerificationLog event) {
 		//Use for log and textual user feedback
 		eventoutput += "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString() + "\n";
 	}
