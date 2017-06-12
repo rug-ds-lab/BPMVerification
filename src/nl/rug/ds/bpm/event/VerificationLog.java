@@ -4,7 +4,7 @@ package nl.rug.ds.bpm.event;
  * Created by Heerko Groefsema on 10-Apr-17.
  */
 
-public class VerificationLogEvent {
+public class VerificationLog {
 	public static final int DEBUG = -1;
 	public static final int VERBOSE = 0;
 	public static final int INFO = 1;
@@ -15,7 +15,7 @@ public class VerificationLogEvent {
 	private int logLevel;
 	private String message;
 	
-	public VerificationLogEvent(int logLevel, String message) {
+	public VerificationLog(int logLevel, String message) {
 		this.logLevel = logLevel;
 		this.message = message;
 	}
