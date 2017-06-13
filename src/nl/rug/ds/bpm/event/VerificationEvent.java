@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.event;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
+import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 
 /**
@@ -39,6 +40,18 @@ public class VerificationEvent {
 
 	public Formula getFormula() { return formula; }
 
+	public String getUserFriendlyFeedback() {
+		String feedback;
+
+		feedback = "Specification " + specification.getId() + " evaluated " + eval + " for " + specification.getType() + "(";
+		for (InputElement e: specification.getInputElements()) {
+			feedback += e.getElement() + ", ";
+		}
+		feedback = feedback.substring(0, feedback.length() - 2) + ")";
+		
+		return feedback;
+	}
+	
 	public String toString() {
 		return "Specification " + specification.getId() + " evaluated " + eval + " for " + formulaString;
 	}
