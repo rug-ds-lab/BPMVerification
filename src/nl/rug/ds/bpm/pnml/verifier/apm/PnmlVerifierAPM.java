@@ -29,14 +29,16 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private File nusmv2Binary;
 	private boolean reduce;
 	private PetriNet pn;
+	private boolean userFriendly;
 
 	private String eventoutput;
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
 	
-	public PnmlVerifierAPM(PetriNet pn, String nusmv2) {
+	public PnmlVerifierAPM(PetriNet pn, String nusmv2, boolean userFriendly) {
 		reduce = true;
-
+		this.userFriendly = userFriendly;
+		
 		//Make a shared eventHandler
 		eventHandler = new EventHandler();
 		setParser = new SetParser(eventHandler);
@@ -57,14 +59,14 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		}
 	}
 
-	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
-		this(pn, nusmv2);
+	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2, boolean userFriendly) {
+		this(pn, nusmv2, userFriendly);
 		
 		addSpecificationFromXML(specxml);
 	}
 	
-	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2) {
-		this(pn, nusmv2);
+	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, boolean userFriendly) {
+		this(pn, nusmv2, userFriendly);
 		
 		addSpecifications(specifications);
 		
@@ -170,8 +172,12 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void verificationEvent(VerificationEvent event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
-		feedback.add(event.toString());
-		//Really? Just do each update as events occur. This way you can call the verifier in a separate thread! :o
+		if (userFriendly) {
+			feedback.add(event.getUserFriendlyFeedback());
+		}
+		else {
+			feedback.add(event.toString());
+		}
 	}
 	
 	@Override
