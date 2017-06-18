@@ -6,7 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
@@ -16,6 +18,7 @@ import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.specification.jaxb.Group;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
@@ -34,6 +37,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private String eventoutput;
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
+	private Map<String, Group> groupMap;
 	
 	public PnmlVerifierAPM(PetriNet pn, String nusmv2, boolean userFriendly) {
 		reduce = true;
@@ -53,6 +57,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		this.nusmv2Binary = new File(nusmv2);
 		this.pn = pn;
+		this.groupMap = new HashMap<String, Group>();
 		
 		if (!(nusmv2Binary.exists() && nusmv2Binary.canExecute())) {
 			eventHandler.logCritical("No such file: " + nusmv2Binary.getPath());
@@ -63,6 +68,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		this(pn, nusmv2, userFriendly);
 		
 		addSpecificationFromXML(specxml);
+		createGroupMap();
 	}
 	
 	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, boolean userFriendly) {
@@ -71,6 +77,13 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		addSpecifications(specifications);
 		
 		bpmSpecification = getSpecifications();
+		createGroupMap();
+	}
+	
+	private void createGroupMap() {
+		for (Group g: bpmSpecification.getGroups()) {
+			groupMap.put(g.getId(), g);
+		}
 	}
 	
 	public List<String> verify() {
@@ -173,7 +186,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		if (userFriendly) {
-			feedback.add(event.getUserFriendlyFeedback());
+			feedback.add(event.getUserFriendlyFeedback(groupMap));
 		}
 		else {
 			feedback.add(event.toString());
