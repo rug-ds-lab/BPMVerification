@@ -1,5 +1,5 @@
 <project name="PNMLVerification" basedir=".">
-	<property name="version">0.0.1</property>
+	<property name="version">0.1</property>
 	<property name="dir.src">src</property>
 	<property name="dir.resource">resources</property>
 	<property name="dir.build">out</property>

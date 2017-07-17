@@ -6,7 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
@@ -16,6 +18,7 @@ import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.specification.jaxb.Group;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
@@ -31,14 +34,17 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private CheckerFactory factory;
 	private boolean reduce;
 	private PetriNet pn;
+	private boolean userFriendly;
 
 	private String eventoutput;
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
+	private Map<String, Group> groupMap;
 	
-	public PnmlVerifierAPM(PetriNet pn, String nusmv2) {
+	public PnmlVerifierAPM(PetriNet pn, String nusmv2, boolean userFriendly) {
 		reduce = true;
-
+		this.userFriendly = userFriendly;
+		
 		//Make a shared eventHandler
 		eventHandler = new EventHandler();
 		setParser = new SetParser(eventHandler);
@@ -52,23 +58,32 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		feedback = new ArrayList<String>();
 		
 		this.pn = pn;
+		this.groupMap = new HashMap<String, Group>();
 		
 		//Create the wanted model checker factory
 		factory = new NuSMVFactory(eventHandler, new File(nusmv2));
 	}
 
-	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2) {
-		this(pn, nusmv2);
+	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2, boolean userFriendly) {
+		this(pn, nusmv2, userFriendly);
 		
 		addSpecificationFromXML(specxml);
+		createGroupMap();
 	}
 	
-	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2) {
-		this(pn, nusmv2);
+	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, boolean userFriendly) {
+		this(pn, nusmv2, userFriendly);
 		
 		addSpecifications(specifications);
 		
 		bpmSpecification = getSpecifications();
+		createGroupMap();
+	}
+	
+	private void createGroupMap() {
+		for (Group g: bpmSpecification.getGroups()) {
+			groupMap.put(g.getId(), g);
+		}
 	}
 	
 	public List<String> verify() {
@@ -170,8 +185,12 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void verificationEvent(VerificationResult event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
-		feedback.add(event.toString());
-		//Really? Just do each update as events occur. This way you can call the verifier in a separate thread! :o
+		if (userFriendly) {
+			feedback.add(event.getUserFriendlyFeedback(groupMap));
+		}
+		else {
+			feedback.add(event.toString());
+		}
 	}
 	
 	@Override
