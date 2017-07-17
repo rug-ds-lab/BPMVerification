@@ -1,11 +1,11 @@
-<project name="PNMLVerification" basedir=".">
-	<property name="version">0.1</property>
+<project name="BPMVerification" basedir=".">
+	<property name="version">0.2</property>
 	<property name="dir.src">src</property>
 	<property name="dir.resource">resources</property>
 	<property name="dir.build">out</property>
-	<property name="dir.build.production">${dir.build}/production/PNMLVerification</property>
-	<property name="dir.build.artifacts">${dir.build}/artifacts/PNMLVerification</property>
-	<property name="file.jar">${dir.build.artifacts}/PNMLVerification-${version}.jar</property>
+	<property name="dir.build.production">${dir.build}/production/BPMVerification</property>
+	<property name="dir.build.artifacts">${dir.build}/artifacts/BPMVerification</property>
+	<property name="file.jar">${dir.build.artifacts}/BPMVerification-${version}.jar</property>
 	
 	<path id="projectClasspath">
 		<fileset dir="lib">
