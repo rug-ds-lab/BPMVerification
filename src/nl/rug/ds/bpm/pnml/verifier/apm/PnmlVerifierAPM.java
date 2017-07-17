@@ -18,7 +18,9 @@ import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.specification.jaxb.Element;
 import nl.rug.ds.bpm.specification.jaxb.Group;
+import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
@@ -186,7 +188,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		if (userFriendly) {
-			feedback.add(event.getUserFriendlyFeedback(groupMap));
+			feedback.add("Specification " + event.getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getSpecification().getType() + "(" + event.getFormula().getoriginalFormula() + "}");
 		}
 		else {
 			feedback.add(event.toString());
@@ -197,5 +199,18 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void verificationLogEvent(VerificationLog event) {
 		//Use for log and textual user feedback
 		eventoutput += "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString() + "\n";
+	}
+	
+	
+	private String getGroupString(Group group, String separator) {
+		String grpstr = "(";
+		
+		for (Element e: group.getElements()) {
+			grpstr += e.getId() + " " + separator + " ";
+		}
+		
+		grpstr = grpstr.substring(0, grpstr.length() - 2 - separator.length()) + ")";
+		
+		return grpstr;
 	}
 }
