@@ -1,15 +1,5 @@
 package nl.rug.ds.bpm.pnml.verifier.apm;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.event.VerificationLog;
@@ -18,14 +8,19 @@ import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
-import nl.rug.ds.bpm.specification.jaxb.Element;
-import nl.rug.ds.bpm.specification.jaxb.Group;
-import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Nick van Beest on 02-June-17.
@@ -41,7 +36,6 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private String eventoutput;
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
-	private Map<String, Group> groupMap;
 	
 	public PnmlVerifierAPM(PetriNet pn, String nusmv2, boolean userFriendly) {
 		reduce = true;
@@ -60,7 +54,6 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		feedback = new ArrayList<String>();
 		
 		this.pn = pn;
-		this.groupMap = new HashMap<String, Group>();
 		
 		//Create the wanted model checker factory
 		factory = new NuSMVFactory(eventHandler, new File(nusmv2));
@@ -70,7 +63,6 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		this(pn, nusmv2, userFriendly);
 		
 		addSpecificationFromXML(specxml);
-		createGroupMap();
 	}
 	
 	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, boolean userFriendly) {
@@ -79,13 +71,6 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		addSpecifications(specifications);
 		
 		bpmSpecification = getSpecifications();
-		createGroupMap();
-	}
-	
-	private void createGroupMap() {
-		for (Group g: bpmSpecification.getGroups()) {
-			groupMap.put(g.getId(), g);
-		}
 	}
 	
 	public List<String> verify() {
@@ -199,18 +184,5 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void verificationLogEvent(VerificationLog event) {
 		//Use for log and textual user feedback
 		eventoutput += "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString() + "\n";
-	}
-	
-	
-	private String getGroupString(Group group, String separator) {
-		String grpstr = "(";
-		
-		for (Element e: group.getElements()) {
-			grpstr += e.getId() + " " + separator + " ";
-		}
-		
-		grpstr = grpstr.substring(0, grpstr.length() - 2 - separator.length()) + ")";
-		
-		return grpstr;
 	}
 }
