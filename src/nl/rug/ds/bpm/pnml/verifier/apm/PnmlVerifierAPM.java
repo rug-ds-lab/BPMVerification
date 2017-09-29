@@ -173,7 +173,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		if (userFriendly) {
-			feedback.add("Specification " + event.getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getSpecification().getType() + "(" + event.getFormula().getoriginalFormula() + "}");
+			feedback.add("Specification " + event.getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getSpecification().getType() + "(" + event.getFormula().getOriginalFormula() + "}");
 		}
 		else {
 			feedback.add(event.toString());

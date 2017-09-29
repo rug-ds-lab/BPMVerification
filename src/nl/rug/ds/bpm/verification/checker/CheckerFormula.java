@@ -1,10 +1,10 @@
 package nl.rug.ds.bpm.verification.checker;
 
+import nl.rug.ds.bpm.specification.jaxb.Message;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
-import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFormula;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 
@@ -75,28 +75,28 @@ public abstract class CheckerFormula {
 		return mappedFormula;
 	}
 	
-	public String getoriginalFormula() {
+	public String getOriginalFormula() {
 		String mappedFormula = formula.getFormula();
 		
 		for (Input input: specification.getSpecificationType().getInputs()) {
 			List<InputElement> elements = specification.getInputElements().stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
 			
 			String APBuilder = "";
-			if(elements.size() == 0) {
+			if (elements.size() == 0) {
 				APBuilder = "true";
-			}
-			else if(elements.size() == 1) {
+			} else if (elements.size() == 1) {
 				APBuilder = elements.get(0).getElement();
-			}
-			else {
+			} else {
 				Iterator<InputElement> inputElementIterator = elements.iterator();
-				APBuilder = inputElementIterator.next().getElement();;
+				APBuilder = inputElementIterator.next().getElement();
+				;
 				while (inputElementIterator.hasNext()) {
 					APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + inputElementIterator.next().getElement() + ")";
 				}
 			}
 			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
 		}
+		
 		return mappedFormula;
 	}
 }

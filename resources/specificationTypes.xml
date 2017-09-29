@@ -8,6 +8,9 @@
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> AF q)</formula>
 			</formulas>
+			<message
+					hold = "p is always eventually followed by q"
+					fail = "p is not always eventually followed by q" />
 		</specificationType>
 		
 		<specificationType id="AlwaysImmediateResponse">
@@ -19,16 +22,22 @@
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> A[(p | s) U q])</formula>
 			</formulas>
+			<message
+					hold = "p is always immediately followed by q"
+					fail = "p is not always immediately followed by q" />
 		</specificationType>
 		
 		<specificationType id="AlwaysImmediatePrecedence">
 			<inputs>
-				<input type="or">p</input>
+				<input type="or">x</input>
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">!E[!p U q]</formula>
+				<formula language="CTLSPEC">!E[!x U q]</formula>
 			</formulas>
+			<message
+					hold = "q is always preceded by x"
+					fail = "q is not always preceded by x" />
 		</specificationType>
 		
 		<specificationType id="ExistImmediateResponse">
@@ -40,6 +49,9 @@
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> E[(p | s) U q])</formula>
 			</formulas>
+			<message
+					hold = "p is immediately followed by q"
+					fail = "p is not immediately followed by q" />
 		</specificationType>
 		
 		<specificationType id="ExistResponse">
@@ -50,6 +62,9 @@
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> EF q)</formula>
 			</formulas>
+			<message
+					hold = "p is eventually followed by q"
+					fail = "p is not eventually followed by q" />
 		</specificationType>
 		
 		<specificationType id="AlwaysConflict">
@@ -60,15 +75,21 @@
 			<formulas>
 				<formula language="CTLSPEC">AG(p -> AG !q)</formula>
 			</formulas>
+			<message
+					hold = "p is never followed by q"
+					fail = "p is eventually followed by q" />
 		</specificationType>
 		
 		<specificationType id="AlwaysParallel">
 			<inputs>
-				<input type="and">p</input>
+				<input type="and">x</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p)</formula>
+				<formula language="CTLSPEC">AG(x)</formula>
 			</formulas>
+			<message
+					hold = "x are parallel"
+					fail = "x are not parallel" />
 		</specificationType>
 	</specificationTypes>
 </bpmSpecification>

@@ -29,7 +29,7 @@ public class NuSMVChecker extends Checker {
 	public void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
     	NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
 		formulas.add(nuSMVFormula);
-		eventHandler.logVerbose("Including specification formula " + nuSMVFormula.getoriginalFormula());
+		eventHandler.logVerbose("Including specification formula " + nuSMVFormula.getOriginalFormula());
 	}
 	
 	@Override
@@ -243,7 +243,7 @@ public class NuSMVChecker extends Checker {
 					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
 			}
 			else {
-				String mappedFormula = abstractFormula.getoriginalFormula();
+				String mappedFormula = abstractFormula.getOriginalFormula();
 				eventHandler.fireEvent(abstractFormula, eval);
 				if(eval)
 					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
