@@ -365,6 +365,64 @@ public class VariabilitySpecification {
 		return ctls;
 	}
 	
+
+	// set of loop relations
+	public List<String> getVcyc() {
+		List<String> ctls = new ArrayList<String>();
+		
+		Set<BitSet> dl = ces.getMutualDirectLoops();
+		Set<BitSet> idl = ces.getMutualInvDirectLoops();
+		Set<BitSet> tl = ces.getMutualLoops();
+		BitSet sl = ces.getMutualSelfLoopEvents();
+		
+		String spec;
+		int source, target;
+				
+		BitSet events = new BitSet();
+		
+		// first get the direct loop relations
+		for (BitSet r: dl) {
+			source = r.nextSetBit(0);
+			target = r.nextSetBit(source + 1);
+			
+			if (!ces.getSilents().contains(source)) events.set(source);
+			if (!ces.getSilents().contains(target)) events.set(target);
+			
+		}
+		
+		// then get the inv direct loop relations
+		for (BitSet r: idl) {
+			source = r.nextSetBit(0);
+			target = r.nextSetBit(source + 1);
+			
+			if (!ces.getSilents().contains(source)) events.set(source);
+			if (!ces.getSilents().contains(target)) events.set(target);
+			
+		}
+		
+		// then get the causal loop relations
+		for (BitSet r: tl) {
+			source = r.nextSetBit(0);
+			target = r.nextSetBit(source + 1);
+			
+			if (!ces.getSilents().contains(source)) events.set(source);
+			if (!ces.getSilents().contains(target)) events.set(target);
+		}
+		
+		// finally get the self loops
+		for (int r = sl.nextSetBit(0); r >= 0; r = sl.nextSetBit(r + 1)) {
+			events.set(r);
+		}
+		
+		for (int r = events.nextSetBit(0); r >= 0; r = events.nextSetBit(r + 1)) {
+			spec = "AG(" + ces.getLabel(r) + " -> E[" + ces.getLabel(r) + " U E[!" + ces.getLabel(r) + " U " + ces.getLabel(r) + "]])";
+			
+			ctls.add(spec);
+		}
+		
+		return ctls;
+	}
+	
 	// set of reduced exists response ctls specifications
 	public List<String> getVerespReduced(Boolean removeDirectResponses) {
 		List<String> ctls = getVeresp();
