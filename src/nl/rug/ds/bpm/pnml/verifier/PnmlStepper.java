@@ -1,27 +1,17 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
-import nl.rug.ds.bpm.pnml.reader.PNMLReader;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.jdom.JDOMException;
-
 import com.google.common.collect.Sets;
-
 import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Place;
 import hub.top.petrinet.Transition;
+import nl.rug.ds.bpm.pnml.reader.PNMLReader;
+import nl.rug.ds.bpm.verification.stepper.Marking;
+import nl.rug.ds.bpm.verification.stepper.Stepper;
+import org.jdom.JDOMException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by Nick van Beest on 26-04-2017
@@ -45,6 +35,13 @@ public class PnmlStepper extends Stepper {
 		this.pn = pn;
 		initializeTransitionMaps();
 		initializePlaceMap();
+	}
+	
+	public PnmlStepper(PetriNet pn, Map<String, Transition> transitionmap, Map<String, Place> placemap, Map<String, Set<String>> transitionIdmap) {
+		this.pn = pn;
+		this.transitionmap = transitionmap;
+		this.placemap = placemap;
+		this.transitionIdmap = transitionIdmap;
 	}
 	
 	private void getPN() throws JDOMException, IOException {
@@ -137,6 +134,10 @@ public class PnmlStepper extends Stepper {
 		return transitionIdmap;
 	}
 	
+	public void setConditions(Set<String> conditions) {
+	
+	}
+	
 	@Override
 	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
 		Set<Set<String>> ypar = new HashSet<Set<String>>();
@@ -193,7 +194,7 @@ public class PnmlStepper extends Stepper {
 	}
 	
 	@Override
-	public Set<Marking> fireTransition(Marking marking, String transitionId, Set<String> conditions) {
+	public Set<Marking> fireTransition(Marking marking, String transitionId) {
 		Set<Marking> afterfire = new HashSet<Marking>();
 
 		Boolean enabled = true;
@@ -237,6 +238,11 @@ public class PnmlStepper extends Stepper {
 		}
 		
 		return str;
+	}
+	
+	@Override
+	public Stepper clone() {
+		return new PnmlStepper(pn, transitionmap, placemap, transitionIdmap);
 	}
 	
 }

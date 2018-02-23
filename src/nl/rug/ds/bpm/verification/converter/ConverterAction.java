@@ -23,16 +23,14 @@ public class ConverterAction extends RecursiveAction {
 	private IDMap idMap;
 	private Marking marking;
 	private State previous;
-	private Set<String> conditions;
 	
-	public ConverterAction(EventHandler eventHandler, Kripke kripke, Stepper stepper, IDMap idMap, Marking marking, State previous, Set<String> conditions) {
+	public ConverterAction(EventHandler eventHandler, Kripke kripke, Stepper stepper, IDMap idMap, Marking marking, State previous) {
 		this.eventHandler = eventHandler;
 		this.kripke = kripke;
 		this.stepper = stepper;
 		this.idMap = idMap;
 		this.marking = marking;
 		this.previous = previous;
-		this.conditions = conditions;
 	}
 	
 	@Override
@@ -51,8 +49,8 @@ public class ConverterAction extends RecursiveAction {
 				}
 				Set<ConverterAction> nextActions = new HashSet<>();
 				for (String transition: enabled)
-					for (Marking step: stepper.fireTransition(marking.clone(), transition, conditions))
-						nextActions.add(new ConverterAction(eventHandler, kripke, stepper, idMap, step, found, conditions));
+					for (Marking step : stepper.fireTransition(marking.clone(), transition))
+						nextActions.add(new ConverterAction(eventHandler, kripke, stepper, idMap, step, found));
 				
 				invokeAll(nextActions);
 			}

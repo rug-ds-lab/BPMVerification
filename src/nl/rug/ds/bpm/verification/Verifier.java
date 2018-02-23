@@ -1,13 +1,5 @@
 package nl.rug.ds.bpm.verification;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.event.listener.VerificationLogListener;
@@ -21,6 +13,14 @@ import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by p256867 on 4-4-2017.
@@ -146,7 +146,7 @@ public class Verifier {
 		loadSpecificationTypes(specification, specificationTypeMap);
 		
 		for(SpecificationSet specificationSet: specification.getSpecificationSets()) {
-			SetVerifier setVerifier = new SetVerifier(eventHandler, stepper, specification, specificationSet);
+			SetVerifier setVerifier = new SetVerifier(eventHandler, stepper.clone(), specification, specificationSet);
 			verifiers.add(setVerifier);
 		}
 

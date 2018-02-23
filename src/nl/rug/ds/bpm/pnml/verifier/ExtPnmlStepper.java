@@ -1,29 +1,25 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
+import com.google.common.collect.Sets;
+import hub.top.petrinet.*;
+import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
+import nl.rug.ds.bpm.pnml.reader.ExtPNMLReader;
+import nl.rug.ds.bpm.verification.comparator.StringComparator;
+import nl.rug.ds.bpm.verification.stepper.Marking;
+import nl.rug.ds.bpm.verification.stepper.Stepper;
+import org.jdom.JDOMException;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
-import org.jdom.JDOMException;
-
-import com.google.common.collect.Sets;
-
-import hub.top.petrinet.Arc;
-import hub.top.petrinet.Node;
-import hub.top.petrinet.PetriNet;
-import hub.top.petrinet.Place;
-import hub.top.petrinet.Transition;
-import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
-import nl.rug.ds.bpm.pnml.reader.ExtPNMLReader;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 /**
  * Created by Nick van Beest on 26-04-2017
  */
 public class ExtPnmlStepper extends Stepper {
-	
+	private ScriptEngine se;
 	private ExtPetriNet pn;
 	private Map<String, Transition> transitionmap;
 	private Map<String, Place> placemap;
@@ -34,6 +30,9 @@ public class ExtPnmlStepper extends Stepper {
 		getPN();
 		initializeTransitionMaps();
 		initializePlaceMap();
+		
+		ScriptEngineManager sem = new ScriptEngineManager();
+		se = sem.getEngineByName("JavaScript");
 	}
 
 	public ExtPnmlStepper(PetriNet pn) throws JDOMException, IOException {
@@ -41,8 +40,21 @@ public class ExtPnmlStepper extends Stepper {
 		this.pn = getExtPN(pn);
 		initializeTransitionMaps();
 		initializePlaceMap();
+		
+		ScriptEngineManager sem = new ScriptEngineManager();
+		se = sem.getEngineByName("JavaScript");
 	}
-
+	
+	public ExtPnmlStepper(ExtPetriNet pn, Map<String, Transition> transitionmap, Map<String, Place> placemap, Map<String, Set<String>> transitionIdmap) {
+		this.pn = pn;
+		this.transitionmap = transitionmap;
+		this.placemap = placemap;
+		this.transitionIdmap = transitionIdmap;
+		
+		ScriptEngineManager sem = new ScriptEngineManager();
+		se = sem.getEngineByName("JavaScript");
+	}
+	
 	private void getPN() throws JDOMException, IOException {
 		pn = ExtPNMLReader.parse(net);
 	}
@@ -158,7 +170,11 @@ public class ExtPnmlStepper extends Stepper {
 	public Map<String, Set<String>> getTransitionIdMap() {
 		return transitionIdmap;
 	}
-
+	
+	public void setConditions(Set<String> conditions) {
+	
+	}
+	
 	@Override
 	public Set<Set<String>> parallelActivatedTransitions(Marking marking) {
 		Set<Set<String>> ypar = new HashSet<Set<String>>();
@@ -204,7 +220,7 @@ public class ExtPnmlStepper extends Stepper {
 	}
 	
 	@Override
-	public Set<Marking> fireTransition(Marking marking, String transitionId, Set<String> conditions) {
+	public Set<Marking> fireTransition(Marking marking, String transitionId) {
 		Set<Marking> afterfire = new HashSet<Marking>();
 
 		Boolean enabled = true;
@@ -248,6 +264,35 @@ public class ExtPnmlStepper extends Stepper {
 		}
 		
 		return str;
+	}
+	
+	public boolean evalGuard(List<String> expressions) {
+		String expression = "(";
+		Iterator<String> iterator = expressions.iterator();
+		while (iterator.hasNext()) {
+			expression += iterator.next();
+			if (iterator.hasNext())
+				expression += " && ";
+		}
+		expression += ")";
+		return evalGuard(expression);
+	}
+	
+	public boolean evalGuard(String expression) {
+		boolean ret = true;
+		try {
+			Object o = se.eval(expression);
+			//System.out.println(o.toString());
+			ret = Boolean.parseBoolean(o.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	@Override
+	public Stepper clone() {
+		return new ExtPnmlStepper(pn, transitionmap, placemap, transitionIdmap);
 	}
 	
 }

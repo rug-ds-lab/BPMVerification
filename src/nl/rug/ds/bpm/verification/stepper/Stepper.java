@@ -19,7 +19,11 @@ public abstract class Stepper {
 		}
 	}
 	
+	public abstract void setConditions(Set<String> conditions);
 	public abstract Marking initialMarking();
 	public abstract Set<Set<String>> parallelActivatedTransitions(Marking marking);
-	public abstract Set<Marking> fireTransition(Marking marking, String transition, Set<String> conditions);
+	
+	public abstract Set<Marking> fireTransition(Marking marking, String transition);
+	
+	public abstract Stepper clone();
 }

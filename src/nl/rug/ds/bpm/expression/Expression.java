@@ -27,19 +27,19 @@ public class Expression<T> {
 			return (!this.value.equals(value));
 		case LT:
 			if ((value instanceof Number) && (this.value instanceof Number)) {
-				return ((double)value < (double)this.value);
+				return ((Double) value).doubleValue() < ((Double) this.value).doubleValue();
 			}
 		case LEQ:
 			if ((value instanceof Number) && (this.value instanceof Number)) {
-				return ((double)value <= (double)this.value);
+				return ((Double) value).doubleValue() <= ((Double) this.value).doubleValue();
 			}
 		case GT:
 			if ((value instanceof Number) && (this.value instanceof Number)) {
-				return ((double)value > (double)this.value);
+				return ((Double) value).doubleValue() > ((Double) this.value).doubleValue();
 			}
 		case GEQ:
 			if ((value instanceof Number) && (this.value instanceof Number)) {
-				return ((double)value >= (double)this.value);
+				return ((Double) value).doubleValue() >= ((Double) this.value).doubleValue();
 			}
 		}
 		return false;
@@ -56,10 +56,10 @@ public class Expression<T> {
 			case LT:
 				if ((other.value instanceof Number) && (this.value instanceof Number)) {
 					if (other.getExpressionType() == ExpressionType.GT) {
-						return ((double)this.value + 2 < (double)other.value);
+						return (((Double) this.value).doubleValue() + 2 < ((Double) other.value).doubleValue());
 					}
 					else if (other.getExpressionType() == ExpressionType.GEQ) {
-						return ((double)this.value + 1 < (double)other.value);
+						return (((Double) this.value).doubleValue() + 1 < ((Double) other.value).doubleValue());
 					}
 					else {
 						return false;
@@ -68,10 +68,10 @@ public class Expression<T> {
 			case LEQ:
 				if ((other.value instanceof Number) && (this.value instanceof Number)) {
 					if (other.getExpressionType() == ExpressionType.GT) {
-						return ((double)this.value + 1 < (double)other.value);
+						return (((Double) this.value).doubleValue() + 1 < ((Double) other.value).doubleValue());
 					}
 					else if (other.getExpressionType() == ExpressionType.GEQ) {
-						return ((double)this.value < (double)other.value);
+						return (((Double) this.value).doubleValue() < ((Double) other.value).doubleValue());
 					}
 					else {
 						return false;

@@ -1,18 +1,18 @@
 package nl.rug.ds.bpm.verification;
 
+import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.event.VerificationLog;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
-import nl.rug.ds.bpm.verification.model.kripke.State;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.verification.converter.KripkeConverter;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
-import nl.rug.ds.bpm.verification.converter.KripkeConverter;
+import nl.rug.ds.bpm.verification.model.kripke.Kripke;
+import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.optimizer.propositionOptimizer.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.StutterOptimizer;
-import nl.rug.ds.bpm.verification.model.kripke.Kripke;
+import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +43,11 @@ public class SetVerifier {
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
 		
+		Set<String> conds = new HashSet<>();
+		for (Condition condition : conditions)
+			conds.add(condition.getCondition());
+		stepper.setConditions(conds);
+		
 		eventHandler.logInfo("Loading specification set");
 		
 		eventHandler.logVerbose("Conditions: ");
@@ -54,7 +59,7 @@ public class SetVerifier {
 	}
 
 	public void buildKripke(boolean reduce) {
-		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, conditions, specIdMap);
+		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, specIdMap);
 		
 		eventHandler.logInfo("Calculating Kripke structure");
 		long t0 = System.currentTimeMillis();

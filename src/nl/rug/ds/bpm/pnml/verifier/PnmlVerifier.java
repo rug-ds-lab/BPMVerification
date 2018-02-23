@@ -1,10 +1,5 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import hub.top.petrinet.PetriNet;
 import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.event.VerificationLog;
@@ -17,6 +12,11 @@ import nl.rug.ds.bpm.specification.parser.SetParser;
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+
+import java.io.File;
+import java.io.OutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -188,7 +188,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pnmlFile);
-
+			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory, eventHandler);
 
