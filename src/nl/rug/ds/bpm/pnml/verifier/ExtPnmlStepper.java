@@ -187,10 +187,23 @@ public class ExtPnmlStepper extends Stepper {
 		return false;
 	}
 	
-	private Boolean haveContradiction(Set<String> tset1, Set<String> tset2) {
+	private Boolean canHaveContradiction(String transition1, String transition2) {
+		Transition t1 = transitionmap.get(transition1);
+		Transition t2 = transitionmap.get(transition2);
+		
+		for (Expression<?> e1: conditionmap.get(t1)) {
+			for (Expression<?> e2: conditionmap.get(t2)) {
+				if (e1.canContradict(e2)) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private Boolean canHaveContradiction(Set<String> tset1, Set<String> tset2) {
 		for (String t1: tset1) {
 			for (String t2: tset2) {
-				if (haveContradiction(t1, t2)) return true;
+				if (canHaveContradiction(t1, t2)) return true;
 			}
 		}
 		
@@ -309,7 +322,7 @@ public class ExtPnmlStepper extends Stepper {
 					// if not, subset par2 is redundant and can be removed. 
 					additional = new HashSet<String>(par1);
 					additional.removeAll(par2);
-					if (haveContradiction(additional, par2)) subsets.add(par2);
+					if (!canHaveContradiction(additional, par2)) subsets.add(par2);
 				}
 			}
 		}
