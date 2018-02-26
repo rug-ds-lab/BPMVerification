@@ -1,19 +1,36 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
+import org.jdom.JDOMException;
+
 import com.google.common.collect.Sets;
-import hub.top.petrinet.*;
+
+import hub.top.petrinet.Arc;
+import hub.top.petrinet.Node;
+import hub.top.petrinet.PetriNet;
+import hub.top.petrinet.Place;
+import hub.top.petrinet.Transition;
+import nl.rug.ds.bpm.expression.Expression;
+import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
 import nl.rug.ds.bpm.pnml.reader.ExtPNMLReader;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
-import org.jdom.JDOMException;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Created by Nick van Beest on 26-04-2017
@@ -24,7 +41,13 @@ public class ExtPnmlStepper extends Stepper {
 	private Map<String, Transition> transitionmap;
 	private Map<String, Place> placemap;
 	private Map<String, Set<String>> transitionIdmap;
-
+	
+	// these are the guards on transitions
+	private Map<Transition, Set<Expression<?>>> conditionmap; 
+	
+	// these are the global conditions that hold for the ctl spec to be evaluated (and hence apply to the entire process)
+	private Set<Expression<?>> globalconditions; 
+	
 	public ExtPnmlStepper(File pnml) throws JDOMException, IOException {
 		super(pnml);
 		getPN();
@@ -117,7 +140,7 @@ public class ExtPnmlStepper extends Stepper {
 		}
 		
 		for (Transition t: new HashSet<Transition>(enabled)) {
-			if (!filled.containsAll(t.getPreSet())) {
+			if ((!filled.containsAll(t.getPreSet())) || (contradictsConditions(t))) {  // NEW: CONTRADICTSCONDITIONS
 				enabled.remove(t);
 			}
 			else {
@@ -137,6 +160,41 @@ public class ExtPnmlStepper extends Stepper {
 		}
 		
 		return b;
+	}
+	
+	private Boolean contradictsConditions(Transition t) {
+		if ((globalconditions.size() == 0) || (!conditionmap.containsKey(t))) return false;
+		
+		for (Expression<?> global: globalconditions) {
+			for (Expression<?> guard: conditionmap.get(t)) {
+				if (guard.contradicts(global)) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private Boolean haveContradiction(String transition1, String transition2) {
+		Transition t1 = transitionmap.get(transition1);
+		Transition t2 = transitionmap.get(transition2);
+		
+		for (Expression<?> e1: conditionmap.get(t1)) {
+			for (Expression<?> e2: conditionmap.get(t2)) {
+				if (e1.contradicts(e2)) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private Boolean haveContradiction(Set<String> tset1, Set<String> tset2) {
+		for (String t1: tset1) {
+			for (String t2: tset2) {
+				if (haveContradiction(t1, t2)) return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private String getId(Place p) {
@@ -172,7 +230,23 @@ public class ExtPnmlStepper extends Stepper {
 	}
 	
 	public void setConditions(Set<String> conditions) {
+		globalconditions = new HashSet<Expression<?>>();
+		
+		for (String c: conditions) {
+			globalconditions.add(ExpressionBuilder.parseExpression(c));
+		}
+	}
 	
+	public void setTransitionGuards(Map<Transition, Set<String>> guardmap) {
+		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
+		
+		for (Transition t: guardmap.keySet()) {
+			if (!conditionmap.containsKey(t)) conditionmap.put(t, new HashSet<Expression<?>>());
+			
+			for (String c: guardmap.get(t)) {
+				conditionmap.get(t).add(ExpressionBuilder.parseExpression(c));
+			}
+		}
 	}
 	
 	@Override
@@ -188,8 +262,11 @@ public class ExtPnmlStepper extends Stepper {
 		ypar.remove(new HashSet<String>());
 
 		BitSet overlap;
+		List<String> simlist;
+		Boolean removed;
 		for (Set<String> sim: new HashSet<Set<String>>(ypar)) {
 			overlap = new BitSet();
+			removed = false;
 			for (String t: sim) {
 				// check if presets overlap for the set of transitions
 				// if yes, remove (i.e. they cannot fire simultaneously)
@@ -198,18 +275,41 @@ public class ExtPnmlStepper extends Stepper {
 				}
 				else {
 					ypar.remove(sim);
+					removed = true;
 					break;
+				}
+			}
+			
+			// NEW
+			// check if any of the elements contradicts with any of the others
+			// if so, the entire subset sim can be removed from ypar
+			if (!removed) {
+				simlist = new ArrayList<String>(sim);
+				for (int i = 0; i < simlist.size() - 1; i++) {
+					if (removed) break;
+					for (int j = i + 1; j < simlist.size(); j++) {
+						if (haveContradiction(simlist.get(i), simlist.get(j))) {
+							removed = true;
+							ypar.remove(sim);
+							break;
+						}
+					}
 				}
 			}
 		}
 		
 		Set<Set<String>> subsets = new HashSet<Set<String>>();
-		
+		Set<String> additional;
 		// remove subsets to obtain the largest sets
 		for (Set<String> par1: ypar) {
 			for (Set<String> par2: ypar) {
 				if ((par1.containsAll(par2)) && (par1.size() != par2.size())) {
-					subsets.add(par2);
+					// NEW: 
+					// check if any of the additional elements (i.e. par1 \ par2) can contradict with par2
+					// if not, subset par2 is redundant and can be removed. 
+					additional = new HashSet<String>(par1);
+					additional.removeAll(par2);
+					if (haveContradiction(additional, par2)) subsets.add(par2);
 				}
 			}
 		}

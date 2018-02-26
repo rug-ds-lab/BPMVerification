@@ -2,6 +2,11 @@ package nl.rug.ds.bpm.expression;
 
 public class ExpressionBuilder {
 	
+	public static Expression<?> parseExpression(String expression) {
+		String name = expression.substring(0, expression.indexOf(" "));
+		return parseExpression(name, expression);
+	}
+	
 	public static Expression<?> parseExpression(String name, String expression) {		
 		String operator;
 		ExpressionType et;

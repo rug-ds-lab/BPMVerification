@@ -98,7 +98,126 @@ public class Expression<T> {
 			}
 		}
 		
-		return true;
+		return false;
+	}
+	
+	@SuppressWarnings({ "rawtypes" })
+	public Boolean canContradict(Expression other) {		
+		return ((contradicts(other)) || (other.type != this.type) || (!other.value.equals(this.value)));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public int overlaps(Expression other) {
+		// this function returns:
+		// 0 when ranges are identical (this+other)
+		// 1 when this has a larger range than other (this+other, this)
+		// -1 when this has a smaller range than other (this+other, other)
+		// 2 when this and other overlap (this, this+other, other)
+		// -2 when this and other are mutually exclusive (this, other)
+		int overlaps = 0;
+		
+		switch(type) {
+		case EQ:
+		case NEQ:
+			if (!contradicts(other)) 
+				return 0;
+			else
+				return -2;
+		case GEQ:
+			if (contradicts(other)) {
+				return -2;
+			}
+			else {
+				if (other.type == ExpressionType.GEQ) {
+					if (((Double)other.value) == ((Double)this.value))
+						return 0;
+					else if (((Double)other.value) > ((Double)this.value))
+						return 1;
+					else 
+						return -1;
+				}
+				else if (other.type == ExpressionType.GT) {
+					if (((Double)other.value) > ((Double)this.value))
+						return 1;
+					else 
+						return -1;
+				}
+				else {
+					return 2;
+				}
+			}
+		case GT:
+			if (contradicts(other)) {
+				return -2;
+			}
+			else {
+				if (other.type == ExpressionType.GT) {
+					if (((Double)other.value) == ((Double)this.value))
+						return 0;
+					else if (((Double)other.value) > ((Double)this.value))
+						return 1;
+					else 
+						return -1;
+				}
+				else if (other.type == ExpressionType.GEQ) {
+					if (((Double)other.value) > ((Double)this.value))
+						return 1;
+					else 
+						return -1;
+				}
+				else {
+					return 2;
+				}
+			}
+		case LEQ:
+			if (contradicts(other)) {
+				return -2;
+			}
+			else {
+				if (other.type == ExpressionType.LEQ) {
+					if (((Double)other.value) == ((Double)this.value))
+						return 0;
+					else if (((Double)other.value) > ((Double)this.value))
+						return -1;
+					else 
+						return 1;
+				}
+				else if (other.type == ExpressionType.LT) {
+					if (((Double)other.value) > ((Double)this.value))
+						return -1;
+					else 
+						return 1;
+				}
+				else {
+					return 2;
+				}
+			}
+		case LT:
+			if (contradicts(other)) {
+				return -2;
+			}
+			else {
+				if (other.type == ExpressionType.LT) {
+					if (((Double)other.value) == ((Double)this.value))
+						return 0;
+					else if (((Double)other.value) > ((Double)this.value))
+						return -1;
+					else 
+						return 1;
+				}
+				else if (other.type == ExpressionType.LEQ) {
+					if (((Double)other.value) > ((Double)this.value))
+						return -1;
+					else 
+						return 1;
+				}
+				else {
+					return 2;
+				}
+			}
+		}
+		
+		return overlaps;
 	}
 	
 	public String getName() {
