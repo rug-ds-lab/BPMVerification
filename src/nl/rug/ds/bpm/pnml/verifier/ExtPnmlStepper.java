@@ -280,7 +280,10 @@ public class ExtPnmlStepper extends Stepper {
 		for (Set<String> sim: new HashSet<Set<String>>(ypar)) {
 			overlap = new BitSet();
 			removed = false;
-			for (String t: sim) {
+			
+			Iterator<String> iterator = sim.iterator();
+			while ((iterator.hasNext()) && (!removed)) {
+				String t = iterator.next();
 				// check if presets overlap for the set of transitions
 				// if yes, remove (i.e. they cannot fire simultaneously)
 				if (!overlap.intersects(enabledpresets.get(t))) {
@@ -289,7 +292,6 @@ public class ExtPnmlStepper extends Stepper {
 				else {
 					ypar.remove(sim);
 					removed = true;
-					break;
 				}
 			}
 			
@@ -298,15 +300,18 @@ public class ExtPnmlStepper extends Stepper {
 			// if so, the entire subset sim can be removed from ypar
 			if (!removed) {
 				simlist = new ArrayList<String>(sim);
-				for (int i = 0; i < simlist.size() - 1; i++) {
-					if (removed) break;
-					for (int j = i + 1; j < simlist.size(); j++) {
+				int i = 0;
+				int j;
+				while ((i < simlist.size() - 1) && (!removed)) {
+					j = i + 1;
+					while ((j < simlist.size()) && (!removed)) {
 						if (haveContradiction(simlist.get(i), simlist.get(j))) {
 							removed = true;
 							ypar.remove(sim);
-							break;
 						}
+						j++;
 					}
+					i++;
 				}
 			}
 		}
