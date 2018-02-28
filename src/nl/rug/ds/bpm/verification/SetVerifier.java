@@ -43,10 +43,10 @@ public class SetVerifier {
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
 		
-		Set<String> conds = new HashSet<>();
-		for (Condition condition : conditions)
-			conds.add(condition.getCondition());
-		stepper.setConditions(conds);
+//		Set<String> conds = new HashSet<>();
+//		for (Condition condition : conditions)
+//			conds.add(condition.getCondition());
+//		stepper.setConditions(conds);
 		
 		eventHandler.logInfo("Loading specification set");
 		
@@ -64,6 +64,7 @@ public class SetVerifier {
 		eventHandler.logInfo("Calculating Kripke structure");
 		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
+//		System.out.println(kripke);
 		long t1 = System.currentTimeMillis();
 		
 		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");

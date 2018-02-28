@@ -140,6 +140,7 @@ public class ExtPnmlStepper extends Stepper {
 		}
 		
 		for (Transition t: new HashSet<Transition>(enabled)) {
+
 			if ((!filled.containsAll(t.getPreSet())) || (contradictsConditions(t))) {  // NEW: CONTRADICTSCONDITIONS
 				enabled.remove(t);
 			}
@@ -164,7 +165,7 @@ public class ExtPnmlStepper extends Stepper {
 	
 	private Boolean contradictsConditions(Transition t) {
 		if ((globalconditions.size() == 0) || (!conditionmap.containsKey(t))) return false;
-		
+				
 		for (Expression<?> global: globalconditions) {
 			for (Expression<?> guard: conditionmap.get(t)) {
 				if (guard.contradicts(global)) return true;
@@ -242,6 +243,10 @@ public class ExtPnmlStepper extends Stepper {
 		return transitionIdmap;
 	}
 	
+	public void setConditionsByExpression(Set<Expression<?>> conditions) {
+		this.globalconditions = new HashSet<Expression<?>>(conditions);
+	}
+	
 	public void setConditions(Set<String> conditions) {
 		globalconditions = new HashSet<Expression<?>>();
 		
@@ -250,16 +255,30 @@ public class ExtPnmlStepper extends Stepper {
 		}
 	}
 	
-	public void setTransitionGuards(Map<Transition, Set<String>> guardmap) {
+	public Set<Expression<?>> getConditions() {
+		return globalconditions;
+	}
+	
+	public void setTransitionGuardsByExpression(Map<Transition, Set<Expression<?>>> guardmap) {
+		this.conditionmap = new HashMap<Transition, Set<Expression<?>>>(guardmap);
+	}
+	
+	public void setTransitionGuards(Map<String, Set<String>> guardmap) {
 		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
 		
-		for (Transition t: guardmap.keySet()) {
-			if (!conditionmap.containsKey(t)) conditionmap.put(t, new HashSet<Expression<?>>());
+		Transition tr;
+		for (String t: guardmap.keySet()) {
+			tr = pn.findTransition(t);
+			if (!conditionmap.containsKey(tr)) conditionmap.put(tr, new HashSet<Expression<?>>());
 			
 			for (String c: guardmap.get(t)) {
-				conditionmap.get(t).add(ExpressionBuilder.parseExpression(c));
+				conditionmap.get(tr).add(ExpressionBuilder.parseExpression(c));
 			}
 		}
+	}
+	
+	public Map<Transition, Set<Expression<?>>> getTransitionGuards() {
+		return conditionmap;
 	}
 	
 	@Override
@@ -410,7 +429,11 @@ public class ExtPnmlStepper extends Stepper {
 	
 	@Override
 	public Stepper clone() {
-		return new ExtPnmlStepper(pn, transitionmap, placemap, transitionIdmap);
+		ExtPnmlStepper s = new ExtPnmlStepper(pn, transitionmap, placemap, transitionIdmap);
+		s.setConditionsByExpression(globalconditions);
+		s.setTransitionGuardsByExpression(conditionmap);
+		
+		return s;
 	}
 	
 }
