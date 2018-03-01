@@ -1,14 +1,14 @@
 package nl.rug.ds.bpm.verification.checker;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationResult;
+import nl.rug.ds.bpm.exception.ModelCheckerException;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,11 +40,12 @@ public abstract class Checker {
     }
     
     public abstract void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap);
-    
-    public abstract void createModel(Kripke kripke);
-    public abstract void checkModel();
-    
-    public void checkModel(Kripke kripke) {
+	
+	public abstract void createModel(Kripke kripke) throws ModelCheckerException;
+	
+	public abstract void checkModel() throws ModelCheckerException;
+	
+	public void checkModel(Kripke kripke) throws ModelCheckerException {
         createModel(kripke);
         checkModel();
     }

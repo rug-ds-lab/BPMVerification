@@ -1,11 +1,12 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
 import hub.top.petrinet.PetriNet;
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationLog;
-import nl.rug.ds.bpm.event.VerificationResult;
+import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.event.listener.VerificationLogListener;
+import nl.rug.ds.bpm.exception.SpecificationException;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
+import nl.rug.ds.bpm.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
@@ -22,16 +23,31 @@ import java.time.format.DateTimeFormatter;
  * Created by Heerko Groefsema on 07-Apr-17.
  */
 public class PnmlVerifier implements VerificationEventListener, VerificationLogListener {
-	private EventHandler eventHandler;
 	private SetParser setParser;
 	private CheckerFactory factory;
 	private boolean reduce;
+	
+	public PnmlVerifier() {
+		reduce = true;
+		setParser = new SetParser();
+		
+		//Implement listeners and
+		//Add listeners to receive log notifications
+		Logger.addLogListener(this);
+	}
+	
+	public PnmlVerifier(File nusmv2) {
+		this();
+		
+		//Create the wanted model checker factory
+		factory = new NuSMVFactory(nusmv2);
+	}
 
 	public static void main(String[] args) {
 		if (args.length > 2) {
 			//Normal call
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
-			pnmlVerifier.setLogLevel(VerificationLog.INFO);
+			pnmlVerifier.setLogLevel(LogEvent.INFO);
 			if(args.length > 3)
 				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
 			pnmlVerifier.verify(args[0], args[1]);
@@ -47,26 +63,6 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		} else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
-	}
-
-	public PnmlVerifier() {
-		reduce = true;
-
-		//Make a shared eventHandler
-		eventHandler = new EventHandler();
-		setParser = new SetParser(eventHandler);
-
-		//Implement listeners and
-		//Add listeners to receive log and result notifications
-		eventHandler.addLogListener(this);
-		eventHandler.addEventListener(this);
-	}
-
-	public PnmlVerifier(File nusmv2) {
-		this();
-		
-		//Create the wanted model checker factory
-		factory = new NuSMVFactory(eventHandler, nusmv2);
 	}
 
 	public PnmlVerifier(String nusmv2) {
@@ -111,11 +107,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 	
@@ -126,11 +124,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 
@@ -141,11 +141,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 	
@@ -157,11 +159,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 	
@@ -172,11 +176,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 
@@ -190,13 +196,15 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			stepper = new ExtPnmlStepper(pnmlFile);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 
 			//Start verification
 			verifier.verify(specificationFile, reduce);
 		}
 		catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			return;
 		}
 	}
 
@@ -213,12 +221,12 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		return setParser.getSpecification();
 	}
 	
-	public void saveSpecification(File file) {
-		SpecificationMarshaller marshaller = new SpecificationMarshaller(eventHandler, getSpecifications(), file);
+	public void saveSpecification(File file) throws SpecificationException {
+		SpecificationMarshaller marshaller = new SpecificationMarshaller(getSpecifications(), file);
 	}
 	
-	public void saveSpecification(OutputStream stream) {
-		SpecificationMarshaller marshaller = new SpecificationMarshaller(eventHandler, getSpecifications(), stream);
+	public void saveSpecification(OutputStream stream) throws SpecificationException {
+		SpecificationMarshaller marshaller = new SpecificationMarshaller(getSpecifications(), stream);
 	}
 
 	public void setReduction(boolean reduce) {
@@ -252,26 +260,26 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public int getMaximumStates() {
 		return Verifier.getMaximumStates();
 	}
-
-	//Set log level VerificationLog.DEBUG to VerificationLog.CRITICAL
-	public void setLogLevel(int level) {
-		Verifier.setLogLevel(level);
-	}
-
+	
 	public int getLogLevel() {
-		return Verifier.getLogLevel();
+		return Logger.getLogLevel();
+	}
+	
+	//Set log level LogEvent.DEBUG to LogEvent.CRITICAL
+	public void setLogLevel(int level) {
+		Logger.setLogLevel(level);
 	}
 
 	//Listener implementations
 	@Override
-	public void verificationEvent(VerificationResult event) {
+	public void verificationEvent(VerificationEvent event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
 	}
 	
 	@Override
-	public void verificationLogEvent(VerificationLog event) {
+	public void verificationLogEvent(LogEvent event) {
 		//Use for log and textual user feedback
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
 	}

@@ -1,6 +1,8 @@
 package nl.rug.ds.bpm.verification.converter;
 
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.exception.ConverterException;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -12,21 +14,17 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class KripkeConverter {
-    private EventHandler eventHandler;
 	private Stepper parallelStepper;
     private Kripke kripke;
     private IDMap idMap;
-    
-    public KripkeConverter(EventHandler eventHandler, Stepper parallelStepper, IDMap idMap) {
-        this.eventHandler = eventHandler;
+	
+	public KripkeConverter(Stepper parallelStepper, IDMap idMap) {
         this.parallelStepper = parallelStepper;
-        
         this.idMap = new IDMap("t", idMap.getIdToAp(), idMap.getApToId());
-        
         State.resetStateId();
     }
-
-    public Kripke convert() {
+	
+	public Kripke convert() throws ConverterException {
         kripke = new Kripke();
 
         Marking marking = parallelStepper.initialMarking();
@@ -36,10 +34,14 @@ public class KripkeConverter {
             
             for (String transition: enabled)
                 for (Marking step : parallelStepper.fireTransition(marking, transition)) {
-                    ConverterAction converterAction = new ConverterAction(eventHandler, kripke, parallelStepper, idMap, step, found);
+					ConverterAction converterAction = new ConverterAction(kripke, parallelStepper, idMap, step, found);
                     converterAction.compute();
                 }
         }
+		
+		if (kripke.getStateCount() >= Kripke.getMaximumStates()) {
+			throw new ConverterException("Maximum state space reached (at " + Kripke.getMaximumStates() + " states)");
+		}
 		
         return kripke;
     }
@@ -54,7 +56,7 @@ public class KripkeConverter {
             aps.add(idMap.getAP(id));
             
             if(!exist)
-                eventHandler.logVerbose("Mapping " + id + " to " + idMap.getAP(id));
+				Logger.log("Mapping " + id + " to " + idMap.getAP(id), LogEvent.VERBOSE);
         }
         
         return aps;

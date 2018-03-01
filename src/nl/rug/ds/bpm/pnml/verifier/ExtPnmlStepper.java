@@ -1,29 +1,7 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
-import org.jdom.JDOMException;
-
 import com.google.common.collect.Sets;
-
-import hub.top.petrinet.Arc;
-import hub.top.petrinet.Node;
-import hub.top.petrinet.PetriNet;
-import hub.top.petrinet.Place;
-import hub.top.petrinet.Transition;
+import hub.top.petrinet.*;
 import nl.rug.ds.bpm.expression.Expression;
 import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.extpetrinet.ExtPetriNet;
@@ -31,6 +9,13 @@ import nl.rug.ds.bpm.pnml.reader.ExtPNMLReader;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.stepper.Marking;
 import nl.rug.ds.bpm.verification.stepper.Stepper;
+import org.jdom.JDOMException;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by Nick van Beest on 26-04-2017
@@ -54,15 +39,21 @@ public class ExtPnmlStepper extends Stepper {
 		initializeTransitionMaps();
 		initializePlaceMap();
 		
+		globalconditions = new HashSet<Expression<?>>();
+		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
+		
 		ScriptEngineManager sem = new ScriptEngineManager();
 		se = sem.getEngineByName("JavaScript");
 	}
-
-	public ExtPnmlStepper(PetriNet pn) throws JDOMException, IOException {
+	
+	public ExtPnmlStepper(PetriNet pn) {
 		super();
 		this.pn = getExtPN(pn);
 		initializeTransitionMaps();
 		initializePlaceMap();
+		
+		globalconditions = new HashSet<Expression<?>>();
+		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
 		
 		ScriptEngineManager sem = new ScriptEngineManager();
 		se = sem.getEngineByName("JavaScript");
@@ -73,6 +64,9 @@ public class ExtPnmlStepper extends Stepper {
 		this.transitionmap = transitionmap;
 		this.placemap = placemap;
 		this.transitionIdmap = transitionIdmap;
+		
+		globalconditions = new HashSet<Expression<?>>();
+		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
 		
 		ScriptEngineManager sem = new ScriptEngineManager();
 		se = sem.getEngineByName("JavaScript");

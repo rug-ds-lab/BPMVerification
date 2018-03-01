@@ -1,11 +1,11 @@
 package nl.rug.ds.bpm.pnml.verifier.apm;
 
 import hub.top.petrinet.PetriNet;
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationLog;
-import nl.rug.ds.bpm.event.VerificationResult;
+import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.event.listener.VerificationLogListener;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
+import nl.rug.ds.bpm.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
@@ -16,7 +16,6 @@ import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import java.util.List;
  * Created by Nick van Beest on 02-June-17.
  */
 public class PnmlVerifierAPM implements VerificationEventListener, VerificationLogListener {
-	private EventHandler eventHandler;
 	private SetParser setParser;
 	private CheckerFactory factory;
 	private boolean reduce;
@@ -41,14 +39,11 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		reduce = true;
 		this.userFriendly = userFriendly;
 		
-		//Make a shared eventHandler
-		eventHandler = new EventHandler();
-		setParser = new SetParser(eventHandler);
+		setParser = new SetParser();
 
 		//Implement listeners and
-		//Add listeners to receive log and result notifications
-		eventHandler.addLogListener(this);
-		eventHandler.addEventListener(this);
+		//Add listeners to receive log notifications
+		Logger.addLogListener(this);
 		
 		eventoutput = "";
 		feedback = new ArrayList<String>();
@@ -56,7 +51,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		this.pn = pn;
 		
 		//Create the wanted model checker factory
-		factory = new NuSMVFactory(eventHandler, new File(nusmv2));
+		factory = new NuSMVFactory(new File(nusmv2));
 	}
 
 	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2, boolean userFriendly) {
@@ -89,12 +84,13 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 			stepper = new ExtPnmlStepper(pn);
 			
 			//Make a verifier which uses that step class
-			Verifier verifier = new Verifier(stepper, factory, eventHandler);
+			Verifier verifier = new Verifier(stepper, factory);
+			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(bpmSpecification, reduce);
 		} 
 		catch (Exception e) {
-			eventHandler.logCritical("Failed to load pnml");
+			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
 		}
 		System.out.println(eventoutput);
 		
@@ -104,11 +100,10 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void addSpecificationFromXML(String specxml) {
 		SpecificationUnmarshaller unmarshaller;
 		try {
-			unmarshaller = new SpecificationUnmarshaller(eventHandler, new ByteArrayInputStream(specxml.getBytes("UTF-8")));
+			unmarshaller = new SpecificationUnmarshaller(new ByteArrayInputStream(specxml.getBytes("UTF-8")));
 			bpmSpecification = unmarshaller.getSpecification();
-		} 
-		catch (UnsupportedEncodingException e) {
-			eventHandler.logCritical("Invalid specification xml");
+		} catch (Exception e) {
+			Logger.log("Invalid specification xml", LogEvent.CRITICAL);
 			return;
 		}
 	}
@@ -157,19 +152,19 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public int getMaximumStates() {
 		return Verifier.getMaximumStates();
 	}
-
-	//Set log level VerificationLog.DEBUG to VerificationLog.CRITICAL
-	public void setLogLevel(int level) {
-		Verifier.setLogLevel(level);
-	}
-
+	
 	public int getLogLevel() {
-		return Verifier.getLogLevel();
+		return Logger.getLogLevel();
+	}
+	
+	//Set log level LogEvent.DEBUG to LogEvent.CRITICAL
+	public void setLogLevel(int level) {
+		Logger.setLogLevel(level);
 	}
 
 	//Listener implementations
 	@Override
-	public void verificationEvent(VerificationResult event) {
+	public void verificationEvent(VerificationEvent event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
 		if (userFriendly) {
@@ -181,7 +176,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	}
 	
 	@Override
-	public void verificationLogEvent(VerificationLog event) {
+	public void verificationLogEvent(LogEvent event) {
 		//Use for log and textual user feedback
 		eventoutput += "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString() + "\n";
 	}

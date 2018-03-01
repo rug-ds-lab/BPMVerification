@@ -1,6 +1,9 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.exception.ModelCheckerException;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.verification.checker.Checker;
@@ -29,11 +32,11 @@ public class NuSMVChecker extends Checker {
 	public void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
     	NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
 		formulas.add(nuSMVFormula);
-		eventHandler.logVerbose("Including specification formula " + nuSMVFormula.getOriginalFormula());
+		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
 	}
 	
 	@Override
-	public void createModel(Kripke kripke) {
+	public void createModel(Kripke kripke) throws ModelCheckerException {
 		inputChecker.append("MODULE main\n");
 		inputChecker.append(convertVAR(kripke));
 		inputChecker.append(convertDEFINE(kripke));
@@ -46,27 +49,28 @@ public class NuSMVChecker extends Checker {
 			writer.println(inputChecker);
 			writer.close();
 		} catch (Throwable t) {
-			eventHandler.logCritical("Issue writing temporary file");
+			throw new ModelCheckerException("Failed to write to temporary file");
 		}
 	}
 	
 	@Override
-	public void checkModel() {
-		Process proc = createProcess();
-		
-		List<String> results = getResults(proc);
-		List<String> errors = getErrors(proc);
-		
-		parseResults(results);
-		for (String line: errors)
-			outputChecker.append(line + "\n");
-		
+	public void checkModel() throws ModelCheckerException {
 		try {
+			Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
+			
+			List<String> results = getResults(proc);
+			List<String> errors = getErrors(proc);
+			
+			parseResults(results);
+			for (String line : errors)
+				outputChecker.append(line + "\n");
+		
 			proc.waitFor();
 			file.delete();
 			proc.destroy();
 		}
 		catch (Exception e) {
+			throw new ModelCheckerException("Failed to call NuSMV2");
 		}
 	}
 
@@ -156,65 +160,43 @@ public class NuSMVChecker extends Checker {
 
         return sub;
     }
-
-    private Process createProcess() {
-        try {
-            Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
-            return proc;
-        } catch (Throwable t) {
-            eventHandler.logError("Could not call model checker NuSMV2");
-            eventHandler.logError("No checks were performed");
-            return null;
-        }
-    }
 	
-	
-	private List<String> getResults(Process proc) {
+	private List<String> getResults(Process proc) throws IOException {
 		List<String> results = new ArrayList<>();
-		try {
-			String line = null;
-			//inputStream
-			InputStream stdin = proc.getInputStream();
-			InputStreamReader in = new InputStreamReader(stdin);
-			BufferedReader bir = new BufferedReader(in);
-			while ((line = bir.readLine()) != null) {
-				if (line.contains("-- specification "))
-					results.add(line.replace("-- specification ", "").trim());
-			}
-			bir.close();
-			in.close();
-			
-		} catch (Throwable t) {
-			eventHandler.logError("Could not call model checker");
-			eventHandler.logCritical("No checks were performed");
+		
+		String line = null;
+		//inputStream
+		InputStream stdin = proc.getInputStream();
+		InputStreamReader in = new InputStreamReader(stdin);
+		BufferedReader bir = new BufferedReader(in);
+		while ((line = bir.readLine()) != null) {
+			if (line.contains("-- specification "))
+				results.add(line.replace("-- specification ", "").trim());
 		}
+		bir.close();
+		in.close();
 		
 		return results;
 	}
 	
-	private List<String> getErrors(Process proc) {
+	private List<String> getErrors(Process proc) throws IOException {
 		List<String> results = new ArrayList<>();
-		try {
-			String line = null;
-			//errorstream
-			InputStream stderr = proc.getErrorStream();
-			InputStreamReader isr = new InputStreamReader(stderr);
-			BufferedReader br = new BufferedReader(isr);
-			while ((line = br.readLine()) != null) {
-				results.add(line);
-			}
-			br.close();
-			
-		} catch (Throwable t) {
-			eventHandler.logError("Could not call model checker");
-			eventHandler.logCritical("No checks were performed");
-		}
 		
+		String line = null;
+		//errorstream
+		InputStream stderr = proc.getErrorStream();
+		InputStreamReader isr = new InputStreamReader(stderr);
+		BufferedReader br = new BufferedReader(isr);
+		while ((line = br.readLine()) != null) {
+			results.add(line);
+		}
+		br.close();
+	
 		return results;
 	}
 
     private void parseResults(List<String> resultLines) {
-		eventHandler.logInfo("Collecting results");
+		Logger.log("Collecting results", LogEvent.INFO);
 		for (String result: resultLines) {
 			String formula = result;
 			boolean eval = false;
@@ -238,17 +220,17 @@ public class NuSMVChecker extends Checker {
 		
 			if(!found) {
 				if(eval)
-					eventHandler.logWarning("Failed to map " + formula + " to original specification while it evaluated true");
+					Logger.log("Failed to map " + formula + " to original specification while it evaluated true", LogEvent.WARNING);
 				else
-					eventHandler.logError("Failed to map " + formula + " to original specification while it evaluated FALSE");
+					Logger.log("Failed to map " + formula + " to original specification while it evaluated FALSE", LogEvent.ERROR);
 			}
 			else {
 				String mappedFormula = abstractFormula.getOriginalFormula();
 				eventHandler.fireEvent(abstractFormula, eval);
 				if(eval)
-					eventHandler.logInfo("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula);
+					Logger.log("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula, LogEvent.INFO);
 				else
-					eventHandler.logError("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula);
+					Logger.log("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula, LogEvent.ERROR);
 				formulas.remove(abstractFormula);
 			}
 		}

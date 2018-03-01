@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.converter;
 
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -17,15 +18,13 @@ import java.util.concurrent.RecursiveAction;
  * Created by Heerko Groefsema on 20-May-17.
  */
 public class ConverterAction extends RecursiveAction {
-	private EventHandler eventHandler;
 	private Kripke kripke;
 	private Stepper stepper;
 	private IDMap idMap;
 	private Marking marking;
 	private State previous;
 	
-	public ConverterAction(EventHandler eventHandler, Kripke kripke, Stepper stepper, IDMap idMap, Marking marking, State previous) {
-		this.eventHandler = eventHandler;
+	public ConverterAction(Kripke kripke, Stepper stepper, IDMap idMap, Marking marking, State previous) {
 		this.kripke = kripke;
 		this.stepper = stepper;
 		this.idMap = idMap;
@@ -36,7 +35,7 @@ public class ConverterAction extends RecursiveAction {
 	@Override
 	protected void compute() {
 		if(kripke.getStateCount() >= Kripke.getMaximumStates()) {
-			eventHandler.logCritical("Maximum state space reached (at " + Kripke.getMaximumStates() + " states)");
+			return;
 		}
 		for (Set<String> enabled: stepper.parallelActivatedTransitions(marking)) {
 			State found = new State(marking.toString(), mapAp(enabled));
@@ -50,7 +49,7 @@ public class ConverterAction extends RecursiveAction {
 				Set<ConverterAction> nextActions = new HashSet<>();
 				for (String transition: enabled)
 					for (Marking step : stepper.fireTransition(marking.clone(), transition))
-						nextActions.add(new ConverterAction(eventHandler, kripke, stepper, idMap, step, found));
+						nextActions.add(new ConverterAction(kripke, stepper, idMap, step, found));
 				
 				invokeAll(nextActions);
 			}
@@ -70,7 +69,7 @@ public class ConverterAction extends RecursiveAction {
 			aps.add(idMap.getAP(id));
 			
 			if(!exist)
-				eventHandler.logVerbose("Mapping " + id + " to " + idMap.getAP(id));
+				Logger.log("Mapping " + id + " to " + idMap.getAP(id), LogEvent.VERBOSE);
 		}
 		
 		return aps;

@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 /**
  * Created by Heerko Groefsema on 10-Apr-17.
  */
-public class VerificationResult {
+public class VerificationEvent {
 	private boolean eval;
 	private CheckerFormula formula;
 	
-	public VerificationResult(CheckerFormula formula, boolean eval) {
+	public VerificationEvent(CheckerFormula formula, boolean eval) {
 		this.formula = formula;
 		this.eval = eval;
 	}
@@ -63,7 +63,6 @@ public class VerificationResult {
 			} else if (elements.size() > 1) {
 				Iterator<InputElement> inputElementIterator = elements.iterator();
 				APBuilder = inputElementIterator.next().getElement();
-				;
 				while (inputElementIterator.hasNext()) {
 					APBuilder = APBuilder + (input.getType().equalsIgnoreCase("and") ? " and " : " or ") + inputElementIterator.next().getElement();
 				}

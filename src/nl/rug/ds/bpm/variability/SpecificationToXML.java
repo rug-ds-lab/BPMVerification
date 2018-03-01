@@ -1,37 +1,28 @@
 package nl.rug.ds.bpm.variability;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.exception.SpecificationException;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Group;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+
 public class SpecificationToXML {
 	
 	public static String[] getOutput(VariabilitySpecification vs, String silentprefix) {
-		return getOutput(vs, silentprefix, new EventHandler(), true, true, true, true, true, true);
+		return getOutput(vs, silentprefix, true, true, true, true, true, true);
 	}
 	
-	public static String[] getOutput(VariabilitySpecification vs, String silentprefix, EventHandler eventHandler) {
-		return getOutput(vs, silentprefix, eventHandler, true, true, true, true, true, true);
-	}
-	
-	public static String[] getOutput(VariabilitySpecification vs, String silentprefix, 
-			Boolean viresp, Boolean viprec, Boolean veiresp, Boolean veresp, Boolean vconf, Boolean vpar) {
-		return getOutput(vs, silentprefix, new EventHandler(), viresp, viprec, veiresp, veresp, vconf, vpar);
-	}
-	
-	public static String[] getOutput(VariabilitySpecification vs, String silentprefix, EventHandler eventHandler, 
-			Boolean viresp, Boolean viprec, Boolean veiresp, Boolean veresp, Boolean vconf, Boolean vpar) {
+	public static String[] getOutput(VariabilitySpecification vs, String silentprefix,
+									 Boolean viresp, Boolean viprec, Boolean veiresp, Boolean veresp, Boolean vconf, Boolean vpar) {
 		
 		String output[] = new String[2];		
 		String plaintext = "";
 		
-		SpecificationTypeLoader stl = new SpecificationTypeLoader(eventHandler);
+		SpecificationTypeLoader stl = new SpecificationTypeLoader();
 		
 		BPMSpecification bpmspec = new BPMSpecification();
 		SpecificationSet specset;
@@ -159,7 +150,11 @@ public class SpecificationToXML {
 		}
 		
 		OutputStream os = new ByteArrayOutputStream();
-		new SpecificationMarshaller(eventHandler, bpmspec, os);
+		try {
+			new SpecificationMarshaller(bpmspec, os);
+		} catch (SpecificationException e) {
+			e.printStackTrace();
+		}
 		
 		output[0] = os.toString();
 		output[1] = plaintext;

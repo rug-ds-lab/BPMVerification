@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.optimizer.stutterOptimizer;
 
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
@@ -12,13 +13,11 @@ import java.util.*;
  */
 public class StutterOptimizer {
 	private int count, eventCount;
-	private EventHandler eventHandler;
 	private Kripke kripke;
 	private Set<State> stutterStates;
 	private List<Block> toBeProcessed, stable, BL;
 	
-	public StutterOptimizer(EventHandler eventHandler, Kripke kripke) {
-		this.eventHandler = eventHandler;
+	public StutterOptimizer(Kripke kripke) {
 		this.kripke = kripke;
 		
 		toBeProcessed = new LinkedList<>();
@@ -32,7 +31,7 @@ public class StutterOptimizer {
 	
 	public int optimize() {
 		while(!toBeProcessed.isEmpty()) {
-			eventHandler.logVerbose("Processing stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")");
+			Logger.log("Processing stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ")", LogEvent.VERBOSE);
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
 			for(State entryState: bAccent.getEntry()) {
@@ -87,7 +86,7 @@ public class StutterOptimizer {
 		int blc = 1;
 		//merge blocks with size > 1
 		for(Block b: stable) {
-			eventHandler.logVerbose("Merging stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()) + " (" + blc++  + "/" + stable.size() + ")");
+			Logger.log("Merging stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()) + " (" + blc++ + "/" + stable.size() + ")", LogEvent.VERBOSE);
 			if(b.size() > 1) {
 				Set<State> previous = new HashSet<State>();
 				Set<State> next = new HashSet<State>();
@@ -215,7 +214,7 @@ public class StutterOptimizer {
 				//toPartion.add(next);
 				count++;
 				if (count >= eventCount) {
-					eventHandler.logVerbose("Partitioning states into stutter blocks (at " + count + " states)");
+					Logger.log("Partitioning states into stutter blocks (at " + count + " states)", LogEvent.VERBOSE);
 					eventCount += 160000;
 				}
 				

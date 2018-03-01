@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.variability;
 
-import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
@@ -10,15 +11,9 @@ import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 
 public class SpecificationTypeLoader {
 	private SpecificationTypeMap specificationTypeMap;
-	private EventHandler eventHandler;
 	
 	public SpecificationTypeLoader() {
-		eventHandler = null;
-	}
-	
-	public SpecificationTypeLoader(EventHandler eventHandler) {
 		specificationTypeMap = new SpecificationTypeMap();
-		eventHandler = this.eventHandler;
 		
 		loadSpecificationTypes();
 	}
@@ -32,18 +27,16 @@ public class SpecificationTypeLoader {
 	}
 	
 	private void loadSpecificationTypes() {
-//		try {
+		try {
 //			InputStream targetStream = new FileInputStream("./resources/specificationTypes.xml");
-
-			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, this.getClass().getResourceAsStream("/resources/specificationTypes.xml"));
-//			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(eventHandler, targetStream);
+			
+			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(this.getClass().getResourceAsStream("/resources/specificationTypes.xml"));
+//			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(targetStream);
 			BPMSpecification specification = unmarshaller.getSpecification();
 		
 			for (SpecificationType specificationType: specification.getSpecificationTypes()) {
 				specificationTypeMap.addSpecificationType(specificationType);
-				if (eventHandler != null) {
-					eventHandler.logVerbose("Adding specification type " + specificationType.getId());
-				}
+				Logger.log("Adding specification type " + specificationType.getId(), LogEvent.VERBOSE);
 			}
 	
 			for (SpecificationSet set: specification.getSpecificationSets()) {
@@ -52,15 +45,12 @@ public class SpecificationTypeLoader {
 						spec.setSpecificationType(specificationTypeMap.getSpecificationType(spec.getType()));
 					}
 					else {
-						if (eventHandler != null) {
-							eventHandler.logWarning("No such specification type: " + spec.getType());
-						}
+						Logger.log("No such specification type: " + spec.getType(), LogEvent.WARNING);
 					}
 				}
 			}
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

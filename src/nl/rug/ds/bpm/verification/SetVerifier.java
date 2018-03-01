@@ -1,7 +1,9 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.VerificationLog;
+import nl.rug.ds.bpm.exception.ConverterException;
+import nl.rug.ds.bpm.exception.ModelCheckerException;
+import nl.rug.ds.bpm.log.LogEvent;
+import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
@@ -25,7 +27,6 @@ import java.util.TreeSet;
  */
 public class SetVerifier {
 	private Kripke kripke;
-	private EventHandler eventHandler;
 	private Stepper stepper;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
@@ -34,9 +35,8 @@ public class SetVerifier {
 	private List<Specification> specifications;
 	private List<Condition> conditions;
 	
-	public SetVerifier(EventHandler eventHandler, Stepper stepper, BPMSpecification specification, SpecificationSet specificationSet) {
+	public SetVerifier(Stepper stepper, BPMSpecification specification, SpecificationSet specificationSet) {
 		this.stepper = stepper;
-		this.eventHandler = eventHandler;
 		this.specification = specification;
 		this.specificationSet = specificationSet;
 		
@@ -48,31 +48,31 @@ public class SetVerifier {
 //			conds.add(condition.getCondition());
 //		stepper.setConditions(conds);
 		
-		eventHandler.logInfo("Loading specification set");
+		Logger.log("Loading specification set", LogEvent.INFO);
 		
-		eventHandler.logVerbose("Conditions: ");
+		Logger.log("Conditions: ", LogEvent.VERBOSE);
 		for(Condition condition: conditions)
-			eventHandler.logVerbose("\t" + condition.getCondition());
+			Logger.log("\t" + condition.getCondition(), LogEvent.VERBOSE);
 		
 		specIdMap = getIdMap();
 		groupMap = getGroupMap(specIdMap);
 	}
-
-	public void buildKripke(boolean reduce) {
-		KripkeConverter converter = new KripkeConverter(eventHandler, stepper, specIdMap);
+	
+	public void buildKripke(boolean reduce) throws ConverterException {
+		KripkeConverter converter = new KripkeConverter(stepper, specIdMap);
 		
-		eventHandler.logInfo("Calculating Kripke structure");
+		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
-//		System.out.println(kripke);
+		//		System.out.println(kripke);
 		long t1 = System.currentTimeMillis();
 		
-		eventHandler.logInfo("Calculated Kripke structure with " +kripke.stats() + " in " + (t1 - t0) + " ms");
-		if(EventHandler.getLogLevel() <= VerificationLog.DEBUG)
-			eventHandler.logDebug("\n" + kripke.toString());
-
-		eventHandler.logInfo("Reducing Kripke structure");
-		eventHandler.logVerbose("Removing unused atomic propositions");
+		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
+		if (Logger.getLogLevel() <= LogEvent.DEBUG)
+			Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
+		
+		Logger.log("Reducing Kripke structure", LogEvent.INFO);
+		Logger.log("Removing unused atomic propositions", LogEvent.VERBOSE);
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
 		TreeSet<String> unknownAP = new TreeSet<>(new StringComparator());
 		
@@ -81,23 +81,23 @@ public class SetVerifier {
 		unknownAP.addAll(specIdMap.getAPKeys());
 		unknownAP.removeAll(kripke.getAtomicPropositions());
 		
-		if(reduce) {
+		if (reduce) {
 			PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
-			eventHandler.logVerbose("\n" + propositionOptimizer.toString(true));
+			Logger.log("\n" + propositionOptimizer.toString(true), LogEvent.VERBOSE);
 			
-			eventHandler.logVerbose("Reducing state space");
+			Logger.log("Reducing state space", LogEvent.VERBOSE);
 			t0 = System.currentTimeMillis();
-			StutterOptimizer stutterOptimizer = new StutterOptimizer(eventHandler, kripke);
-			eventHandler.logVerbose("Partitioning states into stutter blocks");
+			StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
+			Logger.log("Partitioning states into stutter blocks", LogEvent.VERBOSE);
 			//stutterOptimizer.linearPreProcess();
 			stutterOptimizer.treeSearchPreProcess();
 			stutterOptimizer.optimize();
 			t1 = System.currentTimeMillis();
 			
-			eventHandler.logInfo("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms");
-			if (EventHandler.getLogLevel() <= VerificationLog.DEBUG) {
-				eventHandler.logDebug("\n" + stutterOptimizer.toString());
-				eventHandler.logDebug("\n" + kripke.toString());
+			Logger.log("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
+			if (Logger.getLogLevel() <= LogEvent.DEBUG) {
+				Logger.log("\n" + stutterOptimizer.toString(), LogEvent.DEBUG);
+				Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
 			}
 		}
 		
@@ -105,26 +105,26 @@ public class SetVerifier {
 		State ghost = new State("ghost", unknownAP);
 		ghost.addNext(ghost);
 		ghost.addPrevious(ghost);
-
+		
 		kripke.addState(ghost);
 	}
-
-	public void verify(Checker checker) {
-		eventHandler.logInfo("Collecting specifications");
+	
+	public void verify(Checker checker) throws ModelCheckerException {
+		Logger.log("Collecting specifications", LogEvent.INFO);
 		for (Specification specification: specifications)
 			for (Formula formula: specification.getSpecificationType().getFormulas())
 				checker.addFormula(formula, specification, specIdMap, groupMap);
 		
-		eventHandler.logVerbose("Generating model checker input");
+		Logger.log("Generating model checker input", LogEvent.VERBOSE);
 		checker.createModel(kripke);
 		
-		if(EventHandler.getLogLevel() <= VerificationLog.DEBUG)
-			eventHandler.logDebug("\n" + checker.getInputChecker());
+		if (Logger.getLogLevel() <= LogEvent.DEBUG)
+			Logger.log("\n" + checker.getInputChecker(), LogEvent.DEBUG);
 		
-		eventHandler.logInfo("Calling Model Checker");
+		Logger.log("Calling Model Checker", LogEvent.INFO);
 		checker.checkModel();
 		if(!checker.getOutputChecker().isEmpty())
-			eventHandler.logCritical("Model checker error\n" + checker.getOutputChecker());
+			throw new ModelCheckerException("Model checker error\n" + checker.getOutputChecker());
 	}
 	
 	private IDMap getIdMap() {
@@ -133,7 +133,7 @@ public class SetVerifier {
 		for (Specification s: specificationSet.getSpecifications())
 			for (InputElement inputElement: s.getInputElements()) {
 				idMap.addID(inputElement.getElement());
-				eventHandler.logVerbose("Mapping " + inputElement.getElement() + " to " + idMap.getAP(inputElement.getElement()));
+				Logger.log("Mapping " + inputElement.getElement() + " to " + idMap.getAP(inputElement.getElement()), LogEvent.VERBOSE);
 				//inputElement.setElement(idMap.getAP(inputElement.getElement()));
 			}
 		
@@ -141,7 +141,7 @@ public class SetVerifier {
 			//group.setId(idMap.getAP(group.getId()));
 			for (Element element : group.getElements()) {
 				idMap.addID(element.getId());
-				eventHandler.logVerbose("Mapping " + element.getId() + " to " + idMap.getAP(element.getId()));
+				Logger.log("Mapping " + element.getId() + " to " + idMap.getAP(element.getId()), LogEvent.VERBOSE);
 				//element.setId(idMap.getAP(element.getId()));
 			}
 		}
@@ -155,10 +155,10 @@ public class SetVerifier {
 		for (Group group: specification.getGroups()) {
 			idMap.addID(group.getId());
 			groupMap.addGroup(idMap.getAP(group.getId()));
-			eventHandler.logVerbose("New group " + group.getId() + " as " + idMap.getAP(group.getId()));
+			Logger.log("New group " + group.getId() + " as " + idMap.getAP(group.getId()), LogEvent.VERBOSE);
 			for (Element element: group.getElements()) {
 				groupMap.addToGroup(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
-				eventHandler.logVerbose("\t " + element.getId());
+				Logger.log("\t " + element.getId(), LogEvent.VERBOSE);
 			}
 		}
 		return groupMap;

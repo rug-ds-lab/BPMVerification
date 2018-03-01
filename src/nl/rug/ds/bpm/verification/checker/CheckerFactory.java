@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.checker;
 
 import nl.rug.ds.bpm.event.EventHandler;
+import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 
 import java.io.File;
 
@@ -11,13 +12,18 @@ public abstract class CheckerFactory {
 	protected File executable;
 	protected EventHandler eventHandler;
 	
-	public CheckerFactory(EventHandler eventHandler, File executable) {
-		if(!(executable.exists() && executable.isFile() && executable.canExecute()))
-			eventHandler.logCritical("Unable to call binary at " + executable.toString());
-		
-		this.eventHandler = eventHandler;
+	public CheckerFactory(File executable) {
+		eventHandler = new EventHandler();
 		this.executable = executable;
 	}
 	
 	public abstract Checker getChecker();
+	
+	public void addEventListener(VerificationEventListener verificationEventListener) {
+		eventHandler.addEventListener(verificationEventListener);
+	}
+	
+	public void removeEventListener(VerificationEventListener verificationEventListener) {
+		eventHandler.removeEventListener(verificationEventListener);
+	}
 }

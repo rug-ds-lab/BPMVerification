@@ -1,6 +1,5 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
-import nl.rug.ds.bpm.event.EventHandler;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 
@@ -11,8 +10,8 @@ import java.io.File;
  */
 public class NuSMVFactory extends CheckerFactory {
 	
-	public NuSMVFactory(EventHandler eventHandler, File executable) {
-		super(eventHandler, executable);
+	public NuSMVFactory(File executable) {
+		super(executable);
 	}
 	
 	@Override
