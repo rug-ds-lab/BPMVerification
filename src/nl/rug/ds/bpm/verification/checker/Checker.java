@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.checker;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.exception.ModelCheckerException;
+import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.verification.map.GroupMap;
@@ -41,11 +41,11 @@ public abstract class Checker {
     
     public abstract void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap);
 	
-	public abstract void createModel(Kripke kripke) throws ModelCheckerException;
+	public abstract void createModel(Kripke kripke) throws CheckerException;
 	
-	public abstract void checkModel() throws ModelCheckerException;
+	public abstract void checkModel() throws CheckerException;
 	
-	public void checkModel(Kripke kripke) throws ModelCheckerException {
+	public void checkModel(Kripke kripke) throws CheckerException {
         createModel(kripke);
         checkModel();
     }

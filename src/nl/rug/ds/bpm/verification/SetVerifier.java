@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification;
 
+import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.exception.ConverterException;
-import nl.rug.ds.bpm.exception.ModelCheckerException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.*;
@@ -109,7 +109,7 @@ public class SetVerifier {
 		kripke.addState(ghost);
 	}
 	
-	public void verify(Checker checker) throws ModelCheckerException {
+	public void verify(Checker checker) throws CheckerException {
 		Logger.log("Collecting specifications", LogEvent.INFO);
 		for (Specification specification: specifications)
 			for (Formula formula: specification.getSpecificationType().getFormulas())
@@ -124,7 +124,7 @@ public class SetVerifier {
 		Logger.log("Calling Model Checker", LogEvent.INFO);
 		checker.checkModel();
 		if(!checker.getOutputChecker().isEmpty())
-			throw new ModelCheckerException("Model checker error\n" + checker.getOutputChecker());
+			throw new CheckerException("Model checker error\n" + checker.getOutputChecker());
 	}
 	
 	private IDMap getIdMap() {

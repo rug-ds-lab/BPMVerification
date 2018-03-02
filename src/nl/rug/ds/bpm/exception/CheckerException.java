@@ -6,8 +6,8 @@ import nl.rug.ds.bpm.log.Logger;
 /**
  * Created by Heerko Groefsema on 01-Mar-18.
  */
-public class ModelCheckerException extends Exception {
-	public ModelCheckerException(String message) {
+public class CheckerException extends Exception {
+	public CheckerException(String message) {
 		super(message);
 		Logger.log(message, LogEvent.CRITICAL);
 	}

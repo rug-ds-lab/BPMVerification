@@ -90,7 +90,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 			verifier.verify(bpmSpecification, reduce);
 		} 
 		catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 		System.out.println(eventoutput);
 		

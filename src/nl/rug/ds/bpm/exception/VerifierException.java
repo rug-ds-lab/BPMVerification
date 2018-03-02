@@ -10,6 +10,5 @@ public class VerifierException extends Exception {
 	public VerifierException(String message) {
 		super(message);
 		Logger.log(message, LogEvent.CRITICAL);
-		System.exit(1);
 	}
 }

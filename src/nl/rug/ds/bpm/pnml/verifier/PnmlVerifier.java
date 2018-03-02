@@ -57,7 +57,11 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//pnmlVerifier.addSpecification("AlwaysResponse(group1, t11)");
 			
 			//Save custom set (optional)
-			//pnmlVerifier.saveSpecification(new File("./test/spec.xml"));
+			//try {
+			//	pnmlVerifier.saveSpecification(new File("./test/spec.xml"));
+			//} catch (SpecificationException e) {
+			//	e.printStackTrace();
+			//}
 			
 			//pnmlVerifier.verify(args[0]);
 		} else {
@@ -112,8 +116,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 	
@@ -129,8 +132,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Start verification
 			verifier.verify(getSpecifications(), reduce);
 		} catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 
@@ -146,8 +148,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 	
@@ -164,8 +165,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 	
@@ -181,8 +181,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Start verification
 			verifier.verify(specification, reduce);
 		} catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 
@@ -203,8 +202,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			verifier.verify(specificationFile, reduce);
 		}
 		catch (Exception e) {
-			Logger.log("Failed to load pnml", LogEvent.CRITICAL);
-			return;
+			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
 	}
 

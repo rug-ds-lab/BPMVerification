@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.exception.ModelCheckerException;
+import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
@@ -36,7 +36,7 @@ public class NuSMVChecker extends Checker {
 	}
 	
 	@Override
-	public void createModel(Kripke kripke) throws ModelCheckerException {
+	public void createModel(Kripke kripke) throws CheckerException {
 		inputChecker.append("MODULE main\n");
 		inputChecker.append(convertVAR(kripke));
 		inputChecker.append(convertDEFINE(kripke));
@@ -49,12 +49,12 @@ public class NuSMVChecker extends Checker {
 			writer.println(inputChecker);
 			writer.close();
 		} catch (Throwable t) {
-			throw new ModelCheckerException("Failed to write to temporary file");
+			throw new CheckerException("Failed to write to temporary file");
 		}
 	}
 	
 	@Override
-	public void checkModel() throws ModelCheckerException {
+	public void checkModel() throws CheckerException {
 		try {
 			Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
 			
@@ -70,7 +70,7 @@ public class NuSMVChecker extends Checker {
 			proc.destroy();
 		}
 		catch (Exception e) {
-			throw new ModelCheckerException("Failed to call NuSMV2");
+			throw new CheckerException("Failed to call NuSMV2");
 		}
 	}
 

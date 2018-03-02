@@ -5,12 +5,12 @@ package nl.rug.ds.bpm.log;
  */
 
 public class LogEvent {
-	public static final int DEBUG = -1;
-	public static final int VERBOSE = 0;
-	public static final int INFO = 1;
-	public static final int WARNING = 2;
-	public static final int ERROR = 3;
-	public static final int CRITICAL = 4;
+	public static final int DEBUG = 0;
+	public static final int VERBOSE = 1;
+	public static final int INFO = 2;
+	public static final int WARNING = 3;
+	public static final int ERROR = 4;
+	public static final int CRITICAL = 5;
 	
 	private int logLevel;
 	private String message;
