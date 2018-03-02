@@ -173,9 +173,13 @@ public class ExtPnmlStepper extends Stepper {
 		Transition t1 = transitionmap.get(transition1);
 		Transition t2 = transitionmap.get(transition2);
 		
-		for (Expression<?> e1: conditionmap.get(t1)) {
-			for (Expression<?> e2: conditionmap.get(t2)) {
-				if (e1.contradicts(e2)) return true;
+		if (conditionmap.containsKey(t1)) {
+			for (Expression<?> e1 : conditionmap.get(t1)) {
+				if (conditionmap.containsKey(t2)) {
+					for (Expression<?> e2 : conditionmap.get(t2)) {
+						if (e1.contradicts(e2)) return true;
+					}
+				}
 			}
 		}
 		
@@ -186,9 +190,13 @@ public class ExtPnmlStepper extends Stepper {
 		Transition t1 = transitionmap.get(transition1);
 		Transition t2 = transitionmap.get(transition2);
 		
-		for (Expression<?> e1: conditionmap.get(t1)) {
-			for (Expression<?> e2: conditionmap.get(t2)) {
-				if (e1.canContradict(e2)) return true;
+		if (conditionmap.containsKey(t1)) {
+			for (Expression<?> e1 : conditionmap.get(t1)) {
+				if (conditionmap.containsKey(t2)) {
+					for (Expression<?> e2 : conditionmap.get(t2)) {
+						if (e1.canContradict(e2)) return true;
+					}
+				}
 			}
 		}
 		

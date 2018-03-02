@@ -43,10 +43,10 @@ public class SetVerifier {
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
 		
-//		Set<String> conds = new HashSet<>();
-//		for (Condition condition : conditions)
-//			conds.add(condition.getCondition());
-//		stepper.setConditions(conds);
+		Set<String> conds = new HashSet<>();
+		for (Condition condition : conditions)
+			conds.add(condition.getCondition());
+		stepper.setConditions(conds);
 		
 		Logger.log("Loading specification set", LogEvent.INFO);
 		
