@@ -45,6 +45,7 @@ public class Expression<T> {
 		return false;
 	}
 	
+	// This method checks whether this ALWAYS contradicts other
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Boolean contradicts(Expression other) {
 		if ((this.getClass().equals(other.getClass())) && (this.getName().equals(other.getName()))) {
@@ -52,40 +53,38 @@ public class Expression<T> {
 			case EQ:
 				return (!other.accepts(this.value)); 
 			case NEQ:
-				return ((other.getExpressionType() == ExpressionType.NEQ) && (!other.getValue().equals(this.value)));
+				if ((other.getExpressionType() == ExpressionType.EQ) && (other.getValue().equals(this.value))) {
+					return true;
+				}
+				else {
+					return ((other.getExpressionType() == ExpressionType.NEQ) && (!other.getValue().equals(this.value)));
+				}
 			case LT:
 				if ((other.value instanceof Number) && (this.value instanceof Number)) {
 					if (other.getExpressionType() == ExpressionType.GT) {
-						return (((Double) this.value).doubleValue() + 2 < ((Double) other.value).doubleValue());
+						return (((Double) this.value).doubleValue() <= ((Double) other.value).doubleValue());
 					}
 					else if (other.getExpressionType() == ExpressionType.GEQ) {
-						return (((Double) this.value).doubleValue() + 1 < ((Double) other.value).doubleValue());
+						return (((Double) this.value).doubleValue() <= ((Double) other.value).doubleValue());
 					}
 					else {
-						return false;
+						return ((other.getExpressionType() == ExpressionType.EQ) && (((Double)other.value).doubleValue() >= ((Double)this.value).doubleValue()));
 					}
 				}
 			case LEQ:
 				if ((other.value instanceof Number) && (this.value instanceof Number)) {
 					if (other.getExpressionType() == ExpressionType.GT) {
-						return (((Double) this.value).doubleValue() + 1 < ((Double) other.value).doubleValue());
+						return (((Double) this.value).doubleValue() <= ((Double) other.value).doubleValue());
 					}
 					else if (other.getExpressionType() == ExpressionType.GEQ) {
 						return (((Double) this.value).doubleValue() < ((Double) other.value).doubleValue());
 					}
 					else {
-						return false;
+						return ((other.getExpressionType() == ExpressionType.EQ) && (((Double)other.value).doubleValue() > ((Double)this.value).doubleValue()));
+
 					}
 				}
 			case GT:
-				if ((other.value instanceof Number) && (this.value instanceof Number)) {
-					if ((other.getExpressionType() == ExpressionType.GT) || (other.getExpressionType() == ExpressionType.GEQ)) {
-						return false;
-					}
-					else {
-						return other.contradicts(this);
-					}
-				}
 			case GEQ:
 				if ((other.value instanceof Number) && (this.value instanceof Number)) {
 					if ((other.getExpressionType() == ExpressionType.GT) || (other.getExpressionType() == ExpressionType.GEQ)) {
@@ -101,6 +100,7 @@ public class Expression<T> {
 		return false;
 	}
 	
+	// This method checks whether this SOMETIMES contradicts other
 	@SuppressWarnings({ "rawtypes" })
 	public Boolean canContradict(Expression other) {		
 		return ((contradicts(other)) || (other.type != this.type) || (!other.value.equals(this.value)));
@@ -218,6 +218,29 @@ public class Expression<T> {
 		}
 		
 		return overlaps;
+	}
+	
+	@Override
+	public String toString() {
+		String s = name;
+		
+		switch (type) {
+		case EQ: s += " == ";
+			break;
+		case GEQ: s += " >= ";
+			break;
+		case GT: s += " > ";
+			break;
+		case LEQ: s += " <= ";
+			break;
+		case LT: s += " < ";
+			break;
+		case NEQ: s += " != ";
+		}
+		
+		s += value;
+		
+		return s;
 	}
 	
 	public String getName() {
