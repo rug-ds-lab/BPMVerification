@@ -4,7 +4,7 @@ public class ExpressionBuilder {
 	
 	public static Expression<?> parseExpression(String expression) {
 		String operator = getOperator(expression);
-		String name = expression.substring(0, expression.indexOf(operator));
+		String name = expression.substring(0, expression.indexOf(operator)).trim();
 		return parseExpression(name, expression);
 	}
 	
