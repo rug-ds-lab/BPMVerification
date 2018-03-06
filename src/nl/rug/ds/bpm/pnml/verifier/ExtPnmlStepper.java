@@ -265,6 +265,22 @@ public class ExtPnmlStepper extends Stepper {
 		this.conditionmap = new HashMap<Transition, Set<Expression<?>>>(guardmap);
 	}
 	
+	public void setTransitionGuards(Set<String> guards) {
+		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
+		
+		Transition tr;
+		String t, guard;
+		for (String g: guards) {
+			t = g.substring(0, g.indexOf(":"));
+			guard = g.substring(g.indexOf(":") + 1).trim();
+			
+			tr = pn.findTransition(t);
+			if (!conditionmap.containsKey(tr)) conditionmap.put(tr, new HashSet<Expression<?>>());
+			
+			conditionmap.get(tr).add(ExpressionBuilder.parseExpression(guard));
+		}
+	}
+	
 	public void setTransitionGuards(Map<String, Set<String>> guardmap) {
 		conditionmap = new HashMap<Transition, Set<Expression<?>>>();
 		

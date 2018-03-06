@@ -19,7 +19,9 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Nick van Beest on 02-June-17.
@@ -34,6 +36,9 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	private String eventoutput;
 	private List<String> feedback;
 	private BPMSpecification bpmSpecification;
+	
+	private Set<String> conditions;
+	private Set<String> transitionguards;
 	
 	public PnmlVerifierAPM(PetriNet pn, String nusmv2, boolean userFriendly) {
 		reduce = true;
@@ -52,6 +57,9 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		//Create the wanted model checker factory
 		factory = new NuSMVFactory(new File(nusmv2));
+		
+		conditions = new HashSet<String>();
+		transitionguards = new HashSet<String>();
 	}
 
 	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2, boolean userFriendly) {
@@ -60,6 +68,13 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		addSpecificationFromXML(specxml);
 	}
 	
+	public PnmlVerifierAPM(PetriNet pn, String specxml, String nusmv2, Set<String> conditions, Set<String> transitionguards, boolean userFriendly) {
+		this(pn, specxml, nusmv2, userFriendly);
+		
+		this.conditions = conditions;
+		this.transitionguards = transitionguards;
+	}
+
 	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, boolean userFriendly) {
 		this(pn, nusmv2, userFriendly);
 		
@@ -68,6 +83,14 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		bpmSpecification = getSpecifications();
 	}
 	
+	public PnmlVerifierAPM(PetriNet pn, String[] specifications, String nusmv2, Set<String> conditions, Set<String> transitionguards, boolean userFriendly) {
+		this(pn, specifications, nusmv2, userFriendly);
+
+		this.conditions = conditions;
+		this.transitionguards = transitionguards;
+	}
+
+		
 	public List<String> verify() {
 		return verify(false);
 	}
@@ -82,6 +105,9 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		try {
 			stepper = new ExtPnmlStepper(pn);
+			
+			stepper.setConditions(conditions);
+			stepper.setTransitionGuards(transitionguards);
 			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
@@ -129,6 +155,14 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		return reduce;
 	}
 
+	public void setConditions(Set<String> conditions) {
+		this.conditions = conditions;
+	}
+	
+	public void setTransitionGuards(Set<String> transitionguards) {
+		this.transitionguards = transitionguards;
+	}
+	
 	//Set maximum amount of tokens at a single place
 	//Safety feature, prevents infinite models
 	//Standard value of 3
