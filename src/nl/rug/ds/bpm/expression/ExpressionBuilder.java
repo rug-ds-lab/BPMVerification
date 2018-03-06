@@ -3,7 +3,8 @@ package nl.rug.ds.bpm.expression;
 public class ExpressionBuilder {
 	
 	public static Expression<?> parseExpression(String expression) {
-		String name = expression.substring(0, expression.indexOf(" "));
+		String operator = getOperator(expression);
+		String name = expression.substring(0, expression.indexOf(operator));
 		return parseExpression(name, expression);
 	}
 	
@@ -13,7 +14,7 @@ public class ExpressionBuilder {
 		Expression<?> exp;
 
 		expression = expression.replace(name, "").trim();
-		operator = expression.substring(0, expression.indexOf(" "));
+		operator = getOperator(expression);
 
 		switch (operator) {
 		case "==":
@@ -42,6 +43,17 @@ public class ExpressionBuilder {
 		}
 		
 		return exp;
+	}
+	
+	private static String getOperator(String expression) {
+		if (expression.contains("==")) return "==";
+		if (expression.contains("!=")) return "!=";
+		if (expression.contains(">")) return ">";
+		if (expression.contains("<")) return "<";
+		if (expression.contains(">=")) return ">=";
+		if (expression.contains("<=")) return "<=";
+		
+		return "";
 	}
 	
 	private static boolean isNumeric(String str) {
