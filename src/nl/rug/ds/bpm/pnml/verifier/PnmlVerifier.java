@@ -14,10 +14,14 @@ import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
@@ -27,9 +31,15 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	private CheckerFactory factory;
 	private boolean reduce;
 	
+	private Set<String> conditions;
+	private Set<String> transitionguards;
+	
 	public PnmlVerifier() {
 		reduce = true;
 		setParser = new SetParser();
+		
+		conditions = new HashSet<String>();
+		transitionguards = new HashSet<String>();
 		
 		//Implement listeners and
 		//Add listeners to receive log notifications
@@ -93,8 +103,20 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		verify(pnml, specification);
 	}
 	
+	public PnmlVerifier(String pnml, String specification, File nusmv2, File guards) {
+		this(nusmv2);
+		transitionguards = getGuardsFromFile(guards);
+		verify(pnml, specification);
+	}
+	
 	public PnmlVerifier(PetriNet pn, String specification, File nusmv2) {
 		this(nusmv2);
+		verify(pn, specification);
+	}
+	
+	public PnmlVerifier(PetriNet pn, String specification, File nusmv2, File guards) {
+		this(nusmv2);
+		transitionguards = getGuardsFromFile(guards);
 		verify(pn, specification);
 	}
 	
@@ -103,12 +125,35 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		verify(pnml, specification);
 	}
 	
+	public PnmlVerifier(String pnml, BPMSpecification specification, File nusmv2, File guards) {
+		this(nusmv2);
+		transitionguards = getGuardsFromFile(guards);
+		verify(pnml, specification);
+	}
+	
+	private Set<String> getGuardsFromFile(File file) {
+		Set<String> guardset = new HashSet<String>();
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+		    String line;
+		    while ((line = br.readLine()) != null) {
+		       guardset.add(line);
+		    }
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return guardset;
+	}
+	
 	public void verify(String pnml) {
 		File pnmlFile = new File(pnml);
 		//Make step class for specific Petri net type
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pnmlFile);
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
 			
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
@@ -125,7 +170,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pn);
-			
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
+
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
 			verifier.addEventListener(this);
@@ -141,6 +187,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pn);
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
 
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
@@ -158,7 +205,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pnmlFile);
-			
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
+
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
 			verifier.addEventListener(this);
@@ -174,7 +222,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pn);
-			
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
+
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
 			verifier.addEventListener(this);
@@ -193,7 +242,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		ExtPnmlStepper stepper;
 		try {
 			stepper = new ExtPnmlStepper(pnmlFile);
-			
+			if (transitionguards.size() > 0) stepper.setTransitionGuards(transitionguards);
+
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(stepper, factory);
 			verifier.addEventListener(this);
