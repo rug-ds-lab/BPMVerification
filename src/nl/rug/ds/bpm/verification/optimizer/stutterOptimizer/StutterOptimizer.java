@@ -191,7 +191,22 @@ public class StutterOptimizer {
 			treeSearchPreProcess(s);
 		}
 		
-		int bc = 1;
+		for (State initial : kripke.getInitial()) {
+			Block b = new Block();
+			initial.getBlock().getNonbottom().remove(initial);
+			initial.setBlock(b);
+			b.addState(initial);
+			toBeProcessed.add(b);
+		}
+		
+		for (State sink : kripke.getSinkStates()) {
+			Block b = new Block();
+			sink.getBlock().getNonbottom().remove(sink);
+			sink.setBlock(b);
+			b.addState(sink);
+			toBeProcessed.add(b);
+		}
+		
 		for(Block b: toBeProcessed)
 			b.init();
 	}
