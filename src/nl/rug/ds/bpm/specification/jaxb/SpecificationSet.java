@@ -23,6 +23,10 @@ public class SpecificationSet {
     @XmlElementWrapper(name = "conditions")
     @XmlElement(name = "condition")
     public List<Condition> getConditions() { return conditions; }
+    
+    public void addCondition(Condition condition) {
+        conditions.add(condition);
+    }
 
     @XmlElementWrapper(name = "specifications")
     @XmlElement(name = "specification")

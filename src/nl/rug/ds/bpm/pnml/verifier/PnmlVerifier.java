@@ -58,8 +58,12 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			//Normal call
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
 			pnmlVerifier.setLogLevel(LogEvent.INFO);
-			if(args.length > 3)
+			if (args.length > 4)
 				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
+			if (args.length > 3) {
+				File guardFile = new File(args[3]);
+				pnmlVerifier.getGuardsFromFile(guardFile);
+			}
 			pnmlVerifier.verify(args[0], args[1]);
 			
 			//Custom Set Call
