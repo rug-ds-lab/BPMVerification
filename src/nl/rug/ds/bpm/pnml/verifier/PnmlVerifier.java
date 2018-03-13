@@ -109,7 +109,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	
 	public PnmlVerifier(String pnml, String specification, File nusmv2, File guards) {
 		this(nusmv2);
-		transitionguards = getGuardsFromFile(guards);
+		getGuardsFromFile(guards);
 		verify(pnml, specification);
 	}
 	
@@ -120,7 +120,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	
 	public PnmlVerifier(PetriNet pn, String specification, File nusmv2, File guards) {
 		this(nusmv2);
-		transitionguards = getGuardsFromFile(guards);
+		getGuardsFromFile(guards);
 		verify(pn, specification);
 	}
 	
@@ -131,24 +131,20 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	
 	public PnmlVerifier(String pnml, BPMSpecification specification, File nusmv2, File guards) {
 		this(nusmv2);
-		transitionguards = getGuardsFromFile(guards);
+		getGuardsFromFile(guards);
 		verify(pnml, specification);
 	}
 	
-	private Set<String> getGuardsFromFile(File file) {
-		Set<String> guardset = new HashSet<String>();
-		
+	private void getGuardsFromFile(File file) {
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 		    String line;
 		    while ((line = br.readLine()) != null) {
-		       guardset.add(line);
+		       transitionguards.add(line);
 		    }
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		
-		return guardset;
 	}
 	
 	public void verify(String pnml) {
