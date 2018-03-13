@@ -48,10 +48,10 @@ public class ExpressionBuilder {
 	private static String getOperator(String expression) {
 		if (expression.contains("==")) return "==";
 		if (expression.contains("!=")) return "!=";
-		if (expression.contains(">")) return ">";
-		if (expression.contains("<")) return "<";
 		if (expression.contains(">=")) return ">=";
+		if (expression.contains(">")) return ">";
 		if (expression.contains("<=")) return "<=";
+		if (expression.contains("<")) return "<";
 		
 		return "";
 	}
