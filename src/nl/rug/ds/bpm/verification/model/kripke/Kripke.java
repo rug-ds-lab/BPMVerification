@@ -3,7 +3,9 @@ package nl.rug.ds.bpm.verification.model.kripke;
 import nl.rug.ds.bpm.verification.comparator.StateComparator;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class Kripke {
@@ -55,7 +57,8 @@ public class Kripke {
     }
 
     public Set<State> getSinkStates() {
-        return states.stream().filter(s -> s.getNextStates().isEmpty()).collect(Collectors.toSet());
+        //return states.stream().filter(s -> s.getNextStates().isEmpty()).collect(Collectors.toSet());
+        return states.stream().filter(s -> s.getNextStates().size() == 1).filter(s -> s.getNextStates().iterator().next() == s).collect(Collectors.toSet());
     }
     
     public int getStateCount() {

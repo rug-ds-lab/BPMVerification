@@ -323,7 +323,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public void verificationEvent(VerificationEvent event) {
 		//Use for user feedback
 		//Event returns: specification id, formula, type, result, and specification itself
-		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK\t: " + event.toString());
+		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] FEEDBACK: " + event.toString());
 	}
 	
 	@Override

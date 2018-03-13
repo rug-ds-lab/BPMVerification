@@ -161,10 +161,12 @@ public class StutterOptimizer {
 
 		return stutterStates.size();
 	}
-	
+
+
+
 	public void linearPreProcess() {
 		SortedMap<String, Block> blocks = new TreeMap<>(new StringComparator());
-		
+
 		for(State s: kripke.getStates()) {
 			Block b = blocks.get(s.APHash());
 			if(b == null) {
@@ -174,6 +176,14 @@ public class StutterOptimizer {
 			}
 			b.addState(s);
 			s.setBlock(b);
+		}
+
+		for (State sink : kripke.getSinkStates()) {
+			Block b = new Block();
+			sink.getBlock().getNonbottom().remove(sink);
+			sink.setBlock(b);
+			b.addState(sink);
+			toBeProcessed.add(b);
 		}
 		
 		for(Block b: toBeProcessed)
@@ -190,15 +200,7 @@ public class StutterOptimizer {
 			count++;
 			treeSearchPreProcess(s);
 		}
-		
-		for (State initial : kripke.getInitial()) {
-			Block b = new Block();
-			initial.getBlock().getNonbottom().remove(initial);
-			initial.setBlock(b);
-			b.addState(initial);
-			toBeProcessed.add(b);
-		}
-		
+
 		for (State sink : kripke.getSinkStates()) {
 			Block b = new Block();
 			sink.getBlock().getNonbottom().remove(sink);
@@ -206,7 +208,7 @@ public class StutterOptimizer {
 			b.addState(sink);
 			toBeProcessed.add(b);
 		}
-		
+
 		for(Block b: toBeProcessed)
 			b.init();
 	}

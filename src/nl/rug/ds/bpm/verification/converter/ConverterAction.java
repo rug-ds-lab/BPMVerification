@@ -50,7 +50,7 @@ public class ConverterAction extends RecursiveAction {
 				for (String transition: enabled)
 					for (Marking step : stepper.fireTransition(marking.clone(), transition))
 						nextActions.add(new ConverterAction(kripke, stepper, idMap, step, found));
-				
+
 				invokeAll(nextActions);
 			}
 		}

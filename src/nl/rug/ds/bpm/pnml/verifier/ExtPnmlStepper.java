@@ -304,73 +304,74 @@ public class ExtPnmlStepper extends Stepper {
 		
 		Map<String, BitSet> enabledpresets = getEnabledPresets(marking);
 
-		// create a power set of all curently enabled transitions
-		ypar = new HashSet<Set<String>>(Sets.powerSet(enabledpresets.keySet()));
-		
-		// remove empty set
-		ypar.remove(new HashSet<String>());
+		if(!enabledpresets.isEmpty()) {
+			// create a power set of all curently enabled transitions
+			ypar = new HashSet<Set<String>>(Sets.powerSet(enabledpresets.keySet()));
 
-		BitSet overlap;
-		List<String> simlist;
-		Boolean removed;
-		for (Set<String> sim: new HashSet<Set<String>>(ypar)) {
-			overlap = new BitSet();
-			removed = false;
-			
-			Iterator<String> iterator = sim.iterator();
-			while ((iterator.hasNext()) && (!removed)) {
-				String t = iterator.next();
-				// check if presets overlap for the set of transitions
-				// if yes, remove (i.e. they cannot fire simultaneously)
-				if (!overlap.intersects(enabledpresets.get(t))) {
-					overlap.or(enabledpresets.get(t));
-				}
-				else {
-					ypar.remove(sim);
-					removed = true;
-				}
-			}
-			
-			// NEW
-			// check if any of the elements contradicts with any of the others
-			// if so, the entire subset sim can be removed from ypar
-			if (!removed) {
-				simlist = new ArrayList<String>(sim);
-				int i = 0;
-				int j;
-				while ((i < simlist.size() - 1) && (!removed)) {
-					j = i + 1;
-					while ((j < simlist.size()) && (!removed)) {
-						if (haveContradiction(simlist.get(i), simlist.get(j))) {
-							removed = true;
-							ypar.remove(sim);
-						}
-						j++;
+			// remove empty set
+			ypar.remove(new HashSet<String>());
+
+
+			BitSet overlap;
+			List<String> simlist;
+			Boolean removed;
+			for (Set<String> sim : new HashSet<Set<String>>(ypar)) {
+				overlap = new BitSet();
+				removed = false;
+
+				Iterator<String> iterator = sim.iterator();
+				while ((iterator.hasNext()) && (!removed)) {
+					String t = iterator.next();
+					// check if presets overlap for the set of transitions
+					// if yes, remove (i.e. they cannot fire simultaneously)
+					if (!overlap.intersects(enabledpresets.get(t))) {
+						overlap.or(enabledpresets.get(t));
+					} else {
+						ypar.remove(sim);
+						removed = true;
 					}
-					i++;
+				}
+
+				// NEW
+				// check if any of the elements contradicts with any of the others
+				// if so, the entire subset sim can be removed from ypar
+				if (!removed) {
+					simlist = new ArrayList<String>(sim);
+					int i = 0;
+					int j;
+					while ((i < simlist.size() - 1) && (!removed)) {
+						j = i + 1;
+						while ((j < simlist.size()) && (!removed)) {
+							if (haveContradiction(simlist.get(i), simlist.get(j))) {
+								removed = true;
+								ypar.remove(sim);
+							}
+							j++;
+						}
+						i++;
+					}
 				}
 			}
-		}
-		
-		Set<Set<String>> subsets = new HashSet<Set<String>>();
-		Set<String> additional;
-		// remove subsets to obtain the largest sets
-		for (Set<String> par1: ypar) {
-			for (Set<String> par2: ypar) {
-				if ((par1.containsAll(par2)) && (par1.size() != par2.size())) {
-					// NEW: 
-					// check if any of the additional elements (i.e. par1 \ par2) can contradict with par2
-					// if not, subset par2 is redundant and can be removed. 
-					additional = new HashSet<String>(par1);
-					additional.removeAll(par2);
-					if (!canHaveContradiction(additional, par2)) subsets.add(par2);
+
+			Set<Set<String>> subsets = new HashSet<Set<String>>();
+			Set<String> additional;
+			// remove subsets to obtain the largest sets
+			for (Set<String> par1 : ypar) {
+				for (Set<String> par2 : ypar) {
+					if ((par1.containsAll(par2)) && (par1.size() != par2.size())) {
+						// NEW:
+						// check if any of the additional elements (i.e. par1 \ par2) can contradict with par2
+						// if not, subset par2 is redundant and can be removed.
+						additional = new HashSet<String>(par1);
+						additional.removeAll(par2);
+						if (!canHaveContradiction(additional, par2)) subsets.add(par2);
+					}
 				}
 			}
+
+			ypar.removeAll(subsets);
 		}
-		
-		ypar.removeAll(subsets);
-		
-//		if (ypar.size() == 0) ypar.add(new HashSet<String>());
+		else ypar.add(new HashSet<String>());
 
 		return ypar;
 	}

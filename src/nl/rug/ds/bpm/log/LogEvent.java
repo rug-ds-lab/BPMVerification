@@ -31,17 +31,17 @@ public class LogEvent {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if(logLevel == DEBUG)
-			sb.append("DEBUG\t: ");
+			sb.append("DEBUG:    ");
 		if(logLevel == VERBOSE)
-			sb.append("VERBOSE\t: ");
+			sb.append("VERBOSE:  ");
 		if(logLevel == INFO)
-			sb.append("INFO\t\t: ");
+			sb.append("INFO:     ");
 		if(logLevel == WARNING)
-			sb.append("WARNING\t\t: ");
+			sb.append("WARNING:  ");
 		else if(logLevel == ERROR)
-			sb.append("ERROR\t\t: ");
+			sb.append("ERROR:    ");
 		else if(logLevel == CRITICAL)
-			sb.append("CRITICAL\t: ");
+			sb.append("CRITICAL: ");
 		sb.append(message);
 		return sb.toString();
 	}
