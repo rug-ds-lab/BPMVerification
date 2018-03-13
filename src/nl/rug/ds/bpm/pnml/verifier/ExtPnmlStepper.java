@@ -370,7 +370,7 @@ public class ExtPnmlStepper extends Stepper {
 		
 		ypar.removeAll(subsets);
 		
-		if (ypar.size() == 0) ypar.add(new HashSet<String>());
+//		if (ypar.size() == 0) ypar.add(new HashSet<String>());
 
 		return ypar;
 	}
