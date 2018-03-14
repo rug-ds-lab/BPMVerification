@@ -4,6 +4,7 @@ import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.exception.ConverterException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
+import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.comparator.StringComparator;
@@ -47,7 +48,7 @@ public class SetVerifier {
 		for (Condition condition : conditions)
 			conds.add(condition.getCondition());
 		stepper.setConditions(conds);
-		
+
 		Logger.log("Loading specification set", LogEvent.INFO);
 		
 		Logger.log("Conditions: ", LogEvent.VERBOSE);
@@ -64,7 +65,7 @@ public class SetVerifier {
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		long t0 = System.currentTimeMillis();
 		kripke = converter.convert();
-		//		System.out.println(kripke);
+//				System.out.println(kripke);
 		long t1 = System.currentTimeMillis();
 		
 		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
@@ -162,5 +163,9 @@ public class SetVerifier {
 			}
 		}
 		return groupMap;
+	}
+	
+	public Kripke getKripke() {
+		return kripke;
 	}
 }
