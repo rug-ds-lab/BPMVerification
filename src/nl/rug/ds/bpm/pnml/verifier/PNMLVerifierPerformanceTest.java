@@ -3,6 +3,8 @@ package nl.rug.ds.bpm.pnml.verifier;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,33 +23,46 @@ public class PNMLVerifierPerformanceTest {
 	public void evaluateAll(String folder, int runcount) throws Exception {
 		List<String> models = getPNMLFilesInFolder(folder, false);
 		String pnml, guardsfile, specxml;
-				
+		
+		String fullspec, partialspec;
 		String result = "";
 
 		double starttime, avgtime;
 		Set<Double> times;
 		
 		for (String m: models) {
-			System.out.println(m);
 			pnml = folder + m;
 			guardsfile = pnml.replace(".pnml", "_guards.txt");
 			specxml = pnml.replace(".pnml", ".xml");
 			
 			// first get the result
-			result += getCompositionString(pnml) + " " + verify(pnml, guardsfile, specxml) + " ";
+			fullspec = verify(pnml, "", specxml);
+			partialspec = verify(pnml, guardsfile, specxml);
 			
-			// then execute the performance analysis
+			result += getCompositionString(pnml) + " " + fullspec + " " + getConditionFromSpec(specxml) + " " + partialspec + " ";
+			
+			// then execute the performance analyses:
+			// no guards
 			times = new HashSet<Double>();
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < runcount; i++) {
 				starttime = System.currentTimeMillis();
 				
-				verify(pnml, guardsfile, specxml);
-				
+				verify(pnml, "", specxml);
 				times.add(System.currentTimeMillis() - starttime);
 			}
 			avgtime = getAverage(times);
+			result += Math.round(avgtime) + " ";
 			
-			result += avgtime + "\n";
+			//guards
+			times = new HashSet<Double>();
+			for (int i = 0; i < runcount; i++) {
+				starttime = System.currentTimeMillis();
+				
+				verify(pnml, guardsfile, specxml);
+				times.add(System.currentTimeMillis() - starttime);
+			}
+			avgtime = getAverage(times);
+			result += Math.round(avgtime) + "\n";
 		}
 		
 		System.out.println(result);
@@ -59,34 +74,46 @@ public class PNMLVerifierPerformanceTest {
 		PetriNet pn = PNMLReader.parse(new File(pnml));
 		
 		stepper = new ExtPnmlStepper(pn);
-		stepper.setTransitionGuards(getGuardsFromFile(new File(guardsfile)));
+		
+		if (guardsfile.length() > 0)
+			stepper.setTransitionGuards(getGuardsFromFile(new File(guardsfile)));
 			
 		PerformanceTestVerifier verifier = new PerformanceTestVerifier(stepper);
 
 		return verifier.verify(xmlfile, reduce);
 	}
 
-	private Set<String> getGuardsFromFile(File file) {
+	private Set<String> getGuardsFromFile(File file) throws Exception {
 		Set<String> guardset = new HashSet<String>();
 		
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-		    String line;
-		    while ((line = br.readLine()) != null) {
-		       guardset.add(line);
-		    }
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		String line;
+		while ((line = br.readLine()) != null) {
+			guardset.add(line);
 		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+		br.close();
 		
 		return guardset;
 	}
 	
+	private String getConditionFromSpec(String specxml) throws Exception {
+		String content = new String(Files.readAllBytes(Paths.get(specxml)), "UTF-8");
+		String condition = "[" + content.substring(content.indexOf("<condition>") + 11, content.indexOf("</condition>")).replace(" ", "") + "]";
+		
+		return condition;
+	}
+	
 	private static String getCompositionString(String pnml) {
 		String composition = pnml.substring(pnml.lastIndexOf("/") + 1).replace(".pnml", "");
-		
+
 		composition = composition.toUpperCase().replace("-", " ");
-		composition = composition.substring(0, 3) + " " + composition.substring(3);
+		
+		if (composition.startsWith("OR")) {
+			composition = composition.substring(0, 2) + " " + composition.substring(2);
+		}
+		else {
+			composition = composition.substring(0, 3) + " " + composition.substring(3);
+		}
 		
 		return composition;
 	}
