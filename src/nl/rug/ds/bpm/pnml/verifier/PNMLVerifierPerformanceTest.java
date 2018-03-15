@@ -20,6 +20,54 @@ import nl.rug.ds.bpm.verification.PerformanceTestVerifier;
 public class PNMLVerifierPerformanceTest {
 	private boolean reduce;
 	
+	public void evaluateSpecific(String folder, String pnml, Set<String> specs, int runcount) throws Exception {
+		pnml = folder + pnml;
+		
+		String guardsfile = pnml.replace(".pnml", "_guards.txt");
+
+		String fullspec, partialspec;
+		String result = "";
+		
+		String curspec;
+		
+		double starttime, avgtime;
+		Set<Double> times;
+		
+		for (String specxml: specs) {
+			specxml = folder + specxml;
+			fullspec = verify(pnml, "", specxml);
+			partialspec = verify(pnml, guardsfile, specxml);
+			
+			curspec = specxml.substring(specxml.lastIndexOf("/") + 1);
+			result += curspec + " " + fullspec + " " + partialspec + " ";
+			
+			// then execute the performance analyses:
+			// no guards
+			times = new HashSet<Double>();
+			for (int i = 0; i < runcount; i++) {
+				starttime = System.currentTimeMillis();
+				
+				verify(pnml, "", specxml);
+				times.add(System.currentTimeMillis() - starttime);
+			}
+			avgtime = getAverage(times);
+			result += Math.round(avgtime) + " ";
+						
+			//guards
+			times = new HashSet<Double>();
+			for (int i = 0; i < runcount; i++) {
+				starttime = System.currentTimeMillis();
+				
+				verify(pnml, guardsfile, specxml);
+				times.add(System.currentTimeMillis() - starttime);
+			}
+			avgtime = getAverage(times);
+			result += Math.round(avgtime) + "\n";
+		}
+		
+		System.out.println(result);
+	}
+	
 	public void evaluateAll(String folder, int runcount) throws Exception {
 		List<String> models = getPNMLFilesInFolder(folder, false);
 		String pnml, guardsfile, specxml;

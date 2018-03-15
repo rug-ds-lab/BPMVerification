@@ -1,18 +1,45 @@
 package nl.rug.ds.bpm.pnml.verifier;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class PerformanceTest {
 
 	public static void main(String[] args) {
-		String folder = "/home/nick/Dropbox/BPM2018-ConditionalSubgraph/Evaluation/synthetic/evalrun/";
+//		String stfolder = "/home/nick/Dropbox/BPM2018-ConditionalSubgraph/Evaluation/synthetic/evalrun/";
+//		runConversionPerformanceTest(stfolder, 5);
+		
+		
+		String rlfolder = "/home/nick/Dropbox/BPM2018-ConditionalSubgraph/Evaluation/reallife/";
+		String pnml = "complaints.pnml";
+		
+		Set<String> specs = new HashSet<String>();
+		specs.add("complaints1.xml");
+		specs.add("complaints2.xml");
+		specs.add("complaints3.xml");
+		specs.add("complaints4a.xml");
+		specs.add("complaints4b.xml");
+		specs.add("complaints5.xml");
 
-		runConversionPerformanceTest(folder);
+		runConversionPerformanceTest(rlfolder, pnml, specs, 5);
 	}
 
-	public static void runConversionPerformanceTest(String folder) {
+	public static void runConversionPerformanceTest(String folder, String pnml, Set<String> specs, int runcount) {
 		PNMLVerifierPerformanceTest test = new PNMLVerifierPerformanceTest();
 
 		try {
-			test.evaluateAll(folder, 5);
+			test.evaluateSpecific(folder, pnml, specs, runcount);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void runConversionPerformanceTest(String folder, int runcount) {
+		PNMLVerifierPerformanceTest test = new PNMLVerifierPerformanceTest();
+
+		try {
+			test.evaluateAll(folder, runcount);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
