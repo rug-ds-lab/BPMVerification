@@ -8,12 +8,12 @@ public class ExpressionBuilder {
 		return parseExpression(name, expression);
 	}
 	
-	public static Expression<?> parseExpression(String name, String expression) {		
+	public static Expression<?> parseExpression(String variablename, String expression) {		
 		String operator;
 		ExpressionType et;
 		Expression<?> exp;
 
-		expression = expression.replace(name, "").trim();
+		expression = expression.replace(variablename, "").trim();
 		operator = getOperator(expression);
 
 		switch (operator) {
@@ -36,10 +36,10 @@ public class ExpressionBuilder {
 		expression = expression.replace(operator, "").trim();
 		
 		if (isNumeric(expression)) {
-			exp = new Expression<Double>(name, et, Double.parseDouble(expression));
+			exp = new Expression<Double>(variablename, et, Double.parseDouble(expression));
 		}
 		else {
-			exp = new Expression<String>(name, et, expression);
+			exp = new Expression<String>(variablename, et, expression);
 		}
 		
 		return exp;

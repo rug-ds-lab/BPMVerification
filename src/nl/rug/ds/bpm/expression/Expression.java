@@ -2,11 +2,11 @@ package nl.rug.ds.bpm.expression;
 
 public class Expression<T> {
 	private T value;
-	private String name;
+	private String variablename;
 	private ExpressionType type;
 	
-	public Expression(String name, ExpressionType type, T value) {
-		this.name = name;
+	public Expression(String variablename, ExpressionType type, T value) {
+		this.variablename = variablename;
 		this.type = type;
 		this.value = value;
 	}
@@ -48,7 +48,7 @@ public class Expression<T> {
 	// This method checks whether this ALWAYS contradicts other
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Boolean contradicts(Expression other) {
-		if ((this.getClass().equals(other.getClass())) && (this.getName().equals(other.getName()))) {
+		if ((this.getClass().equals(other.getClass())) && (this.getVariableName().equals(other.getVariableName()))) {
 			switch (type) {
 			case EQ:
 				return (!other.accepts(this.value)); 
@@ -222,7 +222,7 @@ public class Expression<T> {
 	
 	@Override
 	public String toString() {
-		String s = name;
+		String s = variablename;
 		
 		switch (type) {
 		case EQ: s += " == ";
@@ -243,7 +243,7 @@ public class Expression<T> {
 		return s;
 	}
 	
-	public String getName() {
-		return name;
+	public String getVariableName() {
+		return variablename;
 	}
 }
