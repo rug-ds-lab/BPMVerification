@@ -6,6 +6,7 @@ import nl.rug.ds.bpm.exception.SpecificationException;
 import nl.rug.ds.bpm.exception.VerifierException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
+import nl.rug.ds.bpm.net.TransitionGraph;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
@@ -14,30 +15,24 @@ import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by p256867 on 4-4-2017.
  */
 public class Verifier {
-	private Stepper stepper;
+	private TransitionGraph net;
 	private CheckerFactory checkerFactory;
 	private BPMSpecification bpmSpecification;
 	private SpecificationTypeMap specificationTypeMap;
-	
-	private Set<SetVerifier> kripkeStructures;
 
-    public Verifier(Stepper stepper, CheckerFactory checkerFactory) {
+    public Verifier(TransitionGraph net, CheckerFactory checkerFactory) {
     	this.checkerFactory = checkerFactory;
-    	this.stepper = stepper;
+    	this.net = net;
     }
 	
 	public static int getMaximumStates() {
@@ -46,7 +41,6 @@ public class Verifier {
 	
 	public void verify(File specification, boolean doReduction) throws VerifierException {
 		specificationTypeMap = new SpecificationTypeMap();
-		kripkeStructures = new HashSet<>();
 		
 		try {
 			loadSpecification(specification);
@@ -59,7 +53,6 @@ public class Verifier {
 	
 	public void verify(String specxml, boolean doReduction) throws VerifierException {
 		specificationTypeMap = new SpecificationTypeMap();
-		kripkeStructures = new HashSet<>();
 		
 		try {
 			loadSpecification(specxml);
@@ -72,7 +65,6 @@ public class Verifier {
 	
 	public void verify(BPMSpecification bpmSpecification, boolean doReduction) throws VerifierException {
 		specificationTypeMap = new SpecificationTypeMap();
-		kripkeStructures = new HashSet<>();
 		
 		this.bpmSpecification = bpmSpecification;
 		try {
@@ -167,20 +159,12 @@ public class Verifier {
 		loadSpecificationTypes(specification, specificationTypeMap);
 		
 		for(SpecificationSet specificationSet: specification.getSpecificationSets()) {
-			SetVerifier setVerifier = new SetVerifier(stepper.clone(), specification, specificationSet);
+			SetVerifier setVerifier = new SetVerifier(net, specification, specificationSet);
 			verifiers.add(setVerifier);
 		}
 
 		return verifiers;
     }
-	
-	public static void setMaximumTokensAtPlaces(int maximum) {
-		Marking.setMaximumTokensAtPlaces(maximum);
-	}
-	
-	public static int getMaximumTokensAtPlaces() {
-		return Marking.getMaximumTokensAtPlaces();
-	}
 	
 	public static void setMaximumStates(int max) {
 		Kripke.setMaximumStates(max);

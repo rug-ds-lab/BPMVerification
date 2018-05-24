@@ -1,25 +1,30 @@
 package nl.rug.ds.bpm.verification.converter;
 
+import nl.rug.ds.bpm.comparator.StringComparator;
 import nl.rug.ds.bpm.exception.ConverterException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
+import nl.rug.ds.bpm.net.TransitionGraph;
+import nl.rug.ds.bpm.net.element.T;
+import nl.rug.ds.bpm.net.marking.ConditionalM;
+import nl.rug.ds.bpm.net.marking.DataM;
+import nl.rug.ds.bpm.net.marking.M;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.util.Set;
 import java.util.TreeSet;
 
 public class KripkeConverter {
-	private Stepper parallelStepper;
+	private TransitionGraph net;
     private Kripke kripke;
+    private Set<String> conditions;
     private IDMap idMap;
 	
-	public KripkeConverter(Stepper parallelStepper, IDMap idMap) {
-        this.parallelStepper = parallelStepper;
+	public KripkeConverter(TransitionGraph net, IDMap idMap, Set<String> conditions) {
+        this.net = net;
+        this.conditions = conditions;
         this.idMap = new IDMap("t", idMap.getIdToAp(), idMap.getApToId());
         State.resetStateId();
     }
@@ -27,14 +32,24 @@ public class KripkeConverter {
 	public Kripke convert() throws ConverterException {
         kripke = new Kripke();
 
-        Marking marking = parallelStepper.initialMarking();
-		for (Set<String> enabled: parallelStepper.parallelActivatedTransitions(marking)) {
-            State found = new State(marking.toString(), mapAp(enabled));
+        M marking = net.getInitialMarking();
+        if (marking instanceof ConditionalM)
+        	for (String condition: conditions)
+        	    ((ConditionalM) marking).addCondition(condition);
+
+		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+            State found = new State(marking.toString(), mapTransitionIds(enabled));
+
+            if (marking instanceof DataM)
+	            for (String b : ((DataM)marking).getBindings().keySet())
+		            if (!b.equalsIgnoreCase("nashorn.global"))
+		            	found.getAtomicPropositions().add(b + "=" + ((DataM)marking).getBindings().get(b));
+
             kripke.addInitial(found);
             
-            for (String transition: enabled)
-                for (Marking step : parallelStepper.fireTransition(marking, transition)) {
-					ConverterAction converterAction = new ConverterAction(kripke, parallelStepper, idMap, step, found);
+            for (T transition: enabled)
+                for (M step : net.fireTransition(transition, marking)) {
+					ConverterAction converterAction = new ConverterAction(kripke, net, idMap, step, found);
                     converterAction.compute();
                 }
         }
@@ -46,19 +61,21 @@ public class KripkeConverter {
         return kripke;
     }
     
-    private TreeSet<String> mapAp(Set<String> ids) {
+    private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
         TreeSet<String> aps = new TreeSet<String>(new StringComparator());
         
-        for (String id: ids) {
-            boolean exist = idMap.getIdToAp().containsKey(id);
-            
-            idMap.addID(id);
-            aps.add(idMap.getAP(id));
-            
-            if(!exist)
-				Logger.log("Mapping " + id + " to " + idMap.getAP(id), LogEvent.VERBOSE);
-        }
+        for (T transition: transitions)
+	        aps.add(mapAP((transition.isTau() ? "tau" : transition.getId())));
         
         return aps;
+    }
+
+    private String mapAP(String ap) {
+	    boolean exist = idMap.getIdToAp().containsKey(ap);
+	    idMap.addID(ap);
+	    if(!exist)
+		    Logger.log("Mapping " + ap + " to " + idMap.getAP(ap), LogEvent.VERBOSE);
+
+	    return idMap.getAP(ap);
     }
 }

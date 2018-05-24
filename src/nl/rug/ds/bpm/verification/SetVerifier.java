@@ -1,13 +1,13 @@
 package nl.rug.ds.bpm.verification;
 
+import nl.rug.ds.bpm.comparator.StringComparator;
 import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.exception.ConverterException;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
+import nl.rug.ds.bpm.net.TransitionGraph;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.verification.checker.Checker;
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
@@ -15,7 +15,6 @@ import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.optimizer.propositionOptimizer.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.StutterOptimizer;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.TreeSet;
  */
 public class SetVerifier {
 	private Kripke kripke;
-	private Stepper stepper;
+	private TransitionGraph net;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
 	private BPMSpecification specification;
@@ -36,18 +35,13 @@ public class SetVerifier {
 	private List<Specification> specifications;
 	private List<Condition> conditions;
 	
-	public SetVerifier(Stepper stepper, BPMSpecification specification, SpecificationSet specificationSet) {
-		this.stepper = stepper;
+	public SetVerifier(TransitionGraph net, BPMSpecification specification, SpecificationSet specificationSet) {
+		this.net = net;
 		this.specification = specification;
 		this.specificationSet = specificationSet;
 		
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
-		
-		Set<String> conds = new HashSet<>();
-		for (Condition condition : conditions)
-			conds.add(condition.getCondition());
-		stepper.setConditions(conds);
 
 		Logger.log("Loading specification set", LogEvent.INFO);
 		
@@ -60,7 +54,11 @@ public class SetVerifier {
 	}
 	
 	public void buildKripke(boolean reduce) throws ConverterException {
-		KripkeConverter converter = new KripkeConverter(stepper, specIdMap);
+		Set<String> conds = new HashSet<>();
+		for (Condition condition : conditions)
+			conds.add(condition.getCondition());
+
+		KripkeConverter converter = new KripkeConverter(net, specIdMap, conds);
 		
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		long t0 = System.currentTimeMillis();

@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.comparator;
+package nl.rug.ds.bpm.comparator;
 
 import nl.rug.ds.bpm.verification.model.kripke.State;
 

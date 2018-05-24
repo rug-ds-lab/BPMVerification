@@ -1,8 +1,10 @@
 package nl.rug.ds.bpm.verification.map;
 
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
+import nl.rug.ds.bpm.comparator.StringComparator;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Created by p256867 on 4-4-2017.

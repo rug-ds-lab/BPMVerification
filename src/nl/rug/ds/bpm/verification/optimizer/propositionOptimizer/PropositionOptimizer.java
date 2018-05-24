@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification.optimizer.propositionOptimizer;
 
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
+import nl.rug.ds.bpm.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
@@ -39,7 +39,7 @@ public class PropositionOptimizer {
 		if (fullOutput) {
 			sb.append("(");
 			for (String s : optimizedPropositions)
-				sb.append(s.toString() + " ");
+				sb.append(s + " ");
 			sb.append(")");
 		}
 		

@@ -1,13 +1,15 @@
 package nl.rug.ds.bpm.verification.converter;
 
+import nl.rug.ds.bpm.comparator.StringComparator;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
+import nl.rug.ds.bpm.net.TransitionGraph;
+import nl.rug.ds.bpm.net.element.T;
+import nl.rug.ds.bpm.net.marking.DataM;
+import nl.rug.ds.bpm.net.marking.M;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
-import nl.rug.ds.bpm.verification.stepper.Marking;
-import nl.rug.ds.bpm.verification.stepper.Stepper;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,14 +21,14 @@ import java.util.concurrent.RecursiveAction;
  */
 public class ConverterAction extends RecursiveAction {
 	private Kripke kripke;
-	private Stepper stepper;
+	private TransitionGraph net;
 	private IDMap idMap;
-	private Marking marking;
+	private M marking;
 	private State previous;
 	
-	public ConverterAction(Kripke kripke, Stepper stepper, IDMap idMap, Marking marking, State previous) {
+	public ConverterAction(Kripke kripke, TransitionGraph net, IDMap idMap, M marking, State previous) {
 		this.kripke = kripke;
-		this.stepper = stepper;
+		this.net = net;
 		this.idMap = idMap;
 		this.marking = marking;
 		this.previous = previous;
@@ -37,8 +39,14 @@ public class ConverterAction extends RecursiveAction {
 		if(kripke.getStateCount() >= Kripke.getMaximumStates()) {
 			return;
 		}
-		for (Set<String> enabled: stepper.parallelActivatedTransitions(marking)) {
-			State found = new State(marking.toString(), mapAp(enabled));
+		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+			State found = new State(marking.toString(), mapTransitionIds(enabled));
+
+			if (marking instanceof DataM)
+				for (String b : ((DataM)marking).getBindings().keySet())
+					if (!b.equalsIgnoreCase("nashorn.global"))
+						found.getAtomicPropositions().add(b + "=" + ((DataM)marking).getBindings().get(b));
+
 			State existing = kripke.addNext(previous, found);
 			
 			if (found == existing) { //if found is a new state
@@ -46,32 +54,32 @@ public class ConverterAction extends RecursiveAction {
 					found.addNext(found);
 					found.addPrevious(found);
 				}
+
 				Set<ConverterAction> nextActions = new HashSet<>();
-				for (String transition: enabled)
-					for (Marking step : stepper.fireTransition(marking.clone(), transition))
-						nextActions.add(new ConverterAction(kripke, stepper, idMap, step, found));
+				for (T transition: enabled)
+					for (M step : net.fireTransition(transition, marking.clone()))
+						nextActions.add(new ConverterAction(kripke, net, idMap, step, found));
 
 				invokeAll(nextActions);
 			}
 		}
 	}
-	
-	private TreeSet<String> mapAp(Set<String> ids) {
+
+	private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
 		TreeSet<String> aps = new TreeSet<String>(new StringComparator());
-		
-		for (String id: ids) {
-			boolean exist = idMap.getIdToAp().containsKey(id);
-			
-			if (id.startsWith("silent")) id = "silent"; // this line has to be tested more thoroughly
-														// It's a quick fix to handle situations where multiple silents starting with "silent"
-			idMap.addID(id);
-			
-			aps.add(idMap.getAP(id));
-			
-			if(!exist)
-				Logger.log("Mapping " + id + " to " + idMap.getAP(id), LogEvent.VERBOSE);
-		}
-		
+
+		for (T transition: transitions)
+			aps.add(mapAP((transition.isTau() ? "tau" : transition.getId())));
+
 		return aps;
+	}
+
+	private String mapAP(String ap) {
+		boolean exist = idMap.getIdToAp().containsKey(ap);
+		idMap.addID(ap);
+		if(!exist)
+			Logger.log("Mapping " + ap + " to " + idMap.getAP(ap), LogEvent.VERBOSE);
+
+		return idMap.getAP(ap);
 	}
 }

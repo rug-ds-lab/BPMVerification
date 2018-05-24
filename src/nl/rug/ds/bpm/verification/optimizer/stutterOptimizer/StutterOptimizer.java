@@ -1,8 +1,8 @@
 package nl.rug.ds.bpm.verification.optimizer.stutterOptimizer;
 
+import nl.rug.ds.bpm.comparator.StringComparator;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.verification.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 

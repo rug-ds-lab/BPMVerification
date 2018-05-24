@@ -1,27 +1,18 @@
 package nl.rug.ds.bpm.variability;
 
-import hub.top.petrinet.PetriNet;
-import hub.top.petrinet.Transition;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom.JDOMException;
-
-import nl.rug.ds.bpm.eventStructure.CombinedEventStructure;
 import ee.ut.nets.unfolding.BPstructBP.MODE;
 import ee.ut.nets.unfolding.Unfolder_PetriNet;
 import ee.ut.nets.unfolding.Unfolding2PES;
 import ee.ut.pnml.PNMLReader;
+import hub.top.petrinet.PetriNet;
+import hub.top.petrinet.Transition;
+import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
+import org.jdom.JDOMException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.*;
 
 public class VariabilitySpecification {
 
@@ -70,11 +61,11 @@ public class VariabilitySpecification {
 		}
 	}
 	
-	private Unfolding2PES getUnfoldingPES(String folder, String filename, String silentPrefix) throws JDOMException, IOException {
+	private Unfolding2PES getUnfoldingPES(String folder, String filename, String silentPrefix) throws JDOMException {
 		return getUnfoldingPES(folder + filename, silentPrefix);
 	}
 
-	private Unfolding2PES getUnfoldingPES(String fullfilename, String silentPrefix) throws JDOMException, IOException {
+	private Unfolding2PES getUnfoldingPES(String fullfilename, String silentPrefix) throws JDOMException {
 		PetriNet net = PNMLReader.parse(new File(fullfilename));
 		return getUnfoldingPES(net, silentPrefix);
 	}

@@ -1,12 +1,12 @@
-package nl.rug.ds.bpm.pnml.verifier.apm;
+package main.apm;
 
 import hub.top.petrinet.PetriNet;
+import main.ExtPnmlStepper;
 import nl.rug.ds.bpm.event.VerificationEvent;
 import nl.rug.ds.bpm.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.log.LogEvent;
 import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.log.listener.VerificationLogListener;
-import nl.rug.ds.bpm.pnml.verifier.ExtPnmlStepper;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;

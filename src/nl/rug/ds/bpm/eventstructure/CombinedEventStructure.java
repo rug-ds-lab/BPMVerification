@@ -1,19 +1,11 @@
-package nl.rug.ds.bpm.eventStructure;
+package nl.rug.ds.bpm.eventstructure;
+
+import ee.ut.eventstr.NewUnfoldingPESSemantics;
+import ee.ut.nets.unfolding.Unfolding2PES;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import ee.ut.eventstr.BehaviorRelation;
-import ee.ut.eventstr.NewUnfoldingPESSemantics;
-import ee.ut.nets.unfolding.Unfolding2PES;
+import java.util.*;
 
 public class CombinedEventStructure {
 	private List<String> totalLabels;

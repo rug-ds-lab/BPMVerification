@@ -1,5 +1,5 @@
 <project name="BPMVerification" basedir=".">
-	<property name="version">0.2</property>
+	<property name="version">0.3</property>
 	<property name="dir.src">src</property>
 	<property name="dir.resource">resources</property>
 	<property name="dir.build">out</property>
@@ -55,7 +55,7 @@
 			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="unfolding.jar"/>
 			<manifest>
-				<attribute name="Main-Class" value="nl.rug.ds.bpm.pnml.verifier.PnmlVerifier"/>
+				<attribute name="Main-Class" value="main.PnmlVerifier"/>
 			</manifest>
 		</jar>
 	</target>
@@ -72,7 +72,7 @@
 			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
 			<zipgroupfileset dir="lib" includes="unfolding.jar"/>
 			<manifest>
-				<attribute name="Main-Class" value="nl.rug.ds.bpm.pnml.specification.VariabilitySpecGen"/>
+				<attribute name="Main-Class" value="main.VariabilitySpecGen"/>
 			</manifest>
 		</jar>
 	</target>
