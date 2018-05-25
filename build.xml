@@ -1,5 +1,5 @@
 <project name="BPMVerification" basedir=".">
-	<property name="version">0.2</property>
+	<property name="version">0.3</property>
 	<property name="dir.src">src</property>
 	<property name="dir.resource">resources</property>
 	<property name="dir.build">out</property>
