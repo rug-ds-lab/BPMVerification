@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification.optimizer.propositionOptimizer;
 
-import nl.rug.ds.bpm.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 

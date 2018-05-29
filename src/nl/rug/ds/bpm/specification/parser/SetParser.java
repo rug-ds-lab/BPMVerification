@@ -1,9 +1,9 @@
 package nl.rug.ds.bpm.specification.parser;
 
-import nl.rug.ds.bpm.exception.ConfigurationException;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
+import nl.rug.ds.bpm.util.exception.ConfigurationException;
 
 
 /**

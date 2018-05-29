@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.specification.marshaller;
 
-import nl.rug.ds.bpm.exception.SpecificationException;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.util.exception.SpecificationException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;

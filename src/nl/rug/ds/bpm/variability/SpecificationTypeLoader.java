@@ -1,13 +1,13 @@
 package nl.rug.ds.bpm.variability;
 
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationType;
 import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 
 public class SpecificationTypeLoader {
 	private SpecificationTypeMap specificationTypeMap;

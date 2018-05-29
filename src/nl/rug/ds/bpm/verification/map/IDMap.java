@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification.map;
 
-import nl.rug.ds.bpm.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.StringComparator;
 
 import java.util.Map;
 import java.util.Set;

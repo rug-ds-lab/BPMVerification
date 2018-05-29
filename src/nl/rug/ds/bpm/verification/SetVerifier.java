@@ -1,12 +1,12 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.comparator.StringComparator;
-import nl.rug.ds.bpm.exception.CheckerException;
-import nl.rug.ds.bpm.exception.ConverterException;
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.net.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
 import nl.rug.ds.bpm.specification.jaxb.*;
+import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.exception.CheckerException;
+import nl.rug.ds.bpm.util.exception.ConverterException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.converter.KripkeConverter;
 import nl.rug.ds.bpm.verification.map.GroupMap;

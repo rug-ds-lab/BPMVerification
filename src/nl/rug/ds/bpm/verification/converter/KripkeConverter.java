@@ -1,14 +1,14 @@
 package nl.rug.ds.bpm.verification.converter;
 
-import nl.rug.ds.bpm.comparator.StringComparator;
-import nl.rug.ds.bpm.exception.ConverterException;
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.net.TransitionGraph;
-import nl.rug.ds.bpm.net.element.T;
-import nl.rug.ds.bpm.net.marking.ConditionalM;
-import nl.rug.ds.bpm.net.marking.DataM;
-import nl.rug.ds.bpm.net.marking.M;
+import nl.rug.ds.bpm.petrinet.interfaces.element.T;
+import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.ConditionalM;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.DataM;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.M;
+import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.exception.ConverterException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;

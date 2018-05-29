@@ -2,17 +2,17 @@ package main.apm;
 
 import hub.top.petrinet.PetriNet;
 import main.ExtPnmlStepper;
-import nl.rug.ds.bpm.event.VerificationEvent;
-import nl.rug.ds.bpm.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.event.VerificationEvent;
+import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

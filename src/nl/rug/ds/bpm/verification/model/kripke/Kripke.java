@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.model.kripke;
 
-import nl.rug.ds.bpm.comparator.StateComparator;
-import nl.rug.ds.bpm.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.StateComparator;
+import nl.rug.ds.bpm.util.comparator.StringComparator;
 
 import java.util.Iterator;
 import java.util.Set;

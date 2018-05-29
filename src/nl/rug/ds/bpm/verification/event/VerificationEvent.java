@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.event;
+package nl.rug.ds.bpm.verification.event;
 
 import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
@@ -67,7 +67,7 @@ public class VerificationEvent {
 					APBuilder = APBuilder + (input.getType().equalsIgnoreCase("and") ? " and " : " or ") + inputElementIterator.next().getElement();
 				}
 			}
-			r = r.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
+			r = r.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder);
 		}
 		return r;
 	}

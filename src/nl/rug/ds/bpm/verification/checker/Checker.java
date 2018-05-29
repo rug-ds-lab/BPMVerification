@@ -1,9 +1,9 @@
 package nl.rug.ds.bpm.verification.checker;
 
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.exception.CheckerException;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
+import nl.rug.ds.bpm.util.exception.CheckerException;
+import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;

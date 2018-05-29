@@ -1,21 +1,21 @@
 package main;
 
-import nl.rug.ds.bpm.event.VerificationEvent;
-import nl.rug.ds.bpm.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.exception.SpecificationException;
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
-import nl.rug.ds.bpm.log.listener.VerificationLogListener;
-import nl.rug.ds.bpm.net.TransitionGraph;
-import nl.rug.ds.bpm.pnml.jaxb.ptnet.Net;
-import nl.rug.ds.bpm.pnml.marshaller.PTNetUnmarshaller;
-import nl.rug.ds.bpm.ptnet.PlaceTransitionNet;
+import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
+import nl.rug.ds.bpm.pnml.ptnet.jaxb.ptnet.Net;
+import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
 import nl.rug.ds.bpm.specification.parser.SetParser;
+import nl.rug.ds.bpm.util.exception.SpecificationException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.event.VerificationEvent;
+import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -86,17 +86,15 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	}
 
 	public void verify(String pnml, String specification) {
-		PTNetUnmarshaller pnu = new PTNetUnmarshaller(new File(pnml));
-		Set<Net> pnset = pnu.getNets();
-		PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
-
-		//Make step class for specific Petri net type
 		try {
+			PTNetUnmarshaller pnu = new PTNetUnmarshaller(new File(pnml));
+			Set<Net> pnset = pnu.getNets();
+			PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(pn, factory);
 			verifier.addEventListener(this);
 			//Start verification
-			verifier.verify(specification, reduce);
+			verifier.verify(new File(specification), reduce);
 		} catch (Exception e) {
 			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}

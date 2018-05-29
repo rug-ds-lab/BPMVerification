@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.checker;
 
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 
 import java.io.File;
 

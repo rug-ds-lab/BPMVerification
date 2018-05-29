@@ -1,13 +1,13 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
-import nl.rug.ds.bpm.event.EventHandler;
-import nl.rug.ds.bpm.exception.CheckerException;
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
+import nl.rug.ds.bpm.util.exception.CheckerException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
+import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;

@@ -6,18 +6,7 @@
 	<property name="dir.build.production">${dir.build}/production/BPMVerification</property>
 	<property name="dir.build.artifacts">${dir.build}/artifacts/BPMVerification</property>
 	<property name="file.jar">${dir.build.artifacts}/BPMVerification-${version}.jar</property>
-	
-	<path id="projectClasspath">
-		<fileset dir="lib">
-			<include name="guava-18.0.jar"/>
-			<include name="umaBPDiff-1.0.jar"/>
-			<include name="jaxen-1.1.6.jar"/>
-			<include name="jdom.jar"/>
-			<include name="pnapi-1.0.jar"/>
-			<include name="unfolding.jar"/>
-		</fileset>
-	</path>
-	
+
 	<target name="clean">
 		<delete dir="${dir.build}"/>
 	</target>
@@ -37,10 +26,16 @@
 	<target name="compile" depends="init">
 		<echo>Compiling Java source</echo>
 		
-		<javac classpathref="projectClasspath"
+		<javac
 			   srcdir="${dir.src}"
 			   destdir="${dir.build.production}"
-			   verbose="true"/>
+			   verbose="true">
+			<compilerarg line="--add-modules java.xml.bind"/>
+
+			<classpath>
+				<pathelement path="lib/BPMPetriNet-1.0.jar"/>
+			</classpath>
+		</javac>
 	</target>
 	
 	<target name="jar pnml verifier" depends="compile">
@@ -48,12 +43,6 @@
 		
 		<jar basedir="${dir.build.production}"
 			 file="${file.jar}">
-			<zipgroupfileset dir="lib" includes="guava-18.0.jar"/>
-			<zipgroupfileset dir="lib" includes="jaxen-1.1.6.jar"/>
-			<zipgroupfileset dir="lib" includes="jdom.jar"/>
-			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
-			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
-			<zipgroupfileset dir="lib" includes="unfolding.jar"/>
 			<manifest>
 				<attribute name="Main-Class" value="main.PnmlVerifier"/>
 			</manifest>
@@ -65,12 +54,6 @@
 		
 		<jar basedir="${dir.build.production}"
 			 file="${file.jar}">
-			<zipgroupfileset dir="lib" includes="guava-18.0.jar"/>
-			<zipgroupfileset dir="lib" includes="jaxen-1.1.6.jar"/>
-			<zipgroupfileset dir="lib" includes="jdom.jar"/>
-			<zipgroupfileset dir="lib" includes="pnapi-1.0.jar"/>
-			<zipgroupfileset dir="lib" includes="umaBPDiff-1.0.jar"/>
-			<zipgroupfileset dir="lib" includes="unfolding.jar"/>
 			<manifest>
 				<attribute name="Main-Class" value="main.VariabilitySpecGen"/>
 			</manifest>

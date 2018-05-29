@@ -1,9 +1,9 @@
 package nl.rug.ds.bpm.specification.parser;
 
-import nl.rug.ds.bpm.log.LogEvent;
-import nl.rug.ds.bpm.log.Logger;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

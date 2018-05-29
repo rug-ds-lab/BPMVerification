@@ -1,11 +1,11 @@
 package nl.rug.ds.bpm.variability;
 
-import nl.rug.ds.bpm.exception.SpecificationException;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Group;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationMarshaller;
+import nl.rug.ds.bpm.util.exception.SpecificationException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
