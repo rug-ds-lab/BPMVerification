@@ -42,10 +42,13 @@ public class ConverterAction extends RecursiveAction {
 		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
 			State found = new State(marking.toString(), mapTransitionIds(enabled));
 
-			if (marking instanceof DataM)
-				for (String b : ((DataM)marking).getBindings().keySet())
+			if (marking instanceof DataM) {
+				Set<String> data = new HashSet<>();
+				for (String b : ((DataM) marking).getBindings().keySet())
 					if (!b.equalsIgnoreCase("nashorn.global"))
-						found.getAtomicPropositions().add(b + "=" + ((DataM)marking).getBindings().get(b));
+						data.add(b + "=" + ((DataM) marking).getBindings().get(b));
+				found.addAP(data);
+			}
 
 			State existing = kripke.addNext(previous, found);
 			
@@ -57,7 +60,7 @@ public class ConverterAction extends RecursiveAction {
 
 				Set<ConverterAction> nextActions = new HashSet<>();
 				for (T transition: enabled)
-					for (M step : net.fireTransition(transition, marking.clone()))
+					for (M step : net.fireTransition(transition, marking))
 						nextActions.add(new ConverterAction(kripke, net, idMap, step, found));
 
 				invokeAll(nextActions);

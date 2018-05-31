@@ -90,6 +90,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			PTNetUnmarshaller pnu = new PTNetUnmarshaller(new File(pnml));
 			Set<Net> pnset = pnu.getNets();
 			PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
+			//DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
 			//Make a verifier which uses that step class
 			Verifier verifier = new Verifier(pn, factory);
 			verifier.addEventListener(this);

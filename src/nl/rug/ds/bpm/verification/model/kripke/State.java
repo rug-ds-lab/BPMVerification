@@ -10,6 +10,7 @@ import java.util.TreeSet;
 public class State implements Comparable<State> {
     private static int stateID = 0;
     private String id;
+    private String marking;
     private String hash, APHash;
     private Set<String> atomicPropositions;
     private Set<State> nextStates, previousStates;
@@ -19,19 +20,19 @@ public class State implements Comparable<State> {
 
     public State(String marking, TreeSet<String> atomicPropositions) {
         this.id = "S" + stateID++;
+        this.marking = marking;
         this.atomicPropositions = atomicPropositions;
         nextStates = new HashSet<>();
         previousStates = new HashSet<>();
 
-        String M = marking + "=";
+
         String AP = "";
         Iterator<String> api = atomicPropositions.iterator();
         while (api.hasNext()) {
             AP = AP + api.next();
             if (api.hasNext()) AP = AP + " ";
         }
-        M = M + AP;
-        hash = M;
+        hash = marking + "=" + AP;
         APHash = AP;
     }
         
@@ -83,14 +84,7 @@ public class State implements Comparable<State> {
 
     @Override
     public String toString() {
-        StringBuilder st = new StringBuilder(getID() + ": {" + hash + " = ");
-        Iterator<String> api = getAtomicPropositions().iterator();
-        while (api.hasNext()) {
-            st.append(api.next());
-            if (api.hasNext()) st.append(" ");
-        }
-        st.append("}");
-        return st.toString();
+        return getID() + ": {" + hash + ")";
     }
 
     @Override
@@ -125,6 +119,19 @@ public class State implements Comparable<State> {
             if (api.hasNext()) AP = AP + " ";
         }
         APHash = AP;
+    }
+
+    public void addAP(Set<String> APs) {
+        atomicPropositions.addAll(APs);
+
+        String AP = "";
+        Iterator<String> api = atomicPropositions.iterator();
+        while (api.hasNext()) {
+            AP = AP + api.next();
+            if (api.hasNext()) AP = AP + " ";
+        }
+        APHash = AP;
+        hash = marking + "=" + AP;
     }
 
     public boolean APequals(State n) { return APHash.equals(n.APHash()); }

@@ -1,5 +1,5 @@
 <project name="BPMVerification" basedir=".">
-	<property name="version">0.3</property>
+	<property name="version">0.4</property>
 	<property name="dir.src">src</property>
 	<property name="dir.resource">resources</property>
 	<property name="dir.build">out</property>
@@ -26,8 +26,7 @@
 	<target name="compile" depends="init">
 		<echo>Compiling Java source</echo>
 		
-		<javac
-			   srcdir="${dir.src}"
+		<javac srcdir="${dir.src}"
 			   destdir="${dir.build.production}"
 			   verbose="true">
 			<compilerarg line="--add-modules java.xml.bind"/>
@@ -35,28 +34,17 @@
 			<classpath>
 				<pathelement path="lib/BPMPetriNet-1.0.jar"/>
 			</classpath>
+
+			<exclude name="**/variability/*.java" />
+			<exclude name="**/eventstructure/*.java" />
 		</javac>
 	</target>
 	
 	<target name="jar pnml verifier" depends="compile">
 		<echo>Making JAR file</echo>
 		
-		<jar basedir="${dir.build.production}"
-			 file="${file.jar}">
-			<manifest>
-				<attribute name="Main-Class" value="main.PnmlVerifier"/>
-			</manifest>
-		</jar>
-	</target>
-	
-	<target name="jar specification generation" depends="compile">
-		<echo>Making JAR file</echo>
-		
-		<jar basedir="${dir.build.production}"
-			 file="${file.jar}">
-			<manifest>
-				<attribute name="Main-Class" value="main.VariabilitySpecGen"/>
-			</manifest>
+		<jar basedir="${dir.build.production}" file="${file.jar}">
+			<zipgroupfileset dir="lib" includes="BPMPetriNet-1.0.jar"/>
 		</jar>
 	</target>
 </project>

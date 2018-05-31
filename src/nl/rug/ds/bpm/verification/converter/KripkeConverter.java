@@ -13,6 +13,7 @@ import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -40,10 +41,13 @@ public class KripkeConverter {
 		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
             State found = new State(marking.toString(), mapTransitionIds(enabled));
 
-            if (marking instanceof DataM)
-	            for (String b : ((DataM)marking).getBindings().keySet())
+            if (marking instanceof DataM) {
+            	Set<String> data = new HashSet<>();
+	            for (String b : ((DataM) marking).getBindings().keySet())
 		            if (!b.equalsIgnoreCase("nashorn.global"))
-		            	found.getAtomicPropositions().add(b + "=" + ((DataM)marking).getBindings().get(b));
+			            data.add(b + "=" + ((DataM) marking).getBindings().get(b));
+	            found.addAP(data);
+            }
 
             kripke.addInitial(found);
             
