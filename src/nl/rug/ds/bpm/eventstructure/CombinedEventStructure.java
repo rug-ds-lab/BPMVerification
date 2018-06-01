@@ -1,11 +1,14 @@
 package nl.rug.ds.bpm.eventstructure;
 
-import ee.ut.eventstr.NewUnfoldingPESSemantics;
-import ee.ut.nets.unfolding.Unfolding2PES;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.*;
+import nl.rug.ds.bpm.petrinet.interfaces.unfolding.Unfolding;
 
 public class CombinedEventStructure {
 	private List<String> totalLabels;
@@ -97,28 +100,26 @@ public class CombinedEventStructure {
 		relmap = new HashMap<BitSet, BitSet>();
 	}
 	
-	public void addPES(Unfolding2PES unfpes) {
+	public void addPES(Unfolding pes) {
 		int relation, e1, e2;
 		BitSet br, causes, predecessors;
 		Set<BitSet> visitedBr = new HashSet<BitSet>();
+				
+		Map<Integer, BitSet> correspondings = getCorrespondings(pes);
 		
-		NewUnfoldingPESSemantics<Integer> pessem = getPESSemantics(unfpes);
-		
-		Map<Integer, BitSet> correspondings = getCorrespondings(pessem);
-		
-//		System.out.println(getAllCausesOf(pessem, correspondings, pessem.getLabels().size() - 1, new BitSet()));
+//		System.out.println(getAllCausesOf(pes, correspondings, pes.getLabels().size() - 1, new BitSet()));
 		
 		// first add all labels
 		int lbl;
-		for (int i = 0; i < pessem.getLabels().size(); i++) {
-			if (!totalLabels.contains(pessem.getLabel(i))) {
-				totalLabels.add(pessem.getLabel(i));
-				if (pessem.getLabel(i).equals("_0_")) source = totalLabels.size() - 1;
-				if (pessem.getLabel(i).equals("_1_")) sink = totalLabels.size() - 1;
+		for (int i = 0; i < pes.getLabels().size(); i++) {
+			if (!totalLabels.contains(pes.getLabel(i))) {
+				totalLabels.add(pes.getLabel(i));
+				if (pes.getLabel(i).equals("_0_")) source = totalLabels.size() - 1;
+				if (pes.getLabel(i).equals("_1_")) sink = totalLabels.size() - 1;
 			}
 			
-			lbl = totalLabels.indexOf(pessem.getLabel(i));
-			if (pessem.getInvisibleEvents().contains(i)) silents.add(lbl);
+			lbl = totalLabels.indexOf(pes.getLabel(i));
+			if (pes.getInvisibleEvents().get(i)) silents.add(lbl);
 			if (!labelmap.containsKey(lbl)) labelmap.put(lbl, new BitSet());
 			
 			labelmap.get(lbl).set(pesCount);
@@ -129,14 +130,14 @@ public class CombinedEventStructure {
 		BitSet loopsucc;
 		BitSet looppred;
 		
-		for (int cutoff: pessem.getCutoffEvents()) {
-			corr = pessem.getCorresponding(cutoff);
+		for (int cutoff = pes.getCutoffEvents().nextSetBit(0); cutoff >= 0; cutoff = pes.getCutoffEvents().nextSetBit(cutoff) + 1) {
+			corr = pes.getCorrespondingEvent(cutoff);
 						
 			// if the corresponding event is before the cutoff, then we're dealing with a loop
-			if (pessem.getCausesOf(cutoff).get(corr)) {
-				loopsucc = getRealSuccessors(pessem, corr, new BitSet());
-				if (pessem.getInvisibleEvents().contains(cutoff)) {
-					looppred = getRealPredecessors(pessem, cutoff, new BitSet());
+			if (pes.getTransitivePredecessors(cutoff).get(corr)) {
+				loopsucc = getRealSuccessors(pes, corr, new BitSet());
+				if (pes.getInvisibleEvents().get(cutoff)) {
+					looppred = getRealPredecessors(pes, cutoff, new BitSet());
 				}
 				else {
 					looppred = new BitSet();
@@ -151,20 +152,20 @@ public class CombinedEventStructure {
 							sleventmap.get(p).set(p);
 						}
 						else {
-							if (pessem.getCausesOf(p).get(s)) addLoop(p, s);
+							if (pes.getTransitivePredecessors(p).get(s)) addLoop(p, s);
 						}
 					}
 				}
 			}
 			
 			// fix direct causality of cutoff event
-			pessem.getDirectSuccessors(cutoff).addAll(pessem.getDirectSuccessors(corr));
+			pes.getDirectSuccessors(cutoff).or(pes.getDirectSuccessors(corr));
 			
 			// fix causality relations of cutoff event
-			for (int i = 0; i < pessem.getLabels().size(); i++) {
-				if ((pessem.getBRelation(corr, i) == BehaviorRelation.CAUSALITY) && (!pessem.getDirectSuccessors(cutoff).contains(i))) {
-					e1 = totalLabels.indexOf(pessem.getLabel(cutoff));
-					e2 = totalLabels.indexOf(pessem.getLabel(i));
+			for (int i = 0; i < pes.getLabels().size(); i++) {
+				if ((pes.getTransitiveSuccessors(corr).get(i)) && (!pes.getDirectSuccessors(cutoff).get(i))) {
+					e1 = totalLabels.indexOf(pes.getLabel(cutoff));
+					e2 = totalLabels.indexOf(pes.getLabel(i));
 					if (e1 != e2) {
 						br = hash(e1, e2);
 						if (!combinedPES.containsKey(br))
@@ -183,9 +184,9 @@ public class CombinedEventStructure {
 		}
 		
 		// fix causality relations of cutoff-preceding events
-		for (int i = 0; i < pessem.getLabels().size(); i++) {
-			causes = getAllCausesOf(pessem, correspondings, i, new BitSet());
-			predecessors = getRealPredecessors(pessem, i, new BitSet());
+		for (int i = 0; i < pes.getLabels().size(); i++) {
+			causes = getAllCausesOf(pes, correspondings, i, new BitSet());
+			predecessors = getRealPredecessors(pes, i, new BitSet());
 			causes.andNot(predecessors);
 			for (int p = predecessors.nextSetBit(0); p >= 0; p = predecessors.nextSetBit(p + 1)) {
 				if (correspondings.containsKey(p))
@@ -193,8 +194,8 @@ public class CombinedEventStructure {
 			}
 			
 			for (int cause = causes.nextSetBit(0); cause >= 0; cause = causes.nextSetBit(cause + 1)) {
-				e1 = totalLabels.indexOf(pessem.getLabel(cause));
-				e2 = totalLabels.indexOf(pessem.getLabel(i));
+				e1 = totalLabels.indexOf(pes.getLabel(cause));
+				e2 = totalLabels.indexOf(pes.getLabel(i));
 				if (e1 != e2) {
 					br = hash(e1, e2);
 					if (!combinedPES.containsKey(br))
@@ -212,10 +213,10 @@ public class CombinedEventStructure {
 		}
 		
 		// fill out all sets with behavioral relations 
-		for (int x = 0; x < pessem.getLabels().size(); x++) {
-			for (int y = x + 1; y < pessem.getLabels().size(); y++) {
-				e1 = totalLabels.indexOf(pessem.getLabel(x));
-				e2 = totalLabels.indexOf(pessem.getLabel(y));
+		for (int x = 0; x < pes.getLabels().size(); x++) {
+			for (int y = x + 1; y < pes.getLabels().size(); y++) {
+				e1 = totalLabels.indexOf(pes.getLabel(x));
+				e2 = totalLabels.indexOf(pes.getLabel(y));
 				
 				if (e1 != e2) {
 					br = hash(e1, e2);
@@ -223,12 +224,12 @@ public class CombinedEventStructure {
 					if (!combinedPES.containsKey(br))
 						combinedPES.put(br, new BitSet(6));
 									
-					if (pessem.getDirectSuccessors(x).contains(y)) {
-						if (pessem.getInvisibleEvents().contains(y)) {
-							BitSet realsucc = getRealSuccessors(pessem, y, new BitSet());
+					if (pes.getDirectSuccessors(x).get(y)) {
+						if (pes.getInvisibleEvents().get(y)) {
+							BitSet realsucc = getRealSuccessors(pes, y, new BitSet());
 							
 							for (int yn = realsucc.nextSetBit(0); yn >= 0; yn = realsucc.nextSetBit(yn + 1)) {
-								e2 = totalLabels.indexOf(pessem.getLabel(yn));
+								e2 = totalLabels.indexOf(pes.getLabel(yn));
 								if (e2 != e1) {
 									br = hash(e1, e2);
 									if (!combinedPES.containsKey(br))
@@ -244,11 +245,11 @@ public class CombinedEventStructure {
 							visitedBr.add(br);
 						}					
 					}
-					else if (pessem.getDirectSuccessors(y).contains(x)) {
-						if (pessem.getInvisibleEvents().contains(x)) {
-							BitSet realsucc = getRealSuccessors(pessem, x, new BitSet());
+					else if (pes.getDirectSuccessors(y).get(x)) {
+						if (pes.getInvisibleEvents().get(x)) {
+							BitSet realsucc = getRealSuccessors(pes, x, new BitSet());
 							for (int yn = realsucc.nextSetBit(0); yn >= 0; yn = realsucc.nextSetBit(yn + 1)) {
-								e1 = totalLabels.indexOf(pessem.getLabel(yn));
+								e1 = totalLabels.indexOf(pes.getLabel(yn));
 								if (e2 != e1) {
 									br = hash(e1, e2);
 									if (!combinedPES.containsKey(br))
@@ -269,10 +270,12 @@ public class CombinedEventStructure {
 						// CAUSALITY, INV_CAUSALITY, CONFLICT, CONCURRENCY
 						if (!visitedBr.contains(br)) {
 							if (e1 < e2) {
-								relation = pessem.getBRelation(x, y).ordinal() + 2;
+//								relation = pes.getBRelation(x, y).ordinal() + 2;
+								relation = getRelation(pes, x, y);
 							}
 							else {
-								relation = pessem.getBRelation(y, x).ordinal() + 2;
+//								relation = pes.getBRelation(y, x).ordinal() + 2;
+								relation = getRelation(pes, y, x);
 							}
 							
 							if (relation < 6) {
@@ -297,6 +300,16 @@ public class CombinedEventStructure {
 		}
 				
 		pesCount++;
+	}
+	
+	private int getRelation(Unfolding pes, int e1, int e2) {
+		if (pes.getDirectSuccessors(e1).get(e2))       return 0;
+		if (pes.getDirectPredecessors(e1).get(e2))     return 1;
+		if (pes.getTransitiveSuccessors(e1).get(e2))   return 2;
+		if (pes.getTransitivePredecessors(e1).get(e2)) return 3;
+		if (pes.getConcurrency(e1).get(e2))            return 5;
+		
+		return 4;
 	}
 	
 	private void addRelation(BitSet br, int relation) {
@@ -440,10 +453,12 @@ public class CombinedEventStructure {
 		relmap.get(br).set(pesCount);
 	}
 	
-	private BitSet getRealPredecessors(NewUnfoldingPESSemantics<Integer> pessem, int event, BitSet visited) {
-		BitSet pred = toBitSet(pessem.getDirectPredecessors(event));
+	private BitSet getRealPredecessors(Unfolding pes, int event, BitSet visited) {
+		BitSet pred = new BitSet();
+		pred.or(pes.getDirectPredecessors(event));
 		BitSet cleanpred = new BitSet();
-		BitSet silents = toBitSet(pessem.getInvisibleEvents());
+		BitSet silents = new BitSet();
+		silents.or(pes.getInvisibleEvents());
 		
 		BitSet nvisited = (BitSet)visited.clone();
 		nvisited.set(event);
@@ -454,24 +469,27 @@ public class CombinedEventStructure {
 		pred.andNot(nvisited); // remove all predecessors that already have been visited, in order to prevent endless loops with silents
 		
 		for (int e = pred.nextSetBit(0); e >= 0; e = pred.nextSetBit(e + 1)) {
-			cleanpred.or(getRealPredecessors(pessem, e, nvisited));
+			cleanpred.or(getRealPredecessors(pes, e, nvisited));
 		}
 		
 		return cleanpred;
 	}
 	
-	private BitSet getRealSuccessors(NewUnfoldingPESSemantics<Integer> pessem, int event, BitSet visited) {
+	private BitSet getRealSuccessors(Unfolding pes, int event, BitSet visited) {
 		BitSet succ;
 		
-		if (pessem.getCutoffEvents().contains(event)) {
-			succ = toBitSet(pessem.getDirectSuccessors(getRealCorresponding(pessem, event)));
+		if (pes.getCutoffEvents().get(event)) {
+			succ = new BitSet();
+			succ.or(pes.getDirectSuccessors(getRealCorresponding(pes, event)));
 		}
 		else {
-			succ = toBitSet(pessem.getDirectSuccessors(event));
+			succ = new BitSet();
+			succ.or(pes.getDirectSuccessors(event));
 		}
 		
 		BitSet cleansucc = new BitSet();
-		BitSet silents = toBitSet(pessem.getInvisibleEvents());
+		BitSet silents = new BitSet();
+		silents.or(pes.getInvisibleEvents());
 		
 		BitSet nvisited = (BitSet)visited.clone();
 		nvisited.set(event);
@@ -482,18 +500,18 @@ public class CombinedEventStructure {
 		succ.andNot(nvisited); // remove all successors that already have been visited, in order to prevent endless loops with silents
 		
 		for (int e = succ.nextSetBit(0); e >= 0; e = succ.nextSetBit(e + 1)) {
-			cleansucc.or(getRealSuccessors(pessem, e, nvisited));
+			cleansucc.or(getRealSuccessors(pes, e, nvisited));
 		}
 		
 		return cleansucc;
 	}
 	
-	private BitSet getAllCausesOf(NewUnfoldingPESSemantics<Integer> pessem, Map<Integer, BitSet> correspondings, int event, BitSet visited) {
+	private BitSet getAllCausesOf(Unfolding pes, Map<Integer, BitSet> correspondings, int event, BitSet visited) {
 		BitSet pred = new BitSet();
 		BitSet cutoffs = new BitSet();
 		BitSet realpred = new BitSet();
 		
-		pred.or(pessem.getCausesOf(event));
+		pred.or(pes.getTransitivePredecessors(event));
 					
 		realpred.or(pred);
 		
@@ -511,44 +529,32 @@ public class CombinedEventStructure {
 		nvisited.or(pred);
 		
 		for (int e = cutoffs.nextSetBit(0); e >= 0; e = cutoffs.nextSetBit(e + 1)) {
-			realpred.or(getAllCausesOf(pessem, correspondings, e, nvisited));
+			realpred.or(getAllCausesOf(pes, correspondings, e, nvisited));
 		}
 		
 		return realpred;
 	}
 	
-	private int getRealCorresponding(NewUnfoldingPESSemantics<Integer> pessem, int event) {
+	private int getRealCorresponding(Unfolding pes, int event) {
 		int corr = event;
 		
-		while (pessem.getCutoffEvents().contains(corr)) {
-			corr = pessem.getCorresponding(corr);
+		while (pes.getCutoffEvents().get(corr)) {
+			corr = pes.getCorrespondingEvent(corr);
 		}
 		return corr;
 	}
 	
-	private Map<Integer, BitSet> getCorrespondings(NewUnfoldingPESSemantics<Integer> pessem) {
+	private Map<Integer, BitSet> getCorrespondings(Unfolding pes) {
 		Map<Integer, BitSet> corresponding = new HashMap<Integer, BitSet>();
 		
-		for (int c: pessem.getCutoffEvents()) {
-			if (!corresponding.containsKey(pessem.getCorresponding(c)))
-				corresponding.put(pessem.getCorresponding(c), new BitSet());
+		for (int c = pes.getCutoffEvents().nextSetBit(0); c >= 0; c = pes.getCutoffEvents().nextSetBit(c + 1)) {
+			if (!corresponding.containsKey(pes.getCorrespondingEvent(c)))
+				corresponding.put(pes.getCorrespondingEvent(c), new BitSet());
 			
-			corresponding.get(pessem.getCorresponding(c)).set(c);
+			corresponding.get(pes.getCorrespondingEvent(c)).set(c);
 		}
 		
 		return corresponding;
-	}
-	
-	private NewUnfoldingPESSemantics<Integer> getPESSemantics(Unfolding2PES pes) {
-		PrintStream blackhole = new PrintStream(new ByteArrayOutputStream());
-		PrintStream stdout = System.out;
-		System.setOut(blackhole);
-		
-		NewUnfoldingPESSemantics<Integer> pessem = new NewUnfoldingPESSemantics<Integer>(pes.getPES(), pes);
-
-		System.setOut(stdout);
-		
-		return pessem;
 	}
 	
 	public void findMutualRelations() {
@@ -879,14 +885,6 @@ else if (relation.cardinality() > 1) {
 	
 	public int getPEScount() {
 		return pesCount;
-	}
-	
-	private BitSet toBitSet(Collection<Integer> is) {
-		BitSet bts = new BitSet();
-		
-		for (int i: is) bts.set(i);
-		
-		return bts;
 	}
 	
 	private BitSet hash(int x, int y) {

@@ -1,18 +1,20 @@
 package nl.rug.ds.bpm.variability;
 
-import ee.ut.nets.unfolding.BPstructBP.MODE;
-import ee.ut.nets.unfolding.Unfolder_PetriNet;
-import ee.ut.nets.unfolding.Unfolding2PES;
-import ee.ut.pnml.PNMLReader;
-import hub.top.petrinet.PetriNet;
-import hub.top.petrinet.Transition;
-import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
-import org.jdom.JDOMException;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
+import nl.rug.ds.bpm.eventstructure.PESPrefixUnfolding;
+import nl.rug.ds.bpm.petrinet.interfaces.unfolding.Unfolding;
+import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
+import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
+import nl.rug.ds.bpm.util.exception.MalformedNetException;
 
 public class VariabilitySpecification {
 
@@ -48,48 +50,26 @@ public class VariabilitySpecification {
 		}
 	}
 	
-	public VariabilitySpecification(PetriNet[] nets, String silentPrefix) {
+	public VariabilitySpecification(PlaceTransitionNet[] nets, String silentPrefix) {
 		ces = new CombinedEventStructure();
-		try {
-			for (PetriNet net: nets) {
-				ces.addPES(getUnfoldingPES(net, silentPrefix));
-			}
-			ces.findMutualRelations();
+		
+		for (PlaceTransitionNet net: nets) {
+			ces.addPES(getUnfoldingPES(net, silentPrefix));
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		ces.findMutualRelations();
 	}
 	
-	private Unfolding2PES getUnfoldingPES(String folder, String filename, String silentPrefix) throws JDOMException {
+	private Unfolding getUnfoldingPES(String folder, String filename, String silentPrefix) throws MalformedNetException {
 		return getUnfoldingPES(folder + filename, silentPrefix);
 	}
 
-	private Unfolding2PES getUnfoldingPES(String fullfilename, String silentPrefix) throws JDOMException {
-		PetriNet net = PNMLReader.parse(new File(fullfilename));
+	private Unfolding getUnfoldingPES(String fullfilename, String silentPrefix) throws MalformedNetException {		
+		PlaceTransitionNet net = new PlaceTransitionNet(new PTNetUnmarshaller(new File(fullfilename)).getNets().iterator().next());
 		return getUnfoldingPES(net, silentPrefix);
 	}
 	
-	private Unfolding2PES getUnfoldingPES(PetriNet net, String silentPrefix) {
-		PrintStream blackhole = new PrintStream(new ByteArrayOutputStream());
-		PrintStream stdout = System.out;
-		System.setOut(blackhole);
-		
-		Set<String> labels = new HashSet<>();
-		for (Transition t: net.getTransitions()) {
-			if ((!t.getName().startsWith(silentPrefix)) || (silentPrefix.equals(""))) {
-				labels.add(t.getName());
-			}
-		}
-
-		Unfolder_PetriNet unfolder = new Unfolder_PetriNet(net, MODE.ESPARZA);
-		unfolder.computeUnfolding();
-				
-		Unfolding2PES pes = new Unfolding2PES(unfolder.getSys(), unfolder.getBP(), labels);
-
-		System.setOut(stdout);
-
-		return pes;
+	private Unfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) {
+		return new PESPrefixUnfolding(net);
 	}
 	
 	public CombinedEventStructure getCES() {
