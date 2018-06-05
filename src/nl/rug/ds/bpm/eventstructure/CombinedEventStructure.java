@@ -142,20 +142,9 @@ public class CombinedEventStructure {
 				
 				for (int p = looppred.nextSetBit(0); p >= 0; p = looppred.nextSetBit(p + 1)) {
 					for (int s = loopsucc.nextSetBit(0); s >= 0; s = loopsucc.nextSetBit(s + 1)) {
-//						// check for selfloops
-//						if (p == s) {
-//							if (!sleventmap.containsKey(p)) sleventmap.put(p, new BitSet());
-//							sleventmap.get(p).set(p);
-//						}
-//						else {
-//							if (pes.getTransitivePredecessors(p).get(s)) addLoop(p, s);
-//						}
-//						
 						e1 = totalLabels.indexOf(pes.getLabel(cutoff));
 						e2 = totalLabels.indexOf(pes.getLabel(corr));
-						
-						System.out.println(pes.getLabel(cutoff) + " " + pes.getLabel(corr));
-						
+												
 						// check for selfloops
 						if (e1 == e2) {
 							if (!sleventmap.containsKey(e1)) sleventmap.put(e1, new BitSet());
