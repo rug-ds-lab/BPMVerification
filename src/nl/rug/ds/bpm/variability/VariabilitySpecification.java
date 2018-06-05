@@ -357,7 +357,6 @@ public class VariabilitySpecification {
 			
 			if (!ces.getSilents().contains(source)) events.set(source);
 			if (!ces.getSilents().contains(target)) events.set(target);
-			
 		}
 		
 		// then get the inv direct loop relations
@@ -367,7 +366,6 @@ public class VariabilitySpecification {
 			
 			if (!ces.getSilents().contains(source)) events.set(source);
 			if (!ces.getSilents().contains(target)) events.set(target);
-			
 		}
 		
 		// then get the causal loop relations
