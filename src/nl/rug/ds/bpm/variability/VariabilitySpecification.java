@@ -11,7 +11,6 @@ import java.util.Set;
 
 import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
 import nl.rug.ds.bpm.eventstructure.PESPrefixUnfolding;
-import nl.rug.ds.bpm.petrinet.interfaces.unfolding.Unfolding;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
 import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
 import nl.rug.ds.bpm.util.exception.MalformedNetException;
@@ -59,17 +58,17 @@ public class VariabilitySpecification {
 		ces.findMutualRelations();
 	}
 	
-	private Unfolding getUnfoldingPES(String folder, String filename, String silentPrefix) throws MalformedNetException {
+	private PESPrefixUnfolding getUnfoldingPES(String folder, String filename, String silentPrefix) throws MalformedNetException {
 		return getUnfoldingPES(folder + filename, silentPrefix);
 	}
 
-	private Unfolding getUnfoldingPES(String fullfilename, String silentPrefix) throws MalformedNetException {		
+	private PESPrefixUnfolding getUnfoldingPES(String fullfilename, String silentPrefix) throws MalformedNetException {		
 		PlaceTransitionNet net = new PlaceTransitionNet(new PTNetUnmarshaller(new File(fullfilename)).getNets().iterator().next());
 		return getUnfoldingPES(net, silentPrefix);
 	}
 	
-	private Unfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) {
-		return new PESPrefixUnfolding(net);
+	private PESPrefixUnfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) {
+		return new PESPrefixUnfolding(net, silentPrefix);
 	}
 	
 	public CombinedEventStructure getCES() {

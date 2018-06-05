@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nl.rug.ds.bpm.petrinet.interfaces.unfolding.Unfolding;
-
 public class CombinedEventStructure {
 	private List<String> totalLabels;
 	private Set<Integer> silents;
@@ -100,7 +98,7 @@ public class CombinedEventStructure {
 		relmap = new HashMap<BitSet, BitSet>();
 	}
 	
-	public void addPES(Unfolding pes) {
+	public void addPES(PESPrefixUnfolding pes) {
 		int relation, e1, e2;
 		BitSet br, causes, predecessors;
 		Set<BitSet> visitedBr = new HashSet<BitSet>();
@@ -302,7 +300,7 @@ public class CombinedEventStructure {
 		pesCount++;
 	}
 	
-	private int getRelation(Unfolding pes, int e1, int e2) {
+	private int getRelation(PESPrefixUnfolding pes, int e1, int e2) {
 		if (pes.getDirectSuccessors(e1).get(e2))       return 0;
 		if (pes.getDirectPredecessors(e1).get(e2))     return 1;
 		if (pes.getTransitiveSuccessors(e1).get(e2))   return 2;
@@ -453,7 +451,7 @@ public class CombinedEventStructure {
 		relmap.get(br).set(pesCount);
 	}
 	
-	private BitSet getRealPredecessors(Unfolding pes, int event, BitSet visited) {
+	private BitSet getRealPredecessors(PESPrefixUnfolding pes, int event, BitSet visited) {
 		BitSet pred = new BitSet();
 		pred.or(pes.getDirectPredecessors(event));
 		BitSet cleanpred = new BitSet();
@@ -475,7 +473,7 @@ public class CombinedEventStructure {
 		return cleanpred;
 	}
 	
-	private BitSet getRealSuccessors(Unfolding pes, int event, BitSet visited) {
+	private BitSet getRealSuccessors(PESPrefixUnfolding pes, int event, BitSet visited) {
 		BitSet succ;
 		
 		if (pes.getCutoffEvents().get(event)) {
@@ -506,7 +504,7 @@ public class CombinedEventStructure {
 		return cleansucc;
 	}
 	
-	private BitSet getAllCausesOf(Unfolding pes, Map<Integer, BitSet> correspondings, int event, BitSet visited) {
+	private BitSet getAllCausesOf(PESPrefixUnfolding pes, Map<Integer, BitSet> correspondings, int event, BitSet visited) {
 		BitSet pred = new BitSet();
 		BitSet cutoffs = new BitSet();
 		BitSet realpred = new BitSet();
@@ -535,7 +533,7 @@ public class CombinedEventStructure {
 		return realpred;
 	}
 	
-	private int getRealCorresponding(Unfolding pes, int event) {
+	private int getRealCorresponding(PESPrefixUnfolding pes, int event) {
 		int corr = event;
 		
 		while (pes.getCutoffEvents().get(corr)) {
@@ -544,7 +542,7 @@ public class CombinedEventStructure {
 		return corr;
 	}
 	
-	private Map<Integer, BitSet> getCorrespondings(Unfolding pes) {
+	private Map<Integer, BitSet> getCorrespondings(PESPrefixUnfolding pes) {
 		Map<Integer, BitSet> corresponding = new HashMap<Integer, BitSet>();
 		
 		for (int c = pes.getCutoffEvents().nextSetBit(0); c >= 0; c = pes.getCutoffEvents().nextSetBit(c + 1)) {
