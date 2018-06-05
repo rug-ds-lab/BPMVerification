@@ -104,9 +104,7 @@ public class CombinedEventStructure {
 		Set<BitSet> visitedBr = new HashSet<BitSet>();
 				
 		Map<Integer, BitSet> correspondings = getCorrespondings(pes);
-		
-//		System.out.println(getAllCausesOf(pes, correspondings, pes.getLabels().size() - 1, new BitSet()));
-		
+				
 		// first add all labels
 		int lbl;
 		for (int i = 0; i < pes.getLabels().size(); i++) {
@@ -127,12 +125,12 @@ public class CombinedEventStructure {
 		int corr;
 		BitSet loopsucc;
 		BitSet looppred;
-		
+				
 		for (int cutoff = pes.getCutoffEvents().nextSetBit(0); cutoff >= 0; cutoff = pes.getCutoffEvents().nextSetBit(cutoff + 1)) {
 			corr = pes.getCorrespondingEvent(cutoff);
 			
 			// if the corresponding event is before the cutoff, then we're dealing with a loop
-			if (pes.getTransitivePredecessors(cutoff).get(corr)) {
+			if ((pes.getTransitivePredecessors(cutoff).get(corr)) && (pes.getTransitivePredecessors(corr).get(cutoff))) {
 				loopsucc = getRealSuccessors(pes, corr, new BitSet());
 				if (pes.getInvisibleEvents().get(cutoff)) {
 					looppred = getRealPredecessors(pes, cutoff, new BitSet());
@@ -144,14 +142,30 @@ public class CombinedEventStructure {
 				
 				for (int p = looppred.nextSetBit(0); p >= 0; p = looppred.nextSetBit(p + 1)) {
 					for (int s = loopsucc.nextSetBit(0); s >= 0; s = loopsucc.nextSetBit(s + 1)) {
+//						// check for selfloops
+//						if (p == s) {
+//							if (!sleventmap.containsKey(p)) sleventmap.put(p, new BitSet());
+//							sleventmap.get(p).set(p);
+//						}
+//						else {
+//							if (pes.getTransitivePredecessors(p).get(s)) addLoop(p, s);
+//						}
+//						
+						e1 = totalLabels.indexOf(pes.getLabel(cutoff));
+						e2 = totalLabels.indexOf(pes.getLabel(corr));
+						
+						System.out.println(pes.getLabel(cutoff) + " " + pes.getLabel(corr));
+						
 						// check for selfloops
-						if (p == s) {
-							if (!sleventmap.containsKey(p)) sleventmap.put(p, new BitSet());
-							sleventmap.get(p).set(p);
+						if (e1 == e2) {
+							if (!sleventmap.containsKey(e1)) sleventmap.put(e1, new BitSet());
+							sleventmap.get(e1).set(e1);
 						}
 						else {
-							if (pes.getTransitivePredecessors(p).get(s)) addLoop(p, s);
+							if (pes.getTransitivePredecessors(p).get(s)) addLoop(e1, e2);
 						}
+						
+						
 					}
 				}
 			}
