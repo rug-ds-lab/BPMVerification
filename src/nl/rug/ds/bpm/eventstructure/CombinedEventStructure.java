@@ -130,9 +130,9 @@ public class CombinedEventStructure {
 		BitSet loopsucc;
 		BitSet looppred;
 		
-		for (int cutoff = pes.getCutoffEvents().nextSetBit(0); cutoff >= 0; cutoff = pes.getCutoffEvents().nextSetBit(cutoff) + 1) {
+		for (int cutoff = pes.getCutoffEvents().nextSetBit(0); cutoff >= 0; cutoff = pes.getCutoffEvents().nextSetBit(cutoff + 1)) {
 			corr = pes.getCorrespondingEvent(cutoff);
-						
+			
 			// if the corresponding event is before the cutoff, then we're dealing with a loop
 			if (pes.getTransitivePredecessors(cutoff).get(corr)) {
 				loopsucc = getRealSuccessors(pes, corr, new BitSet());
