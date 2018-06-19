@@ -128,9 +128,9 @@ public class CombinedEventStructure {
 				
 		for (int cutoff = pes.getCutoffEvents().nextSetBit(0); cutoff >= 0; cutoff = pes.getCutoffEvents().nextSetBit(cutoff + 1)) {
 			corr = pes.getCorrespondingEvent(cutoff);
-			
+
 			// if the corresponding event is before the cutoff, then we're dealing with a loop
-			if ((pes.getTransitivePredecessors(cutoff).get(corr)) && (pes.getTransitivePredecessors(corr).get(cutoff))) {
+			if ((pes.getTransitivePredecessors(cutoff).get(corr))) { // && (pes.getTransitivePredecessors(corr).get(cutoff))) {
 				loopsucc = getRealSuccessors(pes, corr, new BitSet());
 				if (pes.getInvisibleEvents().get(cutoff)) {
 					looppred = getRealPredecessors(pes, cutoff, new BitSet());
@@ -139,13 +139,13 @@ public class CombinedEventStructure {
 					looppred = new BitSet();
 					looppred.set(cutoff);
 				}
-				
+					
 				for (int p = looppred.nextSetBit(0); p >= 0; p = looppred.nextSetBit(p + 1)) {
 					for (int s = loopsucc.nextSetBit(0); s >= 0; s = loopsucc.nextSetBit(s + 1)) {
-						e1 = totalLabels.indexOf(pes.getLabel(cutoff));
-						e2 = totalLabels.indexOf(pes.getLabel(corr));
-												
-						// check for selfloops
+						e1 = totalLabels.indexOf(pes.getLabel(p));
+						e2 = totalLabels.indexOf(pes.getLabel(s));
+										
+							// check for selfloops
 						if (e1 == e2) {
 							if (!sleventmap.containsKey(e1)) sleventmap.put(e1, new BitSet());
 							sleventmap.get(e1).set(e1);
@@ -153,8 +153,7 @@ public class CombinedEventStructure {
 						else {
 							if (pes.getTransitivePredecessors(p).get(s)) addLoop(e1, e2);
 						}
-						
-						
+							
 					}
 				}
 			}
@@ -212,7 +211,7 @@ public class CombinedEventStructure {
 				}
 			}
 		}
-		
+
 		// fill out all sets with behavioral relations 
 		for (int x = 0; x < pes.getLabels().size(); x++) {
 			for (int y = x + 1; y < pes.getLabels().size(); y++) {
@@ -246,7 +245,8 @@ public class CombinedEventStructure {
 							visitedBr.add(br);
 						}					
 					}
-					else if (pes.getDirectSuccessors(y).get(x)) {
+					//else
+					if (pes.getDirectSuccessors(y).get(x)) {
 						if (pes.getInvisibleEvents().get(x)) {
 							BitSet realsucc = getRealSuccessors(pes, x, new BitSet());
 							for (int yn = realsucc.nextSetBit(0); yn >= 0; yn = realsucc.nextSetBit(yn + 1)) {
@@ -288,7 +288,7 @@ public class CombinedEventStructure {
 			}
 		}
 		
-		// fill loop map		
+		// fill loop map	
 		for (int e = 0; e < totalLabels.size() - 1; e++) {
 			for (int f = e + 1; f < totalLabels.size(); f++) {
 				br = hash(e, f);
@@ -299,7 +299,7 @@ public class CombinedEventStructure {
 				}
 			}
 		}
-				
+		
 		pesCount++;
 	}
 	
@@ -607,7 +607,7 @@ public class CombinedEventStructure {
 						break;
 				}
 			}
-else if (relation.cardinality() > 1) {
+			else if (relation.cardinality() > 1) {
 				
 				// if there is a concurrency relation, check whether there are other relations that come from the same PES. If so: remove that other relation
 				if (relation.get(5)) {					
