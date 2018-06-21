@@ -299,7 +299,7 @@ public class CombinedEventStructure {
 				}
 			}
 		}
-		
+		System.out.println(lpmap);
 		pesCount++;
 	}
 	
@@ -679,15 +679,15 @@ public class CombinedEventStructure {
 				loops.add(key);
 			}
 		}
-		
+				
 		for (BitSet dl: dlpmap.keySet()) {
-			if (dlpmap.get(dl).cardinality() == relmap.get(dl).cardinality()) {
+			if ((dlpmap.get(dl).cardinality() == relmap.get(dl).cardinality()) && (checkEventOccForAllPES(dl))) {
 				directloops.add(dl);
 			}
 		}
-		
+
 		for (BitSet idl: idlpmap.keySet()) {
-			if (idlpmap.get(idl).cardinality() == relmap.get(idl).cardinality()) {
+			if ((idlpmap.get(idl).cardinality() == relmap.get(idl).cardinality()) && (checkEventOccForAllPES(idl))) {
 				invdirectloops.add(idl);
 			}
 		}
@@ -886,6 +886,20 @@ public class CombinedEventStructure {
 	
 	public int getPEScount() {
 		return pesCount;
+	}
+	
+	// Checks whether all events in the specified relation occur in all PESs
+	private Boolean checkEventOccForAllPES(BitSet relation) {
+		for (int b = relation.nextSetBit(0); b >= 0; b = relation.nextSetBit(b + 1)) {
+			if (labelmap.containsKey(b)) {
+				if (labelmap.get(b).cardinality() < pesCount) return false;
+			}
+			else {
+				return false;
+			}
+		}
+
+		return true;
 	}
 	
 	private BitSet hash(int x, int y) {
