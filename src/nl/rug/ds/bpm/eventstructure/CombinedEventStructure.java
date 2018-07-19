@@ -148,7 +148,7 @@ public class CombinedEventStructure {
 							// check for selfloops
 						if (e1 == e2) {
 							if (!sleventmap.containsKey(e1)) sleventmap.put(e1, new BitSet());
-							sleventmap.get(e1).set(e1);
+							sleventmap.get(e1).set(pesCount);
 						}
 						else {
 							if (pes.getTransitivePredecessors(p).get(s)) addLoop(e1, e2);
@@ -692,7 +692,8 @@ public class CombinedEventStructure {
 		}
 
 		for (int sl: sleventmap.keySet()) {
-			if (sleventmap.get(sl).cardinality() == pesCount) {
+			System.out.println(sl + " " + labelmap.get(sl) + " " + sleventmap.get(sl));
+			if ((sleventmap.get(sl).cardinality() == pesCount) || (sleventmap.get(sl).equals(labelmap.get(sl)))) {
 				mslevents.set(sl);
 			}
 		}

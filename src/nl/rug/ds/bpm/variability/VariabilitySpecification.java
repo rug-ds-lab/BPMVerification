@@ -205,7 +205,7 @@ public class VariabilitySpecification {
 		List<String> ctls = new ArrayList<String>();
 		Set<BitSet> dc = ces.getImmediateResponses();
 		String spec;
-		
+
 		int source, target;
 		for (BitSet r: dc) {
 			source = r.nextSetBit(0);
