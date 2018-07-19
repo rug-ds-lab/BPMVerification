@@ -595,9 +595,9 @@ public class CombinedEventStructure {
 //						}
 						break;
 					case 4: 
-						if (cfmap.get(key).cardinality() == pesCount) {
+//						if (cfmap.get(key).cardinality() == pesCount) {
 							conflict.add(key); 
-						}
+//						}
 						break;
 					case 5: 
 						if (ccmap.get(key).cardinality() == pesCount) {
@@ -769,7 +769,7 @@ public class CombinedEventStructure {
 		BitSet notpes = new BitSet();
 		BitSet relpes = new BitSet();
 		boolean exists;
-		
+
 		for (BitSet eir: allrel) {
 			relpes.clear();
 			if (dcmap.containsKey(eir)) relpes.or(dcmap.get(eir));
