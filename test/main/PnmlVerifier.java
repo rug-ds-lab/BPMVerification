@@ -34,12 +34,11 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public static void main(String[] args) {
 		if (args.length > 2) {
 			//Normal call
+			//java --add-modules java.xml.bind PnmlVerifier PNML_PATH SPECIFICATION_PATH NuSMV2_BINARY_PATH REDUCE(true/false)
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
 			pnmlVerifier.setLogLevel(LogEvent.INFO);
-			if (args.length > 4)
-				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
-
-
+			if (args.length > 3)
+				pnmlVerifier.setReduction(Boolean.parseBoolean(args[3]));
 
 			pnmlVerifier.verify(args[0], args[1]);
 
@@ -87,11 +86,14 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 
 	public void verify(String pnml, String specification) {
 		try {
+			//Load net(s) from pnml file
 			PTNetUnmarshaller pnu = new PTNetUnmarshaller(new File(pnml));
 			Set<Net> pnset = pnu.getNets();
+			//Create Petri net object from the first pnml net
 			PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
 			//DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
-			//Make a verifier which uses that step class
+
+			//Make a verifier
 			Verifier verifier = new Verifier(pn, factory);
 			verifier.addEventListener(this);
 			//Start verification
@@ -102,9 +104,8 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	}
 
 	public void verify(TransitionGraph pn, BPMSpecification specification) {
-		//Make step class for specific Petri net type
 		try {
-			//Make a verifier which uses that step class
+			//Make a verifier
 			Verifier verifier = new Verifier(pn, factory);
 			verifier.addEventListener(this);
 			//Start verification

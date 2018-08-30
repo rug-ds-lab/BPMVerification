@@ -29,15 +29,15 @@
 		
 		<specificationType id="AlwaysImmediatePrecedence">
 			<inputs>
-				<input type="or">x</input>
+				<input type="or">p</input>
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">!E[!x U q]</formula>
+				<formula language="CTLSPEC">!E[!p U q]</formula>
 			</formulas>
 			<message
-					hold = "q is always preceded by x"
-					fail = "q is not always preceded by x" />
+					hold = "q is always preceded by p"
+					fail = "q is not always preceded by p" />
 		</specificationType>
 		
 		<specificationType id="ExistImmediateResponse">
@@ -82,14 +82,14 @@
 		
 		<specificationType id="AlwaysParallel">
 			<inputs>
-				<input type="and">x</input>
+				<input type="and">p</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(x)</formula>
+				<formula language="CTLSPEC">AG(p)</formula>
 			</formulas>
 			<message
-					hold = "x are parallel"
-					fail = "x are not parallel" />
+					hold = "p are parallel"
+					fail = "p are not parallel" />
 		</specificationType>
 	</specificationTypes>
 </bpmSpecification>

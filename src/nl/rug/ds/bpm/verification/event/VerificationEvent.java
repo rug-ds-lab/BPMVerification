@@ -44,7 +44,7 @@ public class VerificationEvent {
 	
 	public String getMessage() {
 		Message message = formula.getSpecification().getSpecificationType().getMessage();
-		return (message == null ? getFormulaString() : mapInputs((eval ? message.getHold() : message.getFail())) + ".");
+		return (message == null ? getFormulaString() : (eval ? message.getHold() : message.getFail()) + ".");
 	}
 
 	public String toString() {

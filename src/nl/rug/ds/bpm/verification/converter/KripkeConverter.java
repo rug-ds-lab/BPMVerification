@@ -69,7 +69,7 @@ public class KripkeConverter {
         TreeSet<String> aps = new TreeSet<String>(new StringComparator());
         
         for (T transition: transitions)
-	        aps.add(mapAP((transition.isTau() ? "tau" : transition.getId())));
+	        aps.add(mapAP((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
         
         return aps;
     }

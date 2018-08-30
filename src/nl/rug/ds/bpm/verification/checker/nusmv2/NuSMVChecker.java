@@ -3,6 +3,7 @@ package nl.rug.ds.bpm.verification.checker.nusmv2;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
+import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
@@ -146,8 +147,13 @@ public class NuSMVChecker extends Checker {
 
     private String convertFORMULAS() {
         StringBuilder f = new StringBuilder();
-        for (CheckerFormula formula: formulas)
-            f.append(formula.getCheckerFormula() + "\n");
+        for (CheckerFormula formula: formulas) {
+	        try {
+		        f.append(formula.getCheckerFormula() + "\n");
+	        } catch (FormulaException e) {
+		        e.printStackTrace();
+	        }
+        }
         return f.toString();
     }
 

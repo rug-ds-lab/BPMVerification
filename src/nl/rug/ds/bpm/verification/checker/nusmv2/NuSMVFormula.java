@@ -2,6 +2,7 @@ package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
+import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
@@ -16,13 +17,17 @@ public class NuSMVFormula extends CheckerFormula {
     }
 
     @Override
-    public String getCheckerFormula() {
+    public String getCheckerFormula() throws FormulaException {
         return formula.getLanguage() + " " + super.getCheckerFormula();
     }
 
     @Override
     public boolean equals(String outputFormula) {
-        return trimFormula(super.getCheckerFormula()).equals(trimFormula(outputFormula));
+        try {
+            return trimFormula(super.getCheckerFormula()).equals(trimFormula(outputFormula));
+        } catch (FormulaException e) {
+            return false;
+        }
     }
 
     private String trimFormula(String formula) {

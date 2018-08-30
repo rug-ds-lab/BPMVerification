@@ -10,7 +10,7 @@
 				</specification>
 				<specification id="s2" type="AlwaysImmediatePrecedence">
 					<inputElements>
-						<inputElement target="x">t9</inputElement>
+						<inputElement target="p">t9</inputElement>
 						<inputElement target="q">t39</inputElement>
 					</inputElements>
 				</specification>

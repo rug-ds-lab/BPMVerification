@@ -1,10 +1,10 @@
 package nl.rug.ds.bpm.verification.checker;
 
-import nl.rug.ds.bpm.specification.jaxb.Message;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
+import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 
@@ -38,10 +38,14 @@ public abstract class CheckerFormula {
 	}
 	
 	public boolean equals(String outputFormula) {
-		return getCheckerFormula().equals(outputFormula);
+		try {
+			return getCheckerFormula().equals(outputFormula);
+		} catch (FormulaException e) {
+			return false;
+		}
 	}
 	
-	public String getCheckerFormula() {
+	public String getCheckerFormula() throws FormulaException {
 		String mappedFormula = formula.getFormula();
 		
 		for (Input input: specification.getSpecificationType().getInputs()) {
@@ -49,7 +53,7 @@ public abstract class CheckerFormula {
 			
 			String APBuilder = "";
 			if(elements.size() == 0) {
-				APBuilder = "true";
+				throw new FormulaException("Input " + input.getValue() + " has no matching elements in formula " + getOriginalFormula());
 			}
 			else if(elements.size() == 1) {
 				String mapID = idMap.getAP(elements.get(0).getElement());
@@ -70,8 +74,9 @@ public abstract class CheckerFormula {
 					APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + mapID + ")";
 				}
 			}
-			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
+			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder);
 		}
+
 		return mappedFormula;
 	}
 	
@@ -89,14 +94,13 @@ public abstract class CheckerFormula {
 			} else {
 				Iterator<InputElement> inputElementIterator = elements.iterator();
 				APBuilder = inputElementIterator.next().getElement();
-				;
 				while (inputElementIterator.hasNext()) {
 					APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + inputElementIterator.next().getElement() + ")";
 				}
 			}
-			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder.toString());
+			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder);
 		}
-		
+
 		return mappedFormula;
 	}
 }
