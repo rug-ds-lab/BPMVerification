@@ -38,7 +38,10 @@ public class KripkeConverter {
         	for (String condition: conditions)
         	    ((ConditionalM) marking).addCondition(condition);
 
-		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+        if (marking.getMarkedPlaces().isEmpty()) {
+			throw new ConverterException("Initial marking empty, no tokens on any place.");
+		}
+		else for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
             State found = new State(marking.toString(), mapTransitionIds(enabled));
 
             if (marking instanceof DataM) {

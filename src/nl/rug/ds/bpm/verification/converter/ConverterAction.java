@@ -39,7 +39,12 @@ public class ConverterAction extends RecursiveAction {
 		if(kripke.getStateCount() >= Kripke.getMaximumStates()) {
 			return;
 		}
-		for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+		if (marking.getMarkedPlaces().isEmpty()) {
+			previous.addNext(previous);
+			previous.addPrevious(previous);
+			Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
+		}
+		else for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
 			State found = new State(marking.toString(), mapTransitionIds(enabled));
 
 			if (marking instanceof DataM) {
