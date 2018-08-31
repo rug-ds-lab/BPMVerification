@@ -91,5 +91,17 @@
 					hold = "p are parallel"
 					fail = "p are not parallel" />
 		</specificationType>
+
+		<specificationType id="Fairness">
+			<inputs>
+				<input type="or">p</input>
+			</inputs>
+			<formulas>
+				<formula language="FAIRNESS">!p</formula>
+			</formulas>
+			<message
+					hold = "p is fair"
+					fail = "p is not fair" />
+		</specificationType>
 	</specificationTypes>
 </bpmSpecification>
