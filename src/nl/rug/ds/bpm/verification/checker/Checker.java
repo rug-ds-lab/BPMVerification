@@ -13,12 +13,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Checker {
+	protected static File out;
+	protected static int idc = 0;
+
+	protected int id;
 	protected StringBuilder inputChecker, outputChecker;
     protected EventHandler eventHandler;
     protected File executable;
     protected List<CheckerFormula> formulas;
     
     public Checker(EventHandler eventHandler, File executable) {
+    	id = idc++;
         this.eventHandler = eventHandler;
         this.executable = executable;
         
@@ -49,6 +54,15 @@ public abstract class Checker {
         createModel(kripke);
         checkModel();
     }
+
+    public static void setOutputPath(String path) {
+		try {
+			out = new File(path);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
     
 //    protected StringBuilder inputChecker;
 //    protected StringBuilder outputChecker;

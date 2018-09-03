@@ -45,12 +45,16 @@ public class NuSMVChecker extends Checker {
 		inputChecker.append(convertFORMULAS());
 		
 		try {
-			file = File.createTempFile("model", ".smv");
+			if(out == null)
+				file = File.createTempFile("model" + id, ".smv");
+			else
+				file = new File(out, "model" + id + ".smv");
+
 			PrintWriter writer = new PrintWriter(file, "UTF-8");
 			writer.println(inputChecker);
 			writer.close();
 		} catch (Throwable t) {
-			throw new CheckerException("Failed to write to temporary file");
+			throw new CheckerException("Failed to write to file" +  file.toString());
 		}
 	}
 	
@@ -67,7 +71,6 @@ public class NuSMVChecker extends Checker {
 				outputChecker.append(line + "\n");
 		
 			proc.waitFor();
-			file.delete();
 			proc.destroy();
 		}
 		catch (Exception e) {

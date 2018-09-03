@@ -12,6 +12,7 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
@@ -34,11 +35,13 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public static void main(String[] args) {
 		if (args.length > 2) {
 			//Normal call
-			//java --add-modules java.xml.bind PnmlVerifier PNML_PATH SPECIFICATION_PATH NuSMV2_BINARY_PATH REDUCE(true/false)
+			//java --add-modules java.xml.bind PnmlVerifier PNML_PATH SPECIFICATION_PATH NuSMV2_BINARY_PATH OUTPUT_PATH REDUCE(true/false)
 			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
 			pnmlVerifier.setLogLevel(LogEvent.INFO);
 			if (args.length > 3)
-				pnmlVerifier.setReduction(Boolean.parseBoolean(args[3]));
+				Checker.setOutputPath(args[3]);
+			if (args.length > 4)
+				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
 
 			pnmlVerifier.verify(args[0], args[1]);
 
