@@ -66,9 +66,6 @@ public class SetVerifier {
 //				System.out.println(kripke);
 		long t1 = System.currentTimeMillis();
 
-		for (String id: converter.getIdMap().getIDKeys())
-			specIdMap.addID(id, converter.getIdMap().getAP(id));
-
 		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
 			Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
@@ -82,7 +79,10 @@ public class SetVerifier {
 		
 		unknownAP.addAll(specIdMap.getAPKeys());
 		unknownAP.removeAll(kripke.getAtomicPropositions());
-		
+
+		for (String id: converter.getIdMap().getIDKeys())
+			specIdMap.addID(id, converter.getIdMap().getAP(id));
+
 		if (reduce) {
 			PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
 			Logger.log("\n" + propositionOptimizer.toString(true), LogEvent.VERBOSE);
