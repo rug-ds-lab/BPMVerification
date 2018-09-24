@@ -61,7 +61,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
 	}
-	
+
 	public PnmlVerifier() {
 		reduce = true;
 		setParser = new SetParser();

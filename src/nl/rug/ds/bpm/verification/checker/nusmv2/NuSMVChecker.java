@@ -208,12 +208,21 @@ public class NuSMVChecker extends Checker {
 				event.setCounterExample(new ArrayList<List<String>>());
 			}
 			else if (line.contains("-> State:") && event.getCounterExample() != null) {
-				event.getCounterExample().add(new ArrayList<String>());
+				List<String> state = new ArrayList<>();
+				int previous = event.getCounterExample().size() - 1;
+				if(previous >= 0)
+					state.addAll(event.getCounterExample().get(previous));
+				event.getCounterExample().add(state);
 			}
 			else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
 				String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
 				String id = event.getFormula().getIdMap().getID(ap);
 				event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
+			}
+			else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
+				String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
+				String id = event.getFormula().getIdMap().getID(ap);
+				event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
 			}
 		}
 
