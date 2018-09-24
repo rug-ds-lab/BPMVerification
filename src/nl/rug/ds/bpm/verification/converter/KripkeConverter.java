@@ -27,7 +27,7 @@ public class KripkeConverter {
         this.net = net;
         this.conditions = conditions;
         this.idMap = new IDMap("t", idMap.getIdToAp(), idMap.getApToId());
-        State.resetStateId();
+		State.resetStateId();
     }
 	
 	public Kripke convert() throws ConverterException {
@@ -67,8 +67,12 @@ public class KripkeConverter {
 		
         return kripke;
     }
-    
-    private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
+
+	public IDMap getIdMap() {
+		return idMap;
+	}
+
+	private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
         TreeSet<String> aps = new TreeSet<String>(new StringComparator());
         
         for (T transition: transitions)

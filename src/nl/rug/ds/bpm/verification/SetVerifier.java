@@ -65,7 +65,10 @@ public class SetVerifier {
 		kripke = converter.convert();
 //				System.out.println(kripke);
 		long t1 = System.currentTimeMillis();
-		
+
+		for (String id: converter.getIdMap().getIDKeys())
+			specIdMap.addID(id, converter.getIdMap().getAP(id));
+
 		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
 			Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
@@ -99,7 +102,7 @@ public class SetVerifier {
 				Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
 			}
 		}
-		
+
 		//Add ghost state with unknown AP for checker safety
 		State ghost = new State("ghost", unknownAP);
 		ghost.addNext(ghost);

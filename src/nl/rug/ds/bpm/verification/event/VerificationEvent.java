@@ -15,11 +15,18 @@ import java.util.stream.Collectors;
  */
 public class VerificationEvent {
 	private boolean eval;
+	private List<List<String>> counterExample = null;
 	private CheckerFormula formula;
 	
 	public VerificationEvent(CheckerFormula formula, boolean eval) {
 		this.formula = formula;
 		this.eval = eval;
+	}
+
+	public VerificationEvent(CheckerFormula formula, boolean eval, List<List<String>> counterExample) {
+		this.formula = formula;
+		this.eval = eval;
+		this.counterExample = counterExample;
 	}
 	
 	public String getId() {
@@ -29,11 +36,7 @@ public class VerificationEvent {
 	public String getType() {
 		return formula.getSpecification().getType();
 	}
-	
-	public String getFormulaString() {
-		return formula.getOriginalFormula();
-	}
-	
+
 	public boolean getVerificationResult() {
 		return eval;
 	}
@@ -41,16 +44,40 @@ public class VerificationEvent {
 	public CheckerFormula getFormula() {
 		return formula;
 	}
-	
+
+	public List<List<String>> getCounterExample() { return counterExample; }
+
+	public void setCounterExample(List<List<String>> counterExample) {
+		this.counterExample = counterExample;
+	}
+
 	public String getMessage() {
 		Message message = formula.getSpecification().getSpecificationType().getMessage();
-		return (message == null ? getFormulaString() : (eval ? message.getHold() : message.getFail()) + ".");
+		return (message == null ? formula.getOriginalFormula() : (eval ? message.getHold() : message.getFail()) + ".");
+	}
+
+	public String getCounterString() {
+		StringBuilder ce = new StringBuilder();
+
+		Iterator<List<String>> states = counterExample.iterator();
+		while (states.hasNext()) {
+			Iterator<String> aps = states.next().iterator();
+			while (aps.hasNext()) {
+				ce.append(aps.next());
+				if (aps.hasNext())
+					ce.append("+");
+			}
+			if (states.hasNext())
+				ce.append(" -> ");
+		}
+
+		return ce.toString();
 	}
 
 	public String toString() {
-		return "Specification " + formula.getSpecification().getId() + (eval ? " holds" : " failed") + ": " + getMessage();
+		return "Specification " + formula.getSpecification().getId() + (eval ? " holds" : " failed with the following counter example: " + getCounterString()) + " (" + getMessage() +")";
 	}
-	
+
 	private String mapInputs(String s) {
 		String r = s;
 		

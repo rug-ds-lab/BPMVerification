@@ -9,6 +9,7 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -63,10 +64,11 @@ public class NuSMVChecker extends Checker {
 		try {
 			Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
 			
-			List<String> results = getResults(proc);
+			List<VerificationEvent> results = parseResults(proc);
+			for (VerificationEvent event: results)
+				fireEvent(event);
+
 			List<String> errors = getErrors(proc);
-			
-			parseResults(results);
 			for (String line : errors)
 				outputChecker.append(line + "\n");
 		
@@ -169,25 +171,7 @@ public class NuSMVChecker extends Checker {
 
         return sub;
     }
-	
-	private List<String> getResults(Process proc) throws IOException {
-		List<String> results = new ArrayList<>();
-		
-		String line = null;
-		//inputStream
-		InputStream stdin = proc.getInputStream();
-		InputStreamReader in = new InputStreamReader(stdin);
-		BufferedReader bir = new BufferedReader(in);
-		while ((line = bir.readLine()) != null) {
-			if (line.contains("-- specification "))
-				results.add(line.replace("-- specification ", "").trim());
-		}
-		bir.close();
-		in.close();
-		
-		return results;
-	}
-	
+
 	private List<String> getErrors(Process proc) throws IOException {
 		List<String> results = new ArrayList<>();
 		
@@ -204,44 +188,64 @@ public class NuSMVChecker extends Checker {
 		return results;
 	}
 
-    private void parseResults(List<String> resultLines) {
-		Logger.log("Collecting results", LogEvent.INFO);
-		for (String result: resultLines) {
-			String formula = result;
-			boolean eval = false;
-			if (formula.contains("is false")) {
-				formula = formula.replace("is false", "");
-			} else {
-				formula = formula.replace("is true", "");
-				eval = true;
+	private List<VerificationEvent> parseResults(Process proc) throws IOException {
+    	List<VerificationEvent> results = new ArrayList<>();
+    	VerificationEvent event = null;
+
+		//inputStream
+		String line = null;
+		InputStream stdin = proc.getInputStream();
+		InputStreamReader in = new InputStreamReader(stdin);
+		BufferedReader bir = new BufferedReader(in);
+
+		while ((line = bir.readLine()) != null) {
+			if (line.contains("-- specification ")) {
+				event = new VerificationEvent(parseFormula(line), line.contains("is true"));
+				results.add(event);
+				formulas.remove(event.getFormula());
 			}
-		
-			CheckerFormula abstractFormula = null;
-			boolean found = false;
-			Iterator<CheckerFormula> abstractFormulaIterator = formulas.iterator();
-			while (abstractFormulaIterator.hasNext() && !found) {
-				CheckerFormula f = abstractFormulaIterator.next();
-				if(f.equals(formula)) {
-					found = true;
-					abstractFormula = f;
-				}
+			else if (line.contains("Trace Type: Counterexample")) {
+				event.setCounterExample(new ArrayList<List<String>>());
 			}
-		
-			if(!found) {
-				if(eval)
-					Logger.log("Failed to map " + formula + " to original specification while it evaluated true", LogEvent.WARNING);
-				else
-					Logger.log("Failed to map " + formula + " to original specification while it evaluated FALSE", LogEvent.ERROR);
+			else if (line.contains("-> State:") && event.getCounterExample() != null) {
+				event.getCounterExample().add(new ArrayList<String>());
 			}
-			else {
-				String mappedFormula = abstractFormula.getOriginalFormula();
-				eventHandler.fireEvent(abstractFormula, eval);
-				if(eval)
-					Logger.log("Specification " + abstractFormula.getSpecification().getId() + " evaluated true for " + mappedFormula, LogEvent.INFO);
-				else
-					Logger.log("Specification " + abstractFormula.getSpecification().getId() + " evaluated FALSE for " + mappedFormula, LogEvent.ERROR);
-				formulas.remove(abstractFormula);
+			else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
+				String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
+				String id = event.getFormula().getIdMap().getID(ap);
+				event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
 			}
 		}
-    }
+
+		bir.close();
+		in.close();
+
+		return results;
+	}
+
+	private CheckerFormula parseFormula(String line) {
+		String formula = line.substring(16, line.indexOf("is")).trim();
+		CheckerFormula abstractFormula = null;
+
+		boolean found = false;
+		Iterator<CheckerFormula> abstractFormulaIterator = formulas.iterator();
+		while (abstractFormulaIterator.hasNext() && !found) {
+			CheckerFormula f = abstractFormulaIterator.next();
+			if(f.equals(formula)) {
+				found = true;
+				abstractFormula = f;
+			}
+		}
+
+		return abstractFormula;
+	}
+
+	private void fireEvent(VerificationEvent event) {
+    	if (event.getFormula() == null)
+			Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
+    	else {
+			eventHandler.fireEvent(event);
+			Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getOriginalFormula(), LogEvent.INFO);
+		}
+	}
 }

@@ -103,4 +103,12 @@ public abstract class CheckerFormula {
 
 		return mappedFormula;
 	}
+
+	public IDMap getIdMap() {
+		return idMap;
+	}
+
+	public GroupMap getGroupMap() {
+		return groupMap;
+	}
 }

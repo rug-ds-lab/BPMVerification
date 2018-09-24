@@ -4,6 +4,7 @@ import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,11 +24,23 @@ public class EventHandler {
 	public void removeEventListener(VerificationEventListener verificationEventListener) {
 		verificationEventListenerSet.remove(verificationEventListener);
 	}
+
+	public void fireEvent(VerificationEvent event) {
+		notify(event);
+	}
 	
 	public void fireEvent(CheckerFormula formula, boolean eval) {
 		VerificationEvent verificationEvent = new VerificationEvent(formula, eval);
-		
+		notify(verificationEvent);
+	}
+
+	public void fireEvent(CheckerFormula formula, boolean eval, List<List<String>> counterExample) {
+		VerificationEvent verificationEvent = new VerificationEvent(formula, eval, counterExample);
+		notify(verificationEvent);
+	}
+
+	private void notify(VerificationEvent event) {
 		for (VerificationEventListener listener: verificationEventListenerSet)
-			listener.verificationEvent(verificationEvent);
+			listener.verificationEvent(event);
 	}
 }
