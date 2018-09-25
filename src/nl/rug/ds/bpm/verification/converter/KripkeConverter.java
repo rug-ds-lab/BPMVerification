@@ -56,7 +56,7 @@ public class KripkeConverter {
             
             for (T transition: enabled)
                 for (M step : net.fireTransition(transition, marking)) {
-					ConverterAction converterAction = new ConverterAction(kripke, net, idMap, step, found);
+					ConverterAction converterAction = new ConverterAction(kripke, net, idMap, step, transition, found);
                     converterAction.compute();
                 }
         }

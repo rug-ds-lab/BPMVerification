@@ -24,13 +24,15 @@ public class ConverterAction extends RecursiveAction {
 	private TransitionGraph net;
 	private IDMap idMap;
 	private M marking;
+	private T fired;
 	private State previous;
 	
-	public ConverterAction(Kripke kripke, TransitionGraph net, IDMap idMap, M marking, State previous) {
+	public ConverterAction(Kripke kripke, TransitionGraph net, IDMap idMap, M marking, T fired, State previous) {
 		this.kripke = kripke;
 		this.net = net;
 		this.idMap = idMap;
 		this.marking = marking;
+		this.fired = fired;
 		this.previous = previous;
 	}
 	
@@ -45,30 +47,37 @@ public class ConverterAction extends RecursiveAction {
 			Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
 		}
 		else for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
-			State found = new State(marking.toString(), mapTransitionIds(enabled));
+			TreeSet<String> ap = mapTransitionIds(enabled);
+			TreeSet<String> previousAp = new TreeSet<>(new StringComparator());
+			previousAp.addAll(previous.getAtomicPropositions());
+			previousAp.remove(mapAP((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
 
-			if (marking instanceof DataM) {
-				Set<String> data = new HashSet<>();
-				for (String b : ((DataM) marking).getBindings().keySet())
-					if (!b.equalsIgnoreCase("nashorn.global"))
-						data.add(b + "=" + ((DataM) marking).getBindings().get(b));
-				found.addAP(data);
-			}
+			if(ap.containsAll(previousAp)) {
+				State found = new State(marking.toString(), ap);
 
-			State existing = kripke.addNext(previous, found);
-			
-			if (found == existing) { //if found is a new state
-				if (enabled.isEmpty()) { //if state is a sink
-					found.addNext(found);
-					found.addPrevious(found);
+				if (marking instanceof DataM) {
+					Set<String> data = new HashSet<>();
+					for (String b : ((DataM) marking).getBindings().keySet())
+						if (!b.equalsIgnoreCase("nashorn.global"))
+							data.add(b + "=" + ((DataM) marking).getBindings().get(b));
+					found.addAP(data);
 				}
 
-				Set<ConverterAction> nextActions = new HashSet<>();
-				for (T transition: enabled)
-					for (M step : net.fireTransition(transition, marking))
-						nextActions.add(new ConverterAction(kripke, net, idMap, step, found));
+				State existing = kripke.addNext(previous, found);
 
-				invokeAll(nextActions);
+				if (found == existing) { //if found is a new state
+					if (enabled.isEmpty()) { //if state is a sink
+						found.addNext(found);
+						found.addPrevious(found);
+					}
+
+					Set<ConverterAction> nextActions = new HashSet<>();
+					for (T transition : enabled)
+						for (M step : net.fireTransition(transition, marking))
+							nextActions.add(new ConverterAction(kripke, net, idMap, step, transition, found));
+
+					invokeAll(nextActions);
+				}
 			}
 		}
 	}
