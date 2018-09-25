@@ -53,7 +53,7 @@ public class VerificationEvent {
 
 	public String getMessage() {
 		Message message = formula.getSpecification().getSpecificationType().getMessage();
-		return (message == null ? formula.getOriginalFormula() : (eval ? message.getHold() : message.getFail()) + ".");
+		return (message == null ? "unknown reasons" : (eval ? message.getHold() : message.getFail()) + ".");
 	}
 
 	public String getCounterString() {
@@ -61,21 +61,24 @@ public class VerificationEvent {
 
 		Iterator<List<String>> states = counterExample.iterator();
 		while (states.hasNext()) {
+			ce.append("{");
 			Iterator<String> aps = states.next().iterator();
 			while (aps.hasNext()) {
 				ce.append(aps.next());
 				if (aps.hasNext())
-					ce.append("+");
+					ce.append(",");
 			}
 			if (states.hasNext())
-				ce.append(" -> ");
+				ce.append("} -> ");
+			else
+				ce.append("}");
 		}
 
 		return ce.toString();
 	}
 
 	public String toString() {
-		return "Specification " + formula.getSpecification().getId() + (eval ? " holds" : " failed with the following counter example: " + getCounterString()) + " (" + getMessage() +")";
+		return "Specification " + formula.getOriginalFormula() + " with id " + formula.getSpecification().getId() + (eval ? " holds because " + getMessage() : " failed because " + getMessage() + " given the following counter example: " + getCounterString());
 	}
 
 	private String mapInputs(String s) {
