@@ -1,5 +1,7 @@
 ## Business process verification package
 The business process verification package provides generic verification tools for Petri net based business process models.
+The Petri net based business process models used are specified in the [BPMPetriNet](https://github.com/rug-ds-lab/BPMPetriNetv) 
+package, which supports the standard [pnml](http://www.pnml.org/) place/transition net file format. 
 
 The package provides the following functionality:
 * Generation of a declarative process specification describing the common behavior of one or more related [pnml](http://www.pnml.org/) process model variants.
@@ -8,31 +10,20 @@ The package provides the following functionality:
 ### Structure
 The package is structured as followed:
 
-* lib
-* resources
-* nl.rug.ds.bpm
-  * event
-    * listener
-  * eventStructure
-  * pnml
-    * reader
-    * specification
-    * verifier
-  * specification
-    * jaxb
-    * map
-    * marshaller
-  * variability
-    * utils
-  * verification
-    * checker
-    * comparator
-    * converter
-    * formula
-    * map
-    * model.kripke
-    * optimizer
-    * stepper
+* eventStructure
+* specification
+  * jaxb
+  * map
+  * marshaller
+  * parser
+* variability
+  * utils
+* verification
+  * checker
+  * converter
+  * map
+  * model.kripke
+  * optimizer
 
 ### Usage
 The package provides two core functionalities contained within the following classes:
@@ -40,7 +31,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.Verifier
 
-Self explanatory examples using these classes can be found in nl.rug.ds.bpm.pnml.
+Self explanatory examples using these classes can be found in test/main.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
@@ -108,23 +99,6 @@ an input element throughout the specification. Elements within a group form a di
 The optional specificationTypes block defines custom specificationTypes by a unique id, one or more formulas, and its
 inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTICE_ as defined by the
 [NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model checker.
-
-### Other Petri net formats
-
-The verification classes can be easily extended to allow the use of other Petri net formats. All that is required is a
-class that extends nl.rug.ds.bpm.verification.stepper.Stepper, which is then passed to nl.rug.ds.bpm.verification.Verifier.
-
-The Stepper should implement the following three methods:
-
-	public Marking initialMarking()
-	% Returns the initial marking of your net
-
-	public Set<Marking> fireTransition(Marking marking, String transition, Set<String> conditions)
-	% Given a current marking, the unique identifier of a transition, and optional limiting
-	% conditions, returns the marking after firing the transition starting from the given marking.
-
-	public Set<Set<String>> parallelActivatedTransitions(Marking marking)
-	% Given a marking, returns Y_par(M) as defined in [2].
 
 ### Related publications
 For more information on the inner workings of this package, please see the following publications, or when incorporating this package into your work, please cite the following publications.
