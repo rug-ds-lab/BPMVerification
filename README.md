@@ -105,8 +105,10 @@ For more information on the inner workings of this package, please see the follo
 
 [1] H. Groefsema **(2016)** _Business Process Variability: A Study into Process Management and Verification._ PhD thesis.
 
-[2] H. Groefsema, N. van Beest, and M. Aiello **(2016)** _A Formal Model for Compliance Verification of Service Compositions._ IEEE Transactions on Service Computing.
+[2] H. Groefsema, N.R.T.P. van Beest, and M. Aiello **(2016)** _A Formal Model for Compliance Verification of Service Compositions._ IEEE Transactions on Service Computing.
 
-[3] H. Groefsema and N. R. T. P. van Beest **(2015)** _Design-time Compliance of Service Compositions in Dynamic Service Environments._ In IEEE International Conference on Service Oriented Computing & Applications, 108–115.
+[3] H. Groefsema and N.R.T.P. van Beest **(2015)** _Design-time Compliance of Service Compositions in Dynamic Service Environments._ In IEEE International Conference on Service Oriented Computing & Applications, 108–115.
 
-[4] H. Groefsema, N. van Beest and A. Armas-Cervantes **(2017)** _Automated compliance verification of business processes in Apromore._ In Proceedings of the BPM Demo Track 2017.
+[4] H. Groefsema, N.R.T.P. van Beest and A. Armas-Cervantes **(2017)** _Automated compliance verification of business processes in Apromore._ In Proceedings of the BPM Demo Track 2017.
+
+[5] N.R.T.P. van Beest, H. Groefsema, L. García-Bañuelos and M. Aiello **(2019)** _Variability in business processes: Automatically obtaining a generic specification._ In Information Systems, volume 80, 2019.
