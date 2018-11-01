@@ -13,6 +13,7 @@ import nl.rug.ds.bpm.eventstructure.CombinedEventStructure;
 import nl.rug.ds.bpm.eventstructure.PESPrefixUnfolding;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
 import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
+import nl.rug.ds.bpm.util.exception.IllegalMarkingException;
 import nl.rug.ds.bpm.util.exception.MalformedNetException;
 
 public class VariabilitySpecification {
@@ -51,23 +52,29 @@ public class VariabilitySpecification {
 	
 	public VariabilitySpecification(PlaceTransitionNet[] nets, String silentPrefix) {
 		ces = new CombinedEventStructure();
-		
-		for (PlaceTransitionNet net: nets) {
-			ces.addPES(getUnfoldingPES(net, silentPrefix));
+	
+		try {		
+			for (PlaceTransitionNet net: nets) {
+				ces.addPES(getUnfoldingPES(net, silentPrefix));
+			}
+		} 
+		catch (IllegalMarkingException e) {
+			System.out.println(e.getMessage());
 		}
+	
 		ces.findMutualRelations();
 	}
 	
-	private PESPrefixUnfolding getUnfoldingPES(String folder, String filename, String silentPrefix) throws MalformedNetException {
+	private PESPrefixUnfolding getUnfoldingPES(String folder, String filename, String silentPrefix) throws MalformedNetException, IllegalMarkingException {
 		return getUnfoldingPES(folder + filename, silentPrefix);
 	}
 
-	private PESPrefixUnfolding getUnfoldingPES(String fullfilename, String silentPrefix) throws MalformedNetException {		
+	private PESPrefixUnfolding getUnfoldingPES(String fullfilename, String silentPrefix) throws MalformedNetException, IllegalMarkingException {		
 		PlaceTransitionNet net = new PlaceTransitionNet(new PTNetUnmarshaller(new File(fullfilename)).getNets().iterator().next());
 		return getUnfoldingPES(net, silentPrefix);
 	}
 	
-	private PESPrefixUnfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) {
+	private PESPrefixUnfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) throws IllegalMarkingException {
 		return new PESPrefixUnfolding(net, silentPrefix);
 	}
 	
