@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bpmSpecification>
+    <elementGroups>
+        <group id="group1">
+            <elements>
+                <element>t5</element>
+                <element>t3</element>
+            </elements>
+        </group>
+    </elementGroups>
+    <specificationSets>
+        <specificationSet>
+            <conditions/>
+            <specifications>
+                <specification id="parsed0" type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">group1</inputElement>
+                        <inputElement target="q">t11</inputElement>
+                    </inputElements>
+                </specification>
+            </specifications>
+        </specificationSet>
+    </specificationSets>
+    <specificationTypes/>
+</bpmSpecification>

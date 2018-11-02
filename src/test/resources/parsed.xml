@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bpmSpecification>
+    <elementGroups>
+        <group id="g1">
+            <elements>
+                <element>x</element>
+                <element>y</element>
+                <element>z</element>
+            </elements>
+        </group>
+    </elementGroups>
+    <specificationSets>
+        <specificationSet>
+            <conditions/>
+            <specifications>
+                <specification type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">x</inputElement>
+                        <inputElement target="q">g1</inputElement>
+                    </inputElements>
+                </specification>
+                <specification type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">x</inputElement>
+                        <inputElement target="q">h</inputElement>
+                    </inputElements>
+                </specification>
+            </specifications>
+        </specificationSet>
+    </specificationSets>
+    <specificationTypes/>
+</bpmSpecification>

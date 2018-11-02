@@ -60,7 +60,7 @@ public class SetParser {
 		try {
 //			InputStream targetStream = new FileInputStream("./resources/specificationTypes.xml");
 			
-			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(this.getClass().getResourceAsStream("/resources/specificationTypes.xml"));
+			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(this.getClass().getResourceAsStream("/specificationTypes.xml"));
 			loadSpecificationTypes(unmarshaller.getSpecification(), specificationTypeMap);
 		} catch (Exception e) {
 			throw new ConfigurationException("Failed to load configuration file");
