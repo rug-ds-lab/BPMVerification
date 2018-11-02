@@ -58,7 +58,7 @@ public class VariabilitySpecification {
 				ces.addPES(getUnfoldingPES(net, silentPrefix));
 			}
 		} 
-		catch (IllegalMarkingException e) {
+		catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 	
@@ -74,7 +74,7 @@ public class VariabilitySpecification {
 		return getUnfoldingPES(net, silentPrefix);
 	}
 	
-	private PESPrefixUnfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) throws IllegalMarkingException {
+	private PESPrefixUnfolding getUnfoldingPES(PlaceTransitionNet net, String silentPrefix) throws IllegalMarkingException, MalformedNetException {
 		return new PESPrefixUnfolding(net, silentPrefix);
 	}
 	
