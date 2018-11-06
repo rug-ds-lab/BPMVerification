@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.checker;
+package nl.rug.ds.bpm.verification.modelcheck;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Input;

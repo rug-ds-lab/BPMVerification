@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
@@ -12,12 +12,13 @@ import nl.rug.ds.bpm.util.exception.SpecificationException;
 import nl.rug.ds.bpm.util.exception.VerifierException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +26,12 @@ import java.util.List;
  * Created by p256867 on 4-4-2017.
  */
 public class Verifier {
-	private TransitionGraph net;
+	private VerifiableNet net;
 	private CheckerFactory checkerFactory;
 	private BPMSpecification bpmSpecification;
 	private SpecificationTypeMap specificationTypeMap;
 
-    public Verifier(TransitionGraph net, CheckerFactory checkerFactory) {
+    public Verifier(VerifiableNet net, CheckerFactory checkerFactory) {
     	this.checkerFactory = checkerFactory;
     	this.net = net;
     }
@@ -134,7 +135,7 @@ public class Verifier {
 	
 	private void loadSpecification(String specxml) throws SpecificationException {
 		try {
-			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(new ByteArrayInputStream(specxml.getBytes("UTF-8")));
+			SpecificationUnmarshaller unmarshaller = new SpecificationUnmarshaller(new ByteArrayInputStream(specxml.getBytes(StandardCharsets.UTF_8)));
 			bpmSpecification = unmarshaller.getSpecification();
 		} catch (Exception e) {
 			throw new SpecificationException("Invalid specification");

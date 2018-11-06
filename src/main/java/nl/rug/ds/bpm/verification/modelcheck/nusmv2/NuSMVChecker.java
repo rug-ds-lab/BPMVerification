@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.checker.nusmv2;
+package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
@@ -6,16 +6,17 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.checker.Checker;
-import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
+import nl.rug.ds.bpm.verification.modelcheck.Checker;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -51,7 +52,7 @@ public class NuSMVChecker extends Checker {
 			else
 				file = new File(out, "model" + id + ".smv");
 
-			PrintWriter writer = new PrintWriter(file, "UTF-8");
+			PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8);
 			writer.println(inputChecker);
 			writer.close();
 		} catch (Throwable t) {

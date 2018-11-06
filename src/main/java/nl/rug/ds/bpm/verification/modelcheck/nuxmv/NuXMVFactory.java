@@ -1,7 +1,7 @@
-package nl.rug.ds.bpm.verification.checker.nuxmv;
+package nl.rug.ds.bpm.verification.modelcheck.nuxmv;
 
-import nl.rug.ds.bpm.verification.checker.Checker;
-import nl.rug.ds.bpm.verification.checker.CheckerFactory;
+import nl.rug.ds.bpm.verification.modelcheck.Checker;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
 
 import java.io.File;
 

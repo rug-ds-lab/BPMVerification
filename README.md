@@ -5,7 +5,7 @@ package, which supports the standard [pnml](http://www.pnml.org/) place/transiti
 
 The package provides the following functionality:
 * Generation of a declarative process specification describing the common behavior of one or more related [pnml](http://www.pnml.org/) process model variants.
-* Verification of a pnml process model against a generated or custom specification using the [NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model checker.
+* Verification of a pnml process model against a generated or custom specification using the [NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model modelcheck.
 
 ### Structure
 The package is structured as followed:
@@ -17,13 +17,13 @@ The package is structured as followed:
   * marshaller
   * parser
 * variability
-  * utils
 * verification
-  * checker
-  * converter
+  * convert
+  * event
   * map
   * model.kripke
-  * optimizer
+  * modelcheck
+  * optimize
 
 ### Usage
 The package provides two core functionalities contained within the following classes:
@@ -31,7 +31,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.Verifier
 
-Self explanatory examples using these classes can be found in test/main.
+Self explanatory examples using these classes can be found in src/test/java/main/.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
@@ -88,8 +88,8 @@ Specifications are divided into specificationSets to ensure effective model redu
 separate model is generated, reduced, and verified. Reduction is accomplished by calculating a stutter equivalent model
 with respect to the used input elements for each set.
 
-Each specification is defined by an id, type, and a list of inputElements. Each id should be unique and is used for
-feedback purposes. The type refers to a specificationType which is either predefined in resources/specificationTypes.xml
+Each specification is defined by an id, type, and a list of inputElements. Each id should be unique as it is used for
+feedback purposes. The type refers to a specificationType which is either predefined in src/main/resources/specificationTypes.xml
 or defined custom. The list of inputElements target the inputs of the specificationType. In case of overloading a
 target, the inputElements form a dis/con-junction as defined by that target's type.
 
@@ -98,7 +98,7 @@ an input element throughout the specification. Elements within a group form a di
 
 The optional specificationTypes block defines custom specificationTypes by a unique id, one or more formulas, and its
 inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTICE_ as defined by the
-[NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model checker.
+[NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model modelcheck.
 
 ### Related publications
 For more information on the inner workings of this package, please see the following publications, or when incorporating this package into your work, please cite the following publications.

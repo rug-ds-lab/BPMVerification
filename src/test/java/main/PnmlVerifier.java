@@ -1,6 +1,6 @@
 package main;
 
-import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
 import nl.rug.ds.bpm.pnml.ptnet.jaxb.ptnet.Net;
 import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
@@ -12,11 +12,11 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
-import nl.rug.ds.bpm.verification.checker.Checker;
-import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.verification.modelcheck.Checker;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
+import nl.rug.ds.bpm.verification.modelcheck.nusmv2.NuSMVFactory;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -74,7 +74,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 	public PnmlVerifier(File nusmv2) {
 		this();
 		
-		//Create the wanted model checker factory
+		//Create the wanted model modelcheck factory
 		factory = new NuSMVFactory(nusmv2);
 	}
 
@@ -82,7 +82,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		this(new File(nusmv2));
 	}
 	
-	public PnmlVerifier(TransitionGraph pn, BPMSpecification specification, String nusmv2) {
+	public PnmlVerifier(VerifiableNet pn, BPMSpecification specification, String nusmv2) {
 		this(nusmv2);
 		verify(pn, specification);
 	}
@@ -106,7 +106,7 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		}
 	}
 
-	public void verify(TransitionGraph pn, BPMSpecification specification) {
+	public void verify(VerifiableNet pn, BPMSpecification specification) {
 		try {
 			//Make a verifier
 			Verifier verifier = new Verifier(pn, factory);

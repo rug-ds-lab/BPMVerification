@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.optimizer.propositionOptimizer;
+package nl.rug.ds.bpm.verification.optimize.proposition;
 
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;

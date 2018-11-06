@@ -1,14 +1,12 @@
-package nl.rug.ds.bpm.verification.converter;
+package nl.rug.ds.bpm.verification.convert;
 
-import nl.rug.ds.bpm.petrinet.interfaces.element.T;
-import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.ConditionalM;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.DataM;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.M;
+import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.ConditionalMarkingI;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
+import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.exception.ConverterException;
-import nl.rug.ds.bpm.util.log.LogEvent;
-import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
@@ -18,12 +16,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class KripkeConverter {
-	private TransitionGraph net;
+	private VerifiableNet net;
     private Kripke kripke;
     private Set<String> conditions;
     private IDMap idMap;
 	
-	public KripkeConverter(TransitionGraph net, IDMap idMap, Set<String> conditions) {
+	public KripkeConverter(VerifiableNet net, IDMap idMap, Set<String> conditions) {
         this.net = net;
         this.conditions = conditions;
         this.idMap = new IDMap("t", idMap.getIdToAp(), idMap.getApToId());
@@ -33,29 +31,29 @@ public class KripkeConverter {
 	public Kripke convert() throws ConverterException {
         kripke = new Kripke();
 
-        M marking = net.getInitialMarking();
-        if (marking instanceof ConditionalM)
+        MarkingI marking = net.getInitialMarking();
+        if (marking instanceof ConditionalMarkingI)
         	for (String condition: conditions)
-        	    ((ConditionalM) marking).addCondition(condition);
+        	    ((ConditionalMarkingI) marking).addCondition(condition);
 
         if (marking.getMarkedPlaces().isEmpty()) {
 			throw new ConverterException("Initial marking empty, no tokens on any place.");
 		}
-		else for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+		else for (Set<? extends TransitionI> enabled: net.getParallelEnabledTransitions(marking)) {
             State found = new State(marking.toString(), mapTransitionIds(enabled));
 
-            if (marking instanceof DataM) {
+            if (marking instanceof DataMarkingI) {
             	Set<String> data = new HashSet<>();
-	            for (String b : ((DataM) marking).getBindings().keySet())
+	            for (String b : ((DataMarkingI) marking).getBindings().keySet())
 		            if (!b.equalsIgnoreCase("nashorn.global"))
-			            data.add(b + "=" + ((DataM) marking).getBindings().get(b));
+			            data.add(b + "=" + ((DataMarkingI) marking).getBindings().get(b));
 	            found.addAP(data);
             }
 
             kripke.addInitial(found);
             
-            for (T transition: enabled)
-                for (M step : net.fireTransition(transition, marking)) {
+            for (TransitionI transition: enabled)
+                for (MarkingI step : net.fireTransition(transition, marking)) {
 					ConverterAction converterAction = new ConverterAction(kripke, net, idMap, step, transition, found);
                     converterAction.compute();
                 }
@@ -72,21 +70,13 @@ public class KripkeConverter {
 		return idMap;
 	}
 
-	private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
+	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
         TreeSet<String> aps = new TreeSet<String>(new StringComparator());
         
-        for (T transition: transitions)
-	        aps.add(mapAP((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
+        for (TransitionI transition: transitions)
+	        aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
         
         return aps;
     }
 
-    private String mapAP(String ap) {
-	    boolean exist = idMap.getIdToAp().containsKey(ap);
-	    idMap.addID(ap);
-	    if(!exist)
-		    Logger.log("Mapping " + ap + " to " + idMap.getAP(ap), LogEvent.VERBOSE);
-
-	    return idMap.getAP(ap);
-    }
 }

@@ -1,11 +1,11 @@
-package nl.rug.ds.bpm.verification.checker.nusmv2;
+package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.FormulaException;
-import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
 /**
  * Created by p256867 on 13-4-2017.

@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.optimizer.stutterOptimizer;
+package nl.rug.ds.bpm.verification.optimize.stutter;
 
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;

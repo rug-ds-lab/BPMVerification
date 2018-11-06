@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.checker;
+package nl.rug.ds.bpm.verification.modelcheck;
 
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;

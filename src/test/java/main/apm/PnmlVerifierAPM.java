@@ -9,13 +9,14 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.Verifier;
-import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
+import nl.rug.ds.bpm.verification.modelcheck.nusmv2.NuSMVFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 		
 		this.pn = pn;
 		
-		//Create the wanted model checker factory
+		//Create the wanted model modelcheck factory
 		factory = new NuSMVFactory(new File(nusmv2));
 		
 		conditions = new HashSet<String>();
@@ -126,7 +127,7 @@ public class PnmlVerifierAPM implements VerificationEventListener, VerificationL
 	public void addSpecificationFromXML(String specxml) {
 		SpecificationUnmarshaller unmarshaller;
 		try {
-			unmarshaller = new SpecificationUnmarshaller(new ByteArrayInputStream(specxml.getBytes("UTF-8")));
+			unmarshaller = new SpecificationUnmarshaller(new ByteArrayInputStream(specxml.getBytes(StandardCharsets.UTF_8)));
 			bpmSpecification = unmarshaller.getSpecification();
 		} catch (Exception e) {
 			Logger.log("Invalid specification xml", LogEvent.CRITICAL);

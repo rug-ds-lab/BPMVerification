@@ -1,6 +1,8 @@
 package nl.rug.ds.bpm.verification.map;
 
 import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,12 +34,14 @@ public class IDMap {
         this.apToId.putAll(apToId);
     }
 
-    public synchronized void addID(String id) {
+    public synchronized String addID(String id) {
         if(!idToAp.containsKey(id)) {
             String nid = ap + n++;
             idToAp.put(id, nid);
             apToId.put(nid, id);
+            Logger.log("Mapping " + id + " to " + nid, LogEvent.VERBOSE);
         }
+        return idToAp.get(id);
     }
 
     public synchronized void addID(String id, String ap) {

@@ -3,7 +3,7 @@ package nl.rug.ds.bpm.verification.event;
 import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Message;
-import nl.rug.ds.bpm.verification.checker.CheckerFormula;
+import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
 import java.util.Iterator;
 import java.util.List;

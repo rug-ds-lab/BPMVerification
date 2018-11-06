@@ -1,20 +1,20 @@
 package nl.rug.ds.bpm.verification;
 
-import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
+import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.checker.Checker;
-import nl.rug.ds.bpm.verification.converter.KripkeConverter;
+import nl.rug.ds.bpm.verification.convert.KripkeConverter;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
-import nl.rug.ds.bpm.verification.optimizer.propositionOptimizer.PropositionOptimizer;
-import nl.rug.ds.bpm.verification.optimizer.stutterOptimizer.StutterOptimizer;
+import nl.rug.ds.bpm.verification.modelcheck.Checker;
+import nl.rug.ds.bpm.verification.optimize.proposition.PropositionOptimizer;
+import nl.rug.ds.bpm.verification.optimize.stutter.StutterOptimizer;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.TreeSet;
  */
 public class SetVerifier {
 	private Kripke kripke;
-	private TransitionGraph net;
+	private VerifiableNet net;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
 	private BPMSpecification specification;
@@ -35,7 +35,7 @@ public class SetVerifier {
 	private List<Specification> specifications;
 	private List<Condition> conditions;
 	
-	public SetVerifier(TransitionGraph net, BPMSpecification specification, SpecificationSet specificationSet) {
+	public SetVerifier(VerifiableNet net, BPMSpecification specification, SpecificationSet specificationSet) {
 		this.net = net;
 		this.specification = specification;
 		this.specificationSet = specificationSet;
@@ -91,7 +91,7 @@ public class SetVerifier {
 			t0 = System.currentTimeMillis();
 			StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 			Logger.log("Partitioning states into stutter blocks", LogEvent.VERBOSE);
-			//stutterOptimizer.linearPreProcess();
+			//stutter.linearPreProcess();
 			stutterOptimizer.treeSearchPreProcess();
 			stutterOptimizer.optimize();
 			t1 = System.currentTimeMillis();
@@ -103,7 +103,7 @@ public class SetVerifier {
 			}
 		}
 
-		//Add ghost state with unknown AP for checker safety
+		//Add ghost state with unknown AP for modelcheck safety
 		State ghost = new State("ghost", unknownAP);
 		ghost.addNext(ghost);
 		ghost.addPrevious(ghost);
@@ -117,7 +117,7 @@ public class SetVerifier {
 			for (Formula formula: specification.getSpecificationType().getFormulas())
 				checker.addFormula(formula, specification, specIdMap, groupMap);
 		
-		Logger.log("Generating model checker input", LogEvent.VERBOSE);
+		Logger.log("Generating model modelcheck input", LogEvent.VERBOSE);
 		checker.createModel(kripke);
 		
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
@@ -126,7 +126,7 @@ public class SetVerifier {
 		Logger.log("Calling Model Checker", LogEvent.INFO);
 		checker.checkModel();
 		if(!checker.getOutputChecker().isEmpty())
-			throw new CheckerException("Model checker error\n" + checker.getOutputChecker());
+			throw new CheckerException("Model modelcheck error\n" + checker.getOutputChecker());
 	}
 	
 	private IDMap getIdMap() {

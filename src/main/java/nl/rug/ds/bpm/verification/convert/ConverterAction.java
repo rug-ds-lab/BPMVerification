@@ -1,9 +1,9 @@
-package nl.rug.ds.bpm.verification.converter;
+package nl.rug.ds.bpm.verification.convert;
 
-import nl.rug.ds.bpm.petrinet.interfaces.element.T;
-import nl.rug.ds.bpm.petrinet.interfaces.graph.TransitionGraph;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.DataM;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.M;
+import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
+import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
+import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
@@ -21,13 +21,13 @@ import java.util.concurrent.RecursiveAction;
  */
 public class ConverterAction extends RecursiveAction {
 	private Kripke kripke;
-	private TransitionGraph net;
+	private VerifiableNet net;
 	private IDMap idMap;
-	private M marking;
-	private T fired;
+	private MarkingI marking;
+	private TransitionI fired;
 	private State previous;
 	
-	public ConverterAction(Kripke kripke, TransitionGraph net, IDMap idMap, M marking, T fired, State previous) {
+	public ConverterAction(Kripke kripke, VerifiableNet net, IDMap idMap, MarkingI marking, TransitionI fired, State previous) {
 		this.kripke = kripke;
 		this.net = net;
 		this.idMap = idMap;
@@ -46,20 +46,20 @@ public class ConverterAction extends RecursiveAction {
 			previous.addPrevious(previous);
 			Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
 		}
-		else for (Set<? extends T> enabled: net.getParallelEnabledTransitions(marking)) {
+		else for (Set<? extends TransitionI> enabled: net.getParallelEnabledTransitions(marking)) {
 			TreeSet<String> ap = mapTransitionIds(enabled);
 			TreeSet<String> previousAp = new TreeSet<>(new StringComparator());
 			previousAp.addAll(previous.getAtomicPropositions());
-			previousAp.remove(mapAP((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
+			previousAp.remove(idMap.addID((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
 
 			if(ap.containsAll(previousAp)) {
 				State found = new State(marking.toString(), ap);
 
-				if (marking instanceof DataM) {
+				if (marking instanceof DataMarkingI) {
 					Set<String> data = new HashSet<>();
-					for (String b : ((DataM) marking).getBindings().keySet())
+					for (String b : ((DataMarkingI) marking).getBindings().keySet())
 						if (!b.equalsIgnoreCase("nashorn.global"))
-							data.add(b + "=" + ((DataM) marking).getBindings().get(b));
+							data.add(b + "=" + ((DataMarkingI) marking).getBindings().get(b));
 					found.addAP(data);
 				}
 
@@ -72,8 +72,8 @@ public class ConverterAction extends RecursiveAction {
 					}
 
 					Set<ConverterAction> nextActions = new HashSet<>();
-					for (T transition : enabled)
-						for (M step : net.fireTransition(transition, marking))
+					for (TransitionI transition : enabled)
+						for (MarkingI step : net.fireTransition(transition, marking))
 							nextActions.add(new ConverterAction(kripke, net, idMap, step, transition, found));
 
 					invokeAll(nextActions);
@@ -82,21 +82,12 @@ public class ConverterAction extends RecursiveAction {
 		}
 	}
 
-	private TreeSet<String> mapTransitionIds(Set<? extends T> transitions) {
+	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
 		TreeSet<String> aps = new TreeSet<String>(new StringComparator());
 
-		for (T transition: transitions)
-			aps.add(mapAP((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
+		for (TransitionI transition: transitions)
+			aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
 
 		return aps;
-	}
-
-	private String mapAP(String ap) {
-		boolean exist = idMap.getIdToAp().containsKey(ap);
-		idMap.addID(ap);
-		if(!exist)
-			Logger.log("Mapping " + ap + " to " + idMap.getAP(ap), LogEvent.VERBOSE);
-
-		return idMap.getAP(ap);
 	}
 }

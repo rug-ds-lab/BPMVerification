@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.checker;
+package nl.rug.ds.bpm.verification.modelcheck;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
@@ -68,13 +68,13 @@ public abstract class Checker {
 //    protected StringBuilder outputChecker;
 //    protected Kripke kripke;
 //    protected List<AbstractFormula> formulas;
-//    protected File file, checker;
+//    protected File file, modelcheck;
 //    protected EventHandler eventHandler;
 //    protected List<String> results;
 //
-//    public Checker(EventHandler eventHandler, File checker, Kripke kripke, List<AbstractFormula> formulas) {
+//    public Checker(EventHandler eventHandler, File modelcheck, Kripke kripke, List<AbstractFormula> formulas) {
 //        this.eventHandler = eventHandler;
-//        this.checker = checker;
+//        this.modelcheck = modelcheck;
 //        this.kripke = kripke;
 //        this.formulas = formulas;
 //        outputChecker = new StringBuilder();
