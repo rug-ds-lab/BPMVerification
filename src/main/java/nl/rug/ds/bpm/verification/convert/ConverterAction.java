@@ -50,7 +50,8 @@ public class ConverterAction extends RecursiveAction {
 			TreeSet<String> ap = mapTransitionIds(enabled);
 			TreeSet<String> previousAp = new TreeSet<>(new StringComparator());
 			previousAp.addAll(previous.getAtomicPropositions());
-			previousAp.remove(idMap.addID((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
+			//previousAp.remove(idMap.addID((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
+			previousAp.remove(idMap.addID((fired.getName().isEmpty() ? fired.getId() : fired.getName())));
 
 			if(ap.containsAll(previousAp)) {
 				State found = new State(marking.toString(), ap);
@@ -85,8 +86,10 @@ public class ConverterAction extends RecursiveAction {
 	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
 		TreeSet<String> aps = new TreeSet<String>(new StringComparator());
 
-		for (TransitionI transition: transitions)
-			aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
+		for (TransitionI transition: transitions) {
+			//aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
+			aps.add(idMap.addID((transition.getName().isEmpty() ? transition.getId() : transition.getName())));
+		}
 
 		return aps;
 	}
