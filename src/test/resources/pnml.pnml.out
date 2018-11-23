@@ -78,11 +78,6 @@
                 <text>1</text>
             </inscription>
         </arc>
-        <arc source="x0" target="y0" id="x0-y0">
-            <inscription>
-                <text>2</text>
-            </inscription>
-        </arc>
         <arc source="p6" target="t11" id="a19">
             <graphics/>
             <toolspecific tool="WoPeD" version="1.0">
@@ -138,7 +133,6 @@
                 <text>1</text>
             </inscription>
         </arc>
-        <arc source="y0" target="x1" id="y0-x1"/>
         <arc source="p4" target="t7" id="a8">
             <graphics/>
             <toolspecific tool="WoPeD" version="1.0">
@@ -447,6 +441,7 @@
                 <text>1</text>
             </inscription>
         </arc>
+        <arc source="y0" target="x1" id="y0-x1"/>
         <arc source="p5" target="t12" id="a21">
             <graphics/>
             <toolspecific tool="WoPeD" version="1.0">
@@ -612,6 +607,11 @@
                 <text>1</text>
             </inscription>
         </arc>
+        <arc source="x0" target="y0" id="x0-y0">
+            <inscription>
+                <text>2</text>
+            </inscription>
+        </arc>
         <arc source="p15" target="t14" id="a30">
             <graphics/>
             <toolspecific tool="WoPeD" version="1.0">
@@ -656,6 +656,11 @@
                 </graphics>
                 <text>p10</text>
             </name>
+        </place>
+        <place id="x1">
+            <initialMarking>
+                <text>1</text>
+            </initialMarking>
         </place>
         <place id="p7">
             <graphics>
@@ -912,11 +917,6 @@
                 <text>p16</text>
             </name>
         </place>
-        <place id="x1">
-            <initialMarking>
-                <text>1</text>
-            </initialMarking>
-        </place>
         <place id="p2">
             <graphics>
                 <position x="250" y="80"/>
@@ -982,6 +982,15 @@
                 <text>p25</text>
             </name>
         </place>
+        <toolspecific tool="nl.rug.ds.bpm.ptnet" version="1.0">
+            <process>
+                <groups/>
+                <roles/>
+                <variables>
+                    <variable name="i" type="int" value="0.0"/>
+                </variables>
+            </process>
+        </toolspecific>
         <toolspecific tool="WoPeD" version="1.0">
             <bounds>
                 <position x="2" y="25"/>
@@ -997,15 +1006,6 @@
             <simulations/>
             <partnerLinks/>
             <variables/>
-        </toolspecific>
-        <toolspecific tool="nl.rug.ds.bpm.ptnet" version="1.0">
-            <process>
-                <groups/>
-                <roles/>
-                <variables>
-                    <variable name="i" type="int" value="0.0"/>
-                </variables>
-            </process>
         </toolspecific>
         <transition id="t16">
             <graphics>
@@ -1364,17 +1364,6 @@
                 <orientation>1</orientation>
             </toolspecific>
         </transition>
-        <transition id="y0">
-            <name>
-                <text>ytest</text>
-            </name>
-            <toolspecific tool="nl.rug.ds.bpm.ptnet" version="1.0">
-                <task isTau="false">
-                    <guard>i&gt;=0</guard>
-                    <script type="JavaScript">i=i+1;</script>
-                </task>
-            </toolspecific>
-        </transition>
         <transition id="t3">
             <graphics>
                 <position x="190" y="80"/>
@@ -1424,6 +1413,17 @@
                 <time>0</time>
                 <timeUnit>1</timeUnit>
                 <orientation>1</orientation>
+            </toolspecific>
+        </transition>
+        <transition id="y0">
+            <name>
+                <text>ytest</text>
+            </name>
+            <toolspecific tool="nl.rug.ds.bpm.ptnet" version="1.0">
+                <task isTau="false">
+                    <guard>i&gt;=0</guard>
+                    <script type="JavaScript">i=i+1;</script>
+                </task>
             </toolspecific>
         </transition>
         <transition id="t20">
