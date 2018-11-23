@@ -6,7 +6,7 @@
 
     <groupId>nl.rug.ds.bpm</groupId>
     <artifactId>BPMVerification</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <build>
         <plugins>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>nl.rug.ds.bpm</groupId>
             <artifactId>BPMPetriNet</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
