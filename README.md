@@ -11,6 +11,7 @@ The package provides the following functionality:
 The package is structured as followed:
 
 * eventStructure
+* main
 * specification
   * jaxb
   * map
@@ -31,7 +32,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.Verifier
 
-Self explanatory examples using these classes can be found in src/test/java/main/.
+Self explanatory examples using these classes can be found in nl.rug.ds.bpm.main.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
