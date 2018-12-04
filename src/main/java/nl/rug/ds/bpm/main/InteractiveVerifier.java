@@ -1,4 +1,4 @@
-package main;
+package nl.rug.ds.bpm.main;
 
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
@@ -27,16 +27,14 @@ import java.util.Set;
 /**
  * Created by Heerko Groefsema on 07-Apr-17.
  */
-public class PnmlVerifier implements VerificationEventListener, VerificationLogListener {
+public class InteractiveVerifier implements VerificationEventListener, VerificationLogListener {
 	private SetParser setParser;
 	private CheckerFactory factory;
 	private boolean reduce;
 
 	public static void main(String[] args) {
 		if (args.length > 2) {
-			//Normal call
-			//java --add-modules java.xml.bind PnmlVerifier PNML_PATH SPECIFICATION_PATH NuSMV2_BINARY_PATH OUTPUT_PATH REDUCE(true/false)
-			PnmlVerifier pnmlVerifier = new PnmlVerifier(args[2]);
+			InteractiveVerifier pnmlVerifier = new InteractiveVerifier(args[2]);
 			pnmlVerifier.setLogLevel(LogEvent.INFO);
 			if (args.length > 3)
 				Checker.setOutputPath(args[3]);
@@ -44,25 +42,12 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 				pnmlVerifier.setReduction(Boolean.parseBoolean(args[4]));
 
 			pnmlVerifier.verify(args[0], args[1]);
-
-			//Custom Set Call
-			//pnmlVerifier.addSpecification("Group(group1, t5, t3)");
-			//pnmlVerifier.addSpecification("AlwaysResponse(group1, t11)");
-
-			//Save custom set (optional)
-			//try {
-			//	pnmlVerifier.saveSpecification(new File("./test/spec.xml"));
-			//} catch (SpecificationException e) {
-			//	e.printStackTrace();
-			//}
-
-			//pnmlVerifier.verify(args[0]);
 		} else {
 			System.out.println("Usage: PNMLVerifier PNML_file Specification_file NuSMV2_binary_path");
 		}
 	}
 
-	public PnmlVerifier() {
+	public InteractiveVerifier() {
 		reduce = true;
 		setParser = new SetParser();
 		
@@ -71,18 +56,18 @@ public class PnmlVerifier implements VerificationEventListener, VerificationLogL
 		Logger.addLogListener(this);
 	}
 	
-	public PnmlVerifier(File nusmv2) {
+	public InteractiveVerifier(File nusmv2) {
 		this();
 		
 		//Create the wanted model modelcheck factory
 		factory = new NuSMVFactory(nusmv2);
 	}
 
-	public PnmlVerifier(String nusmv2) {
+	public InteractiveVerifier(String nusmv2) {
 		this(new File(nusmv2));
 	}
 	
-	public PnmlVerifier(VerifiableNet pn, BPMSpecification specification, String nusmv2) {
+	public InteractiveVerifier(VerifiableNet pn, BPMSpecification specification, String nusmv2) {
 		this(nusmv2);
 		verify(pn, specification);
 	}

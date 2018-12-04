@@ -61,12 +61,24 @@ public class SetVerifier {
 		KripkeConverter converter = new KripkeConverter(net, specIdMap, conds);
 		
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
-		long t0 = System.currentTimeMillis();
+		long t0 = System.nanoTime();
 		kripke = converter.convert();
 //				System.out.println(kripke);
-		long t1 = System.currentTimeMillis();
+		long t1 = System.nanoTime();
 
-		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
+		double tdns = (t1 - t0);
+		double tdms = tdns / 1000000;
+		double tds = tdms / 1000;
+		String delta = "";
+
+		if(tds < 1 && tdms < 1)
+			delta = tdns + " ns";
+		else if (tds < 1)
+			delta = tdms + " ms";
+		else
+			delta = tds + " s";
+
+		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + delta, LogEvent.INFO);
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
 			Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
 		

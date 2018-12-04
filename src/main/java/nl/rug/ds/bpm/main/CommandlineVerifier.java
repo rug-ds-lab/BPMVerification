@@ -25,13 +25,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class commandlineVerifier implements VerificationEventListener, VerificationLogListener {
+public class CommandlineVerifier implements VerificationEventListener, VerificationLogListener {
 
 	public static void main(String[] args) {
-		commandlineVerifier pnmlVerifier = new commandlineVerifier(args);
+		CommandlineVerifier pnmlVerifier = new CommandlineVerifier(args);
 	}
 
-	public commandlineVerifier(String[] args) {
+	public CommandlineVerifier(String[] args) {
 		Logger.addLogListener(this);
 
 		if(args.length == 0)

@@ -254,6 +254,9 @@ Created with Workflow PetriNet Designer Version 3.2.0 (woped.org)-->
         <position x="70" y="130"/>
         <dimension x="40" y="40"/>
       </graphics>
+      <initialMarking>
+        <text>1</text>
+      </initialMarking>
     </place>
     <place id="p2">
       <name>

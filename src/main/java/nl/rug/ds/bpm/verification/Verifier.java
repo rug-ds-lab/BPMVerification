@@ -40,51 +40,63 @@ public class Verifier {
 		return Kripke.getMaximumStates();
 	}
 	
-	public void verify(File specification, boolean doReduction) throws VerifierException {
+	public void verify(File specification, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
 		
 		try {
 			loadSpecification(specification);
-			verify(doReduction);
+			new Thread(() -> {
+				try {
+					verify(doReduction);
+				} catch (VerifierException e) {
+					e.printStackTrace();
+				}
+			}).start();
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new VerifierException("Verification failure");
 		}
 	}
 	
-	public void verify(String specxml, boolean doReduction) throws VerifierException {
+	public void verify(String specxml, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
-		
+
 		try {
 			loadSpecification(specxml);
-			verify(doReduction);
-		} catch (Exception e) {
+			new Thread(() -> {
+				try {
+					verify(doReduction);
+				} catch (VerifierException e) {
+					e.printStackTrace();
+				}
+			}).start();
+		} catch (SpecificationException e) {
 			e.printStackTrace();
-			throw new VerifierException("Verification failure");
 		}
 	}
 	
-	public void verify(BPMSpecification bpmSpecification, boolean doReduction) throws VerifierException {
+	public void verify(BPMSpecification bpmSpecification, boolean doReduction) {
 		specificationTypeMap = new SpecificationTypeMap();
 		
 		this.bpmSpecification = bpmSpecification;
-		try {
-			verify(doReduction);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new VerifierException("Verification failure");
-		}
+
+		new Thread(() -> {
+			try {
+				verify(doReduction);
+			} catch (VerifierException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 	
-	public void verify(BPMSpecification bpmSpecification) throws VerifierException {
+	public void verify(BPMSpecification bpmSpecification) {
     	verify(bpmSpecification, true);
 	}
 	
-	public void verify(File specification) throws VerifierException {
+	public void verify(File specification) {
     	verify(specification, true);
 	}
 	
-	public void verify(String specxml) throws VerifierException {
+	public void verify(String specxml) {
     	verify(specxml, true);
     }
 	
