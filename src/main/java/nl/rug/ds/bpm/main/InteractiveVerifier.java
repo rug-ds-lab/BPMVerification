@@ -11,7 +11,7 @@ import nl.rug.ds.bpm.util.exception.SpecificationException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
-import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.NetVerifier;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
@@ -82,7 +82,7 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 			//DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
 
 			//Make a verifier
-			Verifier verifier = new Verifier(pn, factory);
+			NetVerifier verifier = new NetVerifier(pn, factory);
 			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(new File(specification), reduce);
@@ -94,7 +94,7 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 	public void verify(VerifiableNet pn, BPMSpecification specification) {
 		try {
 			//Make a verifier
-			Verifier verifier = new Verifier(pn, factory);
+			NetVerifier verifier = new NetVerifier(pn, factory);
 			verifier.addEventListener(this);
 			//Start verification
 			verifier.verify(specification, reduce);
@@ -138,11 +138,11 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 	//(equals models of 4 parallel branches with each 50 activities)
 	//Lower if on machine with limited memory
 	public void setMaximumStates(int amount) {
-		Verifier.setMaximumStates(amount);
+		NetVerifier.setMaximumStates(amount);
 	}
 
 	public int getMaximumStates() {
-		return Verifier.getMaximumStates();
+		return NetVerifier.getMaximumStates();
 	}
 	
 	public int getLogLevel() {

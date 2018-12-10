@@ -30,7 +30,7 @@ The package is structured as followed:
 The package provides two core functionalities contained within the following classes:
 
 * nl.rug.ds.bpm.variability.VariabilitySpecification
-* nl.rug.ds.bpm.verification.Verifier
+* nl.rug.ds.bpm.verification.NetVerifier
 
 Self explanatory examples using these classes can be found in nl.rug.ds.bpm.main.
 

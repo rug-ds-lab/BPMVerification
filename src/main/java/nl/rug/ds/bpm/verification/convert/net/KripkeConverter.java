@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.convert;
+package nl.rug.ds.bpm.verification.convert.net;
 
 import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.ConditionalMarkingI;

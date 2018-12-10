@@ -9,7 +9,7 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.variability.SpecificationToXML;
 import nl.rug.ds.bpm.variability.VariabilitySpecification;
-import nl.rug.ds.bpm.verification.Verifier;
+import nl.rug.ds.bpm.verification.NetVerifier;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
@@ -74,7 +74,7 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
 
 				//Make a verifier
-				Verifier verifier = new Verifier(pn, factory);
+				NetVerifier verifier = new NetVerifier(pn, factory);
 				verifier.addEventListener(this);
 
 				if (args.length > 3)
@@ -112,7 +112,7 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
 
 				//Make a verifier
-				Verifier verifier = new Verifier(pn, factory);
+				NetVerifier verifier = new NetVerifier(pn, factory);
 				verifier.addEventListener(this);
 
 				if (args.length > 3)

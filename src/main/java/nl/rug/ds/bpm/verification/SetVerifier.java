@@ -7,7 +7,7 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.convert.KripkeConverter;
+import nl.rug.ds.bpm.verification.convert.net.KripkeConverter;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
