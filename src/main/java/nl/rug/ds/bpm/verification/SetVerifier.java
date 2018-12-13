@@ -16,6 +16,7 @@ import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.optimize.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimize.stutter.StutterOptimizer;
 
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,14 +70,15 @@ public class SetVerifier {
 		double tdns = (t1 - t0);
 		double tdms = tdns / 1000000;
 		double tds = tdms / 1000;
+		DecimalFormat df = new DecimalFormat("#.###");
 		String delta = "";
 
 		if(tds < 1 && tdms < 1)
-			delta = tdns + " ns";
+			delta = df.format(tdns) + " ns";
 		else if (tds < 1)
-			delta = tdms + " ms";
+			delta = df.format(tdms) + " ms";
 		else
-			delta = tds + " s";
+			delta = df.format(tds) + " s";
 
 		Logger.log("Calculated Kripke structure with " + kripke.stats() + " in " + delta, LogEvent.INFO);
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
@@ -100,15 +102,26 @@ public class SetVerifier {
 			Logger.log("\n" + propositionOptimizer.toString(true), LogEvent.VERBOSE);
 			
 			Logger.log("Reducing state space", LogEvent.VERBOSE);
-			t0 = System.currentTimeMillis();
+			t0 = System.nanoTime();
 			StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 			Logger.log("Partitioning states into stutter blocks", LogEvent.VERBOSE);
 			//stutter.linearPreProcess();
 			stutterOptimizer.treeSearchPreProcess();
 			stutterOptimizer.optimize();
-			t1 = System.currentTimeMillis();
-			
-			Logger.log("Reduced Kripke structure to " + kripke.stats() + " in " + (t1 - t0) + " ms", LogEvent.INFO);
+			t1 = System.nanoTime();
+
+			tdns = (t1 - t0);
+			tdms = tdns / 1000000;
+			tds = tdms / 1000;
+
+			if(tds < 1 && tdms < 1)
+				delta = df.format(tdns) + " ns";
+			else if (tds < 1)
+				delta = df.format(tdms) + " ms";
+			else
+				delta = df.format(tds) + " s";
+
+			Logger.log("Reduced Kripke structure to " + kripke.stats() + " in " + delta, LogEvent.INFO);
 			if (Logger.getLogLevel() <= LogEvent.DEBUG) {
 				Logger.log("\n" + stutterOptimizer.toString(), LogEvent.DEBUG);
 				Logger.log("\n" + kripke.toString(), LogEvent.DEBUG);
@@ -129,7 +142,7 @@ public class SetVerifier {
 			for (Formula formula: specification.getSpecificationType().getFormulas())
 				checker.addFormula(formula, specification, specIdMap, groupMap);
 		
-		Logger.log("Generating model modelcheck input", LogEvent.VERBOSE);
+		Logger.log("Generating model check input", LogEvent.VERBOSE);
 		checker.createModel(kripke);
 		
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
