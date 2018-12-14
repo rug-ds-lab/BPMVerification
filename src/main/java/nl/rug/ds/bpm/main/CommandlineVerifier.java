@@ -83,6 +83,8 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 					reduce = Boolean.parseBoolean(args[4]);
 				if (args.length > 5)
 					Logger.setLogLevel(Integer.parseInt(args[5]));
+				else
+					Logger.setLogLevel(LogEvent.INFO);
 
 				//Start verification
 				verifier.verify(spec, reduce);
@@ -121,6 +123,8 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 					reduce = Boolean.parseBoolean(args[4]);
 				if (args.length > 5)
 					Logger.setLogLevel(Integer.parseInt(args[5]));
+				else
+					Logger.setLogLevel(LogEvent.INFO);
 
 				//Start verification
 				verifier.verify(spec, reduce);
@@ -159,10 +163,10 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 
 	public void printUsage() {
 		System.out.println("Usage:");
+		System.out.println("  BPMVerification -help");
+		System.out.println("  BPMVerification -spec <output_file> <pnml_file>...");
 		System.out.println("  BPMVerification -ptnet <pnml_file> <specification_file> <NuSMV_binary> [<output_path> [reduce{true|false} [log_level{0|1|2|3|4|5}]]]");
 		System.out.println("  BPMVerification -ddnet <pnml_file> <specification_file> <NuSMV_binary> [<output_path> [reduce{true|false} [log_level{0|1|2|3|4|5}]]]");
-		System.out.println("  BPMVerification -spec <output_file> <pnml_file>...");
-		System.out.println("  BPMVerification -help");
 	}
 
 	//Listener implementations
