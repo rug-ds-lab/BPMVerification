@@ -17,10 +17,8 @@ import nl.rug.ds.bpm.verification.optimize.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.optimize.stutter.StutterOptimizer;
 
 import java.text.DecimalFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.text.NumberFormat;
+import java.util.*;
 
 
 /**
@@ -67,11 +65,14 @@ public class SetVerifier {
 //				System.out.println(kripke);
 		long t1 = System.nanoTime();
 
+		String delta = "";
 		double tdns = (t1 - t0);
 		double tdms = tdns / 1000000;
 		double tds = tdms / 1000;
-		DecimalFormat df = new DecimalFormat("#.###");
-		String delta = "";
+
+		NumberFormat nf = NumberFormat.getNumberInstance(Locale.UK);
+		DecimalFormat df = (DecimalFormat) nf;
+		df.applyPattern("#.###");
 
 		if(tds < 1 && tdms < 1)
 			delta = df.format(tdns) + " ns";

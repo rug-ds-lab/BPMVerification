@@ -19,7 +19,7 @@ public class State implements Comparable<State> {
     private Block block;
 
     public State(String marking, TreeSet<String> atomicPropositions) {
-        this.id = "S" + stateID++;
+        setId();
         this.marking = marking;
         this.atomicPropositions = atomicPropositions;
         nextStates = new HashSet<>();
@@ -38,6 +38,10 @@ public class State implements Comparable<State> {
         
     public static void resetStateId(){
         State.stateID = 0;
+    }
+
+    private synchronized void setId() {
+        this.id = "S" + stateID++;
     }
 
     public String getID() {
