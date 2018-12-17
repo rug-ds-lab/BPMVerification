@@ -6,8 +6,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class State implements Comparable<State> {
+    private static ReentrantLock lock = new ReentrantLock();
     private static int stateID = 0;
     private String id;
     private String marking;
@@ -36,12 +38,22 @@ public class State implements Comparable<State> {
         APHash = AP;
     }
         
-    public static void resetStateId(){
-        State.stateID = 0;
+    public static void resetStateId() {
+        lock.lock();
+        try {
+            State.stateID = 0;
+        } finally {
+            lock.unlock();
+        }
     }
 
-    private synchronized void setId() {
-        this.id = "S" + stateID++;
+    private void setId() {
+        lock.lock();
+        try {
+            this.id = "S" + stateID++;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String getID() {
