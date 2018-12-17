@@ -11,6 +11,7 @@ import nl.rug.ds.bpm.util.exception.SpecificationException;
 import nl.rug.ds.bpm.util.exception.VerifierException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
@@ -23,9 +24,14 @@ import java.nio.charset.StandardCharsets;
  * Created by p256867 on 4-4-2017.
  */
 public abstract class Verifier {
+	protected EventHandler eventHandler;
 	protected CheckerFactory checkerFactory;
 	protected BPMSpecification bpmSpecification;
 	protected SpecificationTypeMap specificationTypeMap;
+
+	public Verifier() {
+		eventHandler = new EventHandler();
+	}
 
 	protected abstract void verify(boolean reduce) throws VerifierException;
 	
@@ -90,11 +96,11 @@ public abstract class Verifier {
     }
 	
 	public void addEventListener(VerificationEventListener verificationEventListener) {
-		checkerFactory.addEventListener(verificationEventListener);
+		eventHandler.addEventListener(verificationEventListener);
 	}
 
 	public void removeEventListener(VerificationEventListener verificationEventListener) {
-		checkerFactory.removeEventListener(verificationEventListener);
+		eventHandler.removeEventListener(verificationEventListener);
 	}
 
 	protected void loadConfiguration() throws ConfigurationException {

@@ -16,6 +16,6 @@ public class NuSMVFactory extends CheckerFactory {
 	
 	@Override
 	public Checker getChecker() {
-		return new NuSMVChecker(eventHandler, executable);
+		return new NuSMVChecker(executable);
 	}
 }

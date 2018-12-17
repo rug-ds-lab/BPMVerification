@@ -4,6 +4,7 @@ import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -22,9 +23,8 @@ public abstract class Checker {
     protected File executable;
     protected List<CheckerFormula> formulas;
     
-    public Checker(EventHandler eventHandler, File executable) {
+    public Checker(File executable) {
     	id = idc++;
-        this.eventHandler = eventHandler;
         this.executable = executable;
         
         formulas = new ArrayList<>();
@@ -48,7 +48,7 @@ public abstract class Checker {
 	
 	public abstract void createModel(Kripke kripke) throws CheckerException;
 	
-	public abstract void checkModel() throws CheckerException;
+	public abstract List<VerificationEvent> checkModel() throws CheckerException;
 	
 	public void checkModel(Kripke kripke) throws CheckerException {
         createModel(kripke);

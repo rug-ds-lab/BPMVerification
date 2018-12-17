@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  */
 public class VerificationEvent {
 	private boolean eval;
+	private String modelId = "";
 	private List<List<String>> counterExample = null;
 	private CheckerFormula formula;
 	
@@ -24,8 +25,7 @@ public class VerificationEvent {
 	}
 
 	public VerificationEvent(CheckerFormula formula, boolean eval, List<List<String>> counterExample) {
-		this.formula = formula;
-		this.eval = eval;
+		this(formula, eval);
 		this.counterExample = counterExample;
 	}
 	
@@ -78,7 +78,7 @@ public class VerificationEvent {
 	}
 
 	public String toString() {
-		return "Specification " + formula.getOriginalFormula() + " with id " + formula.getSpecification().getId() + (eval ? " holds because " + getMessage() : " failed because " + getMessage() + " given the following counter example: " + getCounterString());
+		return (modelId.isEmpty() ? "Specification " : "For model " + modelId + " specification ") + formula.getOriginalFormula() + " with id " + formula.getSpecification().getId() + (eval ? " holds because " + getMessage() : " failed because " + getMessage() + " given the following counter example: " + getCounterString());
 	}
 
 	private String mapInputs(String s) {
@@ -101,5 +101,12 @@ public class VerificationEvent {
 		}
 		return r;
 	}
-	
+
+	public String getModelId() {
+		return modelId;
+	}
+
+	public void setModelId(String modelId) {
+		this.modelId = modelId;
+	}
 }

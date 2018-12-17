@@ -18,6 +18,7 @@ public class NetVerifier extends Verifier {
 	private VerifiableNet net;
 
     public NetVerifier(VerifiableNet net, CheckerFactory checkerFactory) {
+    	super();
     	this.checkerFactory = checkerFactory;
     	this.net = net;
     }
@@ -54,7 +55,7 @@ public class NetVerifier extends Verifier {
 		loadSpecificationTypes(specification, specificationTypeMap);
 		
 		for(SpecificationSet specificationSet: specification.getSpecificationSets()) {
-			SetVerifier setVerifier = new SetVerifier(net, specification, specificationSet);
+			SetVerifier setVerifier = new SetVerifier(net, specification, specificationSet, eventHandler);
 			verifiers.add(setVerifier);
 		}
 

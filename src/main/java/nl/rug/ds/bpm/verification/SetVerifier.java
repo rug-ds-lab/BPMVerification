@@ -8,6 +8,8 @@ import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.convert.net.KripkeConverter;
+import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -27,6 +29,7 @@ import java.util.*;
 public class SetVerifier {
 	private Kripke kripke;
 	private VerifiableNet net;
+	private EventHandler eventHandler;
 	private IDMap specIdMap;
 	private GroupMap groupMap;
 	private BPMSpecification specification;
@@ -34,10 +37,11 @@ public class SetVerifier {
 	private List<Specification> specifications;
 	private List<Condition> conditions;
 	
-	public SetVerifier(VerifiableNet net, BPMSpecification specification, SpecificationSet specificationSet) {
+	public SetVerifier(VerifiableNet net, BPMSpecification specification, SpecificationSet specificationSet, EventHandler eventHandler) {
 		this.net = net;
 		this.specification = specification;
 		this.specificationSet = specificationSet;
+		this.eventHandler = eventHandler;
 		
 		specifications = specificationSet.getSpecifications();
 		conditions = specificationSet.getConditions();
@@ -150,7 +154,17 @@ public class SetVerifier {
 			Logger.log("\n" + checker.getInputChecker(), LogEvent.DEBUG);
 		
 		Logger.log("Calling Model Checker", LogEvent.INFO);
-		checker.checkModel();
+		List<VerificationEvent> events = checker.checkModel();
+
+		for (VerificationEvent event: events) {
+			if (event.getFormula() == null)
+				Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
+			else {
+				eventHandler.fireEvent(event);
+				Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getOriginalFormula(), LogEvent.INFO);
+			}
+		}
+
 		if(!checker.getOutputChecker().isEmpty())
 			throw new CheckerException("Model modelcheck error\n" + checker.getOutputChecker());
 	}

@@ -16,6 +16,6 @@ public class NuXMVFactory extends CheckerFactory {
 	
 	@Override
 	public Checker getChecker() {
-		return new NuXMVChecker(eventHandler, executable);
+		return new NuXMVChecker(executable);
 	}
 }

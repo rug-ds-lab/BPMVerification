@@ -6,7 +6,6 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
@@ -27,8 +26,8 @@ import java.util.List;
 public class NuSMVChecker extends Checker {
 	private File file;
 	
-    public NuSMVChecker(EventHandler eventHandler, File checker) {
-        super(eventHandler, checker);
+    public NuSMVChecker(File checker) {
+        super(checker);
     }
 	
 	@Override
@@ -61,13 +60,12 @@ public class NuSMVChecker extends Checker {
 	}
 	
 	@Override
-	public void checkModel() throws CheckerException {
+	public List<VerificationEvent> checkModel() throws CheckerException {
+		List<VerificationEvent> results;
 		try {
 			Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
 			
-			List<VerificationEvent> results = parseResults(proc);
-			for (VerificationEvent event: results)
-				fireEvent(event);
+			results = parseResults(proc);
 
 			List<String> errors = getErrors(proc);
 			for (String line : errors)
@@ -79,6 +77,8 @@ public class NuSMVChecker extends Checker {
 		catch (Exception e) {
 			throw new CheckerException("Failed to call NuSMV2");
 		}
+
+		return results;
 	}
 
     private String convertVAR(Kripke kripke) {
@@ -248,14 +248,5 @@ public class NuSMVChecker extends Checker {
 		}
 
 		return abstractFormula;
-	}
-
-	private void fireEvent(VerificationEvent event) {
-    	if (event.getFormula() == null)
-			Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
-    	else {
-			eventHandler.fireEvent(event);
-			Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getOriginalFormula(), LogEvent.INFO);
-		}
 	}
 }
