@@ -7,10 +7,10 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.convert.net.KripkeConverter;
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
@@ -31,7 +31,7 @@ public class SetVerifier {
 	private VerifiableNet net;
 	private EventHandler eventHandler;
 	private IDMap specIdMap;
-	private GroupMap groupMap;
+	private TreeSetMap<String, String> groupMap;
 	private BPMSpecification specification;
 	private SpecificationSet specificationSet;
 	private List<Specification> specifications;
@@ -191,15 +191,14 @@ public class SetVerifier {
 		return idMap;
 	}
 	
-	public GroupMap getGroupMap(IDMap idMap) {
-		GroupMap groupMap = new GroupMap();
+	public TreeSetMap<String, String> getGroupMap(IDMap idMap) {
+		TreeSetMap<String, String> groupMap = new TreeSetMap<>();
 		
 		for (Group group: specification.getGroups()) {
 			idMap.addID(group.getId());
-			groupMap.addGroup(idMap.getAP(group.getId()));
 			Logger.log("New group " + group.getId() + " as " + idMap.getAP(group.getId()), LogEvent.VERBOSE);
 			for (Element element: group.getElements()) {
-				groupMap.addToGroup(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
+				groupMap.add(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
 				Logger.log("\t " + element.getId(), LogEvent.VERBOSE);
 			}
 		}

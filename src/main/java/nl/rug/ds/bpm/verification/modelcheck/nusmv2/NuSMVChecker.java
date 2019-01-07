@@ -6,8 +6,8 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
@@ -31,7 +31,7 @@ public class NuSMVChecker extends Checker {
     }
 	
 	@Override
-	public void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
+	public void addFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
     	NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
 		formulas.add(nuSMVFormula);
 		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);

@@ -3,7 +3,7 @@ package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.FormulaException;
-import nl.rug.ds.bpm.verification.map.GroupMap;
+import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
@@ -12,7 +12,7 @@ import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
  */
 public class NuSMVFormula extends CheckerFormula {
 
-    public NuSMVFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
+    public NuSMVFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
         super(formula, specification, idMap, groupMap);
     }
 

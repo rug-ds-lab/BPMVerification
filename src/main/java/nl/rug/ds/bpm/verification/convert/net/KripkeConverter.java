@@ -24,7 +24,7 @@ public class KripkeConverter {
 	public KripkeConverter(VerifiableNet net, IDMap idMap, Set<String> conditions) {
         this.net = net;
         this.conditions = conditions;
-        this.idMap = new IDMap("t", idMap.getIdToAp(), idMap.getApToId());
+        this.idMap = new IDMap("t", idMap.getMap());
 		State.resetStateId();
     }
 	

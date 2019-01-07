@@ -5,7 +5,7 @@ import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.FormulaException;
-import nl.rug.ds.bpm.verification.map.GroupMap;
+import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 
 import java.util.Iterator;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
  */
 public abstract class CheckerFormula {
 	protected IDMap idMap;
-	protected GroupMap groupMap;
+	protected TreeSetMap<String, String> groupMap;
 	protected Formula formula;
 	protected Specification specification;
 	
-	public CheckerFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap) {
+	public CheckerFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
 		this.formula = formula;
 		this.specification = specification;
 		this.idMap = idMap;
@@ -108,7 +108,7 @@ public abstract class CheckerFormula {
 		return idMap;
 	}
 
-	public GroupMap getGroupMap() {
+	public TreeSetMap<String, String> getGroupMap() {
 		return groupMap;
 	}
 }

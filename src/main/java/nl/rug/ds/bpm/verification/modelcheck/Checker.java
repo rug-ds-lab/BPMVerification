@@ -3,9 +3,9 @@ package nl.rug.ds.bpm.verification.modelcheck;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
+import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.GroupMap;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 
@@ -44,7 +44,7 @@ public abstract class Checker {
         return formulas;
     }
     
-    public abstract void addFormula(Formula formula, Specification specification, IDMap idMap, GroupMap groupMap);
+    public abstract void addFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap);
 	
 	public abstract void createModel(Kripke kripke) throws CheckerException;
 	
