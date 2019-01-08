@@ -5,7 +5,7 @@ import nl.rug.ds.bpm.petrinet.interfaces.marking.ConditionalMarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
-import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
@@ -71,7 +71,7 @@ public class KripkeConverter {
 	}
 
 	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
-        TreeSet<String> aps = new TreeSet<String>(new StringComparator());
+        TreeSet<String> aps = new TreeSet<String>(new ComparableComparator());
 
 		for (TransitionI transition: transitions) {
 			aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));

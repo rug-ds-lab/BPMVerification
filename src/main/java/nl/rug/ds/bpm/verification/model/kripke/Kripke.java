@@ -1,7 +1,6 @@
 package nl.rug.ds.bpm.verification.model.kripke;
 
-import nl.rug.ds.bpm.util.comparator.StateComparator;
-import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -15,9 +14,9 @@ public class Kripke {
     private TreeSet<State> initial;
 
     public Kripke() {
-        atomicPropositions = new TreeSet<String>(new StringComparator());
-        states = new TreeSet<State>(new StateComparator());
-        initial = new TreeSet<State>(new StateComparator());
+        atomicPropositions = new TreeSet<String>(new ComparableComparator());
+        states = new TreeSet<State>(new ComparableComparator());
+        initial = new TreeSet<State>(new ComparableComparator());
     }
 
     public synchronized boolean addInitial(State s) {

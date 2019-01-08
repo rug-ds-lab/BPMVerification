@@ -4,7 +4,7 @@ import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
-import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.map.IDMap;
@@ -48,7 +48,7 @@ public class ConverterAction extends RecursiveAction {
 		}
 		else for (Set<? extends TransitionI> enabled: net.getParallelEnabledTransitions(marking)) {
 			TreeSet<String> ap = mapTransitionIds(enabled);
-			TreeSet<String> previousAp = new TreeSet<>(new StringComparator());
+			TreeSet<String> previousAp = new TreeSet<>(new ComparableComparator());
 			previousAp.addAll(previous.getAtomicPropositions());
 			previousAp.remove(idMap.addID((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
 			//previousAp.remove(idMap.addID((fired.getName().isEmpty() ? fired.getId() : fired.getName())));
@@ -84,7 +84,7 @@ public class ConverterAction extends RecursiveAction {
 	}
 
 	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
-		TreeSet<String> aps = new TreeSet<String>(new StringComparator());
+		TreeSet<String> aps = new TreeSet<String>(new ComparableComparator());
 
 		for (TransitionI transition: transitions) {
 			aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));

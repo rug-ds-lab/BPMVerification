@@ -2,7 +2,7 @@ package nl.rug.ds.bpm.verification;
 
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.specification.jaxb.*;
-import nl.rug.ds.bpm.util.comparator.StringComparator;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
@@ -92,7 +92,7 @@ public class SetVerifier {
 		Logger.log("Reducing Kripke structure", LogEvent.INFO);
 		Logger.log("Removing unused atomic propositions", LogEvent.VERBOSE);
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
-		TreeSet<String> unknownAP = new TreeSet<>(new StringComparator());
+		TreeSet<String> unknownAP = new TreeSet<>(new ComparableComparator());
 		
 		unusedAP.removeAll(specIdMap.getAPKeys());
 		
