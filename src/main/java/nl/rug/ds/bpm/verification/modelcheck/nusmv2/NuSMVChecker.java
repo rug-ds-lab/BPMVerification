@@ -15,7 +15,6 @@ import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -51,7 +50,7 @@ public class NuSMVChecker extends Checker {
 			else
 				file = new File(out, "model" + id + ".smv");
 
-			PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8);
+			PrintWriter writer = new PrintWriter(file);
 			writer.println(inputChecker);
 			writer.close();
 		} catch (Throwable t) {
