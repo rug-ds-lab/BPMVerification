@@ -13,4 +13,8 @@ public abstract class CheckerFactory {
 	}
 	
 	public abstract Checker getChecker();
+
+	public void release(Checker checker) { return; }
+
+	public void destroy() { return; }
 }

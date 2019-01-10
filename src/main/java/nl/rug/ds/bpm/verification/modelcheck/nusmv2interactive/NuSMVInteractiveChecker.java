@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
+package nl.rug.ds.bpm.verification.modelcheck.nusmv2interactive;
 
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
@@ -18,20 +18,56 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 /**
  * Created by
  */
-public class NuSMVChecker extends Checker {
+public class NuSMVInteractiveChecker extends Checker {
 	private File file;
+	private Process proc;
+	private Scanner inputStream;
+	private PrintStream outputStream;
 
-	public NuSMVChecker(File checker) {
+	public NuSMVInteractiveChecker(File checker) throws CheckerException {
 		super(checker);
+
+		try {
+			proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " -int");
+
+			OutputStream out = proc.getOutputStream();
+			outputStream = new PrintStream(out);
+
+			InputStream stdin = proc.getInputStream();
+			InputStreamReader in = new InputStreamReader(stdin);
+			inputStream = new Scanner(in);
+
+			//Skip welcome message
+			while (inputStream.hasNext() && inputStream.hasNext(">")) ;
+		}
+		catch (Exception e) {
+			throw new CheckerException("Failed to call NuSMV2");
+		}
+	}
+
+	@Override
+	public void destroy() {
+		try {
+			outputStream.println("quit");
+
+			outputStream.close();
+			inputStream.close();
+
+			proc.waitFor();
+			proc.destroy();
+		}
+		catch (Exception e) {}
 	}
 
 	@Override
 	public void addFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
-		NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
+		NuSMVInteractiveFormula nuSMVFormula = new NuSMVInteractiveFormula(formula, specification, idMap, groupMap);
 		formulas.add(nuSMVFormula);
 		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
 	}
@@ -60,18 +96,53 @@ public class NuSMVChecker extends Checker {
 
 	@Override
 	public List<VerificationEvent> checkModel() throws CheckerException {
-		List<VerificationEvent> results;
+		List<VerificationEvent> results = new ArrayList<>();
 		try {
-			Process proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " " + file.getAbsolutePath());
+			outputStream.println("read_model -i " + file.getAbsolutePath());
+			outputStream.println("go");
 
-			results = parseResults(proc);
+			List<CheckerFormula> formulaList = formulas.stream()
+														.filter(f ->
+																f.getFormula().getLanguage().equalsIgnoreCase("ctlspec") || f.getFormula().getLanguage().equalsIgnoreCase("ltlspec")
+														).collect(Collectors.toList());
 
-			List<String> errors = getErrors(proc);
-			for (String line : errors)
-				outputChecker.append(line + "\n");
+			outputStream.flush();
 
-			proc.waitFor();
-			proc.destroy();
+			for (CheckerFormula formula: formulaList) {
+				outputStream.println((formula.getFormula().getLanguage().equalsIgnoreCase("ctlspec") ? "check_ctlspec" : "check_ltlspec") + " -p " + formula.getCheckerFormula());
+
+				VerificationEvent event = null;
+				String line = "";
+				while (inputStream.hasNext() && !inputStream.hasNext(">")) {
+					line = inputStream.nextLine();
+
+					if (line.contains("-- specification ")) {
+						event = new VerificationEvent(formula, line.contains("is true"));
+						results.add(event);
+						formulas.remove(event.getFormula());
+					}
+					else if (line.contains("Trace Type: Counterexample")) {
+						event.setCounterExample(new ArrayList<List<String>>());
+					}
+					else if (line.contains("-> State:") && event.getCounterExample() != null) {
+						List<String> state = new ArrayList<>();
+						int previous = event.getCounterExample().size() - 1;
+						if(previous >= 0)
+							state.addAll(event.getCounterExample().get(previous));
+						event.getCounterExample().add(state);
+					}
+					else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
+						String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
+						String id = event.getFormula().getIdMap().getID(ap);
+						event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
+					}
+					else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
+						String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
+						String id = event.getFormula().getIdMap().getID(ap);
+						event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
+					}
+				}
+			}
 		}
 		catch (Exception e) {
 			throw new CheckerException("Failed to call NuSMV2");
@@ -151,15 +222,17 @@ public class NuSMVChecker extends Checker {
 	}
 
 	private String convertFORMULAS() {
-		StringBuilder f = new StringBuilder();
-		for (CheckerFormula formula: formulas) {
-			try {
-				f.append(formula.getCheckerFormula() + "\n");
-			} catch (FormulaException e) {
-				e.printStackTrace();
-			}
-		}
-		return f.toString();
+		StringBuilder fs = new StringBuilder();
+		formulas.stream()
+				.filter(f -> f.getFormula().getLanguage().equalsIgnoreCase("fairness"))
+				.forEach(f -> {
+					try {
+						fs.append(f.getCheckerFormula() + "\n");
+					} catch (FormulaException e) {
+						e.printStackTrace();
+					}
+				});
+		return fs.toString();
 	}
 
 	private List<State> findStates(Kripke kripke, String ap) {
@@ -170,82 +243,5 @@ public class NuSMVChecker extends Checker {
 				sub.add(s);
 
 		return sub;
-	}
-
-	private List<String> getErrors(Process proc) throws IOException {
-		List<String> results = new ArrayList<>();
-
-		String line = null;
-		//errorstream
-		InputStream stderr = proc.getErrorStream();
-		InputStreamReader isr = new InputStreamReader(stderr);
-		BufferedReader br = new BufferedReader(isr);
-		while ((line = br.readLine()) != null) {
-			results.add(line);
-		}
-		br.close();
-
-		return results;
-	}
-
-	private List<VerificationEvent> parseResults(Process proc) throws IOException {
-		List<VerificationEvent> results = new ArrayList<>();
-		VerificationEvent event = null;
-
-		//inputStream
-		String line = null;
-		InputStream stdin = proc.getInputStream();
-		InputStreamReader in = new InputStreamReader(stdin);
-		BufferedReader bir = new BufferedReader(in);
-
-		while ((line = bir.readLine()) != null) {
-			if (line.contains("-- specification ")) {
-				event = new VerificationEvent(parseFormula(line), line.contains("is true"));
-				results.add(event);
-				formulas.remove(event.getFormula());
-			}
-			else if (line.contains("Trace Type: Counterexample")) {
-				event.setCounterExample(new ArrayList<List<String>>());
-			}
-			else if (line.contains("-> State:") && event.getCounterExample() != null) {
-				List<String> state = new ArrayList<>();
-				int previous = event.getCounterExample().size() - 1;
-				if(previous >= 0)
-					state.addAll(event.getCounterExample().get(previous));
-				event.getCounterExample().add(state);
-			}
-			else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
-				String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
-				String id = event.getFormula().getIdMap().getID(ap);
-				event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
-			}
-			else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
-				String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
-				String id = event.getFormula().getIdMap().getID(ap);
-				event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
-			}
-		}
-
-		bir.close();
-		in.close();
-
-		return results;
-	}
-
-	private CheckerFormula parseFormula(String line) {
-		String formula = line.substring(16, line.indexOf("is")).trim();
-		CheckerFormula abstractFormula = null;
-
-		boolean found = false;
-		Iterator<CheckerFormula> abstractFormulaIterator = formulas.iterator();
-		while (abstractFormulaIterator.hasNext() && !found) {
-			CheckerFormula f = abstractFormulaIterator.next();
-			if(f.equals(formula)) {
-				found = true;
-				abstractFormula = f;
-			}
-		}
-
-		return abstractFormula;
 	}
 }

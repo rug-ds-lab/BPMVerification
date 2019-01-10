@@ -46,7 +46,7 @@ public class TreeBiMap<K,V> implements Map<K,V> {
 	}
 
 	@Override
-	public V put(K key, V value) {
+	public synchronized V put(K key, V value) {
 		if (kvTreeMap.containsKey(key))
 			vkTreeMap.remove(value);
 		vkTreeMap.put(value,key);
@@ -54,26 +54,26 @@ public class TreeBiMap<K,V> implements Map<K,V> {
 	}
 
 	@Override
-	public V remove(Object key) {
+	public synchronized V remove(Object key) {
 		if (kvTreeMap.containsKey(key))
 			vkTreeMap.remove(kvTreeMap.get(key));
 		return kvTreeMap.remove(key);
 	}
 
-	public V removeValue(Object value) {
+	public synchronized V removeValue(Object value) {
 		if (vkTreeMap.containsKey(value))
 			kvTreeMap.remove(vkTreeMap.get(value));
 		return kvTreeMap.remove(value);
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
+	public synchronized void putAll(Map<? extends K, ? extends V> m) {
 		for (K key: m.keySet())
 			put(key, m.get(key));
 	}
 
 	@Override
-	public void clear() {
+	public synchronized void clear() {
 		kvTreeMap.clear();
 		vkTreeMap.clear();
 	}

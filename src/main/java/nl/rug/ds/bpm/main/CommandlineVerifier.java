@@ -15,6 +15,7 @@ import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
 import nl.rug.ds.bpm.verification.modelcheck.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.modelcheck.nusmv2interactive.NuSMVInteractiveFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -66,7 +67,7 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				File nusmv2 = new File(args[2]);
 
 				//Create the wanted model modelcheck factory
-				CheckerFactory factory = new NuSMVFactory(nusmv2);
+				CheckerFactory factory = new NuSMVInteractiveFactory(nusmv2);
 				//Load net(s) from pnml file
 				PTNetUnmarshaller pnu = new PTNetUnmarshaller(net);
 				Set<Net> pnset = pnu.getNets();

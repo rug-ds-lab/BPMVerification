@@ -55,6 +55,8 @@ public abstract class Checker {
         checkModel();
     }
 
+    public void destroy() { return; }
+
     public static void setOutputPath(String path) {
 		try {
 			out = new File(path);
@@ -63,47 +65,4 @@ public abstract class Checker {
 			e.printStackTrace();
 		}
 	}
-    
-//    protected StringBuilder inputChecker;
-//    protected StringBuilder outputChecker;
-//    protected Kripke kripke;
-//    protected List<AbstractFormula> formulas;
-//    protected File file, modelcheck;
-//    protected EventHandler eventHandler;
-//    protected List<String> results;
-//
-//    public Checker(EventHandler eventHandler, File modelcheck, Kripke kripke, List<AbstractFormula> formulas) {
-//        this.eventHandler = eventHandler;
-//        this.modelcheck = modelcheck;
-//        this.kripke = kripke;
-//        this.formulas = formulas;
-//        outputChecker = new StringBuilder();
-//        results = new ArrayList<>();
-//    }
-//
-//    public abstract void createInputData();
-//
-//    protected void createInputFile() {
-//        try {
-//            file = File.createTempFile("model", ".smv");
-//            PrintWriter writer = new PrintWriter(file, "UTF-8");
-//            writer.println(inputChecker);
-//            writer.close();
-//        } catch (Throwable t) {
-//            eventHandler.logCritical("Issue writing temporary file");
-//        }
-//    }
-//
-//    public List<String> callModelChecker() {
-//        createInputFile();
-//        Process proc = createProcess();
-//        getInputStream(proc);
-//
-//        return getResults(results);
-//    }
-//
-//    public abstract Process createProcess();
-//
-//    public abstract List<String> getResults(List<String> results);
-
 }

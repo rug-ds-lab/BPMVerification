@@ -6,6 +6,7 @@ import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.util.exception.VerifierException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
 
 import java.util.ArrayList;
@@ -41,7 +42,10 @@ public class NetVerifier extends Verifier {
 			Logger.log("Verifying set " + ++setid, LogEvent.INFO);
 			try {
 				verifier.buildKripke(reduce);
-				verifier.verify(checkerFactory.getChecker());
+				Checker checker = checkerFactory.getChecker();
+				verifier.verify(checker);
+				checkerFactory.release(checker);
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new VerifierException("Verification failure");
