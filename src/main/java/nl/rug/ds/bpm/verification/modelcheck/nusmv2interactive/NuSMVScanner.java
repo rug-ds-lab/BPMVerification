@@ -32,9 +32,7 @@ public class NuSMVScanner {
 	}
 
 	private void read() {
-		while (!inputStream.hasNext()) ;
-		String l = inputStream.next();
-		input = l.split("\\R");
+		input = inputStream.next().split("\\R");
 		index = 0;
 	}
 
