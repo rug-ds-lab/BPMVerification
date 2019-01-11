@@ -17,6 +17,11 @@ public class NuSMVInteractiveFormula extends CheckerFormula {
     }
 
     @Override
+    public String getCheckerFormula() throws FormulaException {
+        return "\"" + super.getCheckerFormula() + "\"";
+    }
+
+    @Override
     public boolean equals(String outputFormula) {
         try {
             return trimFormula(super.getCheckerFormula()).equals(trimFormula(outputFormula));

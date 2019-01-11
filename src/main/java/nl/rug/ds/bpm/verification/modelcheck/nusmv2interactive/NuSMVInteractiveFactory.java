@@ -43,7 +43,7 @@ public class NuSMVInteractiveFactory extends CheckerFactory {
 	}
 
 	@Override
-	public void release(Checker checker) {
+	public synchronized void release(Checker checker) {
 		checkerPool.add(checker);
 	}
 
@@ -51,5 +51,6 @@ public class NuSMVInteractiveFactory extends CheckerFactory {
 	public void destroy() {
 		for (Checker checker: checkerPool)
 			checker.destroy();
+		checkerPool.clear();
 	}
 }

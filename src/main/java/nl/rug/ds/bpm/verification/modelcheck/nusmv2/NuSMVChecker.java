@@ -3,14 +3,12 @@ package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
-import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.IDMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
-import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
 
@@ -38,24 +36,14 @@ public class NuSMVChecker extends Checker {
 
 	@Override
 	public void createModel(Kripke kripke) throws CheckerException {
-		inputChecker.append("MODULE main\n");
-		inputChecker.append(convertVAR(kripke));
-		inputChecker.append(convertDEFINE(kripke));
-		inputChecker.append(convertASSIGN(kripke));
-		inputChecker.append(convertFORMULAS());
+		NuSMVFileWriter fileWriter;
+		if (out == null)
+			fileWriter = new NuSMVFileWriter(kripke, formulas, id);
+		else
+			fileWriter = new NuSMVFileWriter(kripke, formulas, id, out);
 
-		try {
-			if(out == null)
-				file = File.createTempFile("model" + id, ".smv");
-			else
-				file = new File(out, "model" + id + ".smv");
-
-			PrintWriter writer = new PrintWriter(file);
-			writer.println(inputChecker);
-			writer.close();
-		} catch (Throwable t) {
-			throw new CheckerException("Failed to write to file" +  file.toString());
-		}
+		file = fileWriter.getFile();
+		inputChecker.append(fileWriter.getContents());
 	}
 
 	@Override
@@ -78,98 +66,6 @@ public class NuSMVChecker extends Checker {
 		}
 
 		return results;
-	}
-
-	private String convertVAR(Kripke kripke) {
-		StringBuilder v = new StringBuilder("\tVAR\n\t\t state:{");
-
-		Iterator<State> i = kripke.getStates().iterator();
-		while (i.hasNext()) {
-			v.append(i.next().getID());
-			if (i.hasNext()) v.append(",");
-		}
-
-		v.append("}; \n");
-
-		return v.toString();
-	}
-
-	private String convertDEFINE(Kripke kripke) {
-		StringBuilder d = new StringBuilder("\tDEFINE\n");
-
-		Iterator<String> i = kripke.getAtomicPropositions().iterator();
-		while (i.hasNext()) {
-			String ap = i.next();
-			d.append("\t\t " + ap + " := ");
-
-			Iterator<State> j = findStates(kripke, ap).iterator();
-			while (j.hasNext()) {
-				State s = j.next();
-				d.append("( state = " + s.getID() + " )");
-				if (j.hasNext()) d.append(" | ");
-			}
-			d.append(";\n");
-		}
-
-		return d.toString();
-	}
-
-	private String convertASSIGN(Kripke kripke) {
-		StringBuilder a = new StringBuilder("\tASSIGN\n\t\tinit(state) := {");
-
-		//Safety
-		for(State s: kripke.getSinkStates()) {
-			s.addNext(s);
-			s.addPrevious(s);
-		}
-
-		Iterator<State> i = kripke.getInitial().iterator();
-		while (i.hasNext()) {
-			a.append(i.next().getID());
-			if (i.hasNext()) a.append(",");
-		}
-		a.append("};\n");
-
-		a.append("\t\tnext(state) := \n\t\t\tcase\n");
-		Iterator<State> j = kripke.getStates().iterator();
-		while (j.hasNext()) {
-			State s = j.next();
-			a.append("\t\t\t\tstate = " + s.getID() + " : {");
-
-			Iterator<State> k = s.getNextStates().iterator();
-			if (k.hasNext())
-				while (k.hasNext()) {
-					a.append(k.next().getID());
-					if (k.hasNext()) a.append(",");
-				}
-			a.append("};\n");
-		}
-
-		a.append("\t\t\tesac;\n");
-
-		return a.toString();
-	}
-
-	private String convertFORMULAS() {
-		StringBuilder f = new StringBuilder();
-		for (CheckerFormula formula: formulas) {
-			try {
-				f.append(formula.getCheckerFormula() + "\n");
-			} catch (FormulaException e) {
-				e.printStackTrace();
-			}
-		}
-		return f.toString();
-	}
-
-	private List<State> findStates(Kripke kripke, String ap) {
-		List<State> sub = new ArrayList<State>(kripke.getStates().size() / kripke.getAtomicPropositions().size());
-
-		for (State s : kripke.getStates())
-			if (s.getAtomicPropositions().contains(ap))
-				sub.add(s);
-
-		return sub;
 	}
 
 	private List<String> getErrors(Process proc) throws IOException {
