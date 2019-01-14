@@ -1,9 +1,8 @@
 package nl.rug.ds.bpm.verification.modelcheck.nusmv2interactive;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class NuSMVScanner {
@@ -50,9 +49,30 @@ public class NuSMVScanner {
 		return (input.length > index ? input[index++] : "");
 	}
 
+	public List<String> getErrors() {
+		List<String> results = new ArrayList<>();
+
+		//errorstream
+		InputStream stderr = proc.getErrorStream();
+		InputStreamReader isr = new InputStreamReader(stderr);
+		BufferedReader br = new BufferedReader(isr);
+
+		try {
+			if (br.ready()) {
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					results.add(line);
+				}
+			}
+			br.close();
+		}
+		catch (Exception e) {}
+
+		return results;
+	}
+
 	public void close() {
-		outputStream.println("quit");
-		outputStream.flush();
+		writeln("quit");
 
 		outputStream.close();
 		inputStream.close();

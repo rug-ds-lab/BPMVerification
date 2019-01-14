@@ -62,7 +62,7 @@ public class NuSMVChecker extends Checker {
 			proc.destroy();
 		}
 		catch (Exception e) {
-			throw new CheckerException("Failed to call NuSMV2");
+			throw new CheckerException("Failed to call NuSMV2:");
 		}
 
 		return results;

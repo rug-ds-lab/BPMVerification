@@ -51,6 +51,7 @@ public class NetVerifier extends Verifier {
 				throw new VerifierException("Verification failure");
 			}
 		}
+		checkerFactory.destroy();
 	}
 	
 	private List<SetVerifier> getSetVerifiers(BPMSpecification specification) {

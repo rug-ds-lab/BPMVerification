@@ -120,8 +120,14 @@ public class NuSMVInteractiveChecker extends Checker {
 			}
 		}
 		catch (Exception e) {
-			throw new CheckerException("Failed to call NuSMV2");
+			while (scanner.hasNext())
+				outputChecker.append(scanner.next() + "\n");
+
+			throw new CheckerException("Failed to call NuSMV2:\n" + outputChecker);
 		}
+
+		for (String line : scanner.getErrors())
+			outputChecker.append(line + "\n");
 
 		return results;
 	}
