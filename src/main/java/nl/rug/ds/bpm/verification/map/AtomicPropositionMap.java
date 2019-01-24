@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.map;
 
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
@@ -11,49 +12,49 @@ import java.util.Set;
 /**
  * Created by p256867 on 4-4-2017.
  */
-public class IDMap {
+public class AtomicPropositionMap<T extends Comparable<T>> {
     private int n;
     private String ap;
-    private TreeBiMap<String, String> map;
+    private TreeBiMap<T, String> map;
 
-    public IDMap() {
+    public AtomicPropositionMap() {
         ap = "n";
         n = 0;
-        map = new TreeBiMap<>(new StringComparator(), new StringComparator());
+        map = new TreeBiMap<T, String>(new ComparableComparator<T>(), new StringComparator());
     }
 
-    public IDMap(String apIdentifier) {
+    public AtomicPropositionMap(String apIdentifier) {
         this();
         ap = apIdentifier;
     }
 
-    public IDMap(String apIdentifier, Map<String, String> map) {
+    public AtomicPropositionMap(String apIdentifier, Map<T, String> map) {
         this(apIdentifier);
         this.map.putAll(map);
     }
 
-    public synchronized String addID(String id) {
+    public synchronized String addID(T id) {
         if(!map.containsKey(id)) {
             String nid = ap + n++;
             map.put(id, nid);
-            Logger.log("Mapping " + id + " to " + nid, LogEvent.VERBOSE);
+            Logger.log("Mapping " + id.toString() + " to " + nid, LogEvent.VERBOSE);
         }
         return map.get(id);
     }
 
-    public synchronized void addID(String id, String ap) {
+    public synchronized void addID(T id, String ap) {
         map.put(id, ap);
     }
 
-    public String getAP(String id) {
+    public String getAP(T id) {
         return map.get(id);
     }
 
-    public String getID(String ap) {
+    public T getID(String ap) {
         return map.getKey(ap);
     }
 
-    public Set<String> getIDKeys() {
+    public Set<T> getIDKeys() {
         return map.keySet();
     }
 
@@ -61,5 +62,5 @@ public class IDMap {
         return (Set<String>) map.values();
     }
 
-    public Map<String, String> getMap() { return map; }
+    public Map<T, String> getMap() { return map; }
 }

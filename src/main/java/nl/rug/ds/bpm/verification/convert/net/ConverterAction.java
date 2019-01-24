@@ -1,13 +1,14 @@
 package nl.rug.ds.bpm.verification.convert.net;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
+import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
-import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.map.IDMap;
+import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 
@@ -22,15 +23,15 @@ import java.util.concurrent.RecursiveAction;
 public class ConverterAction extends RecursiveAction {
 	private Kripke kripke;
 	private VerifiableNet net;
-	private IDMap idMap;
+	private AtomicPropositionMap<CompositeExpression> atomicPropositionMap;
 	private MarkingI marking;
 	private TransitionI fired;
 	private State previous;
 	
-	public ConverterAction(Kripke kripke, VerifiableNet net, IDMap idMap, MarkingI marking, TransitionI fired, State previous) {
+	public ConverterAction(Kripke kripke, VerifiableNet net, AtomicPropositionMap<CompositeExpression> atomicPropositionMap, MarkingI marking, TransitionI fired, State previous) {
 		this.kripke = kripke;
 		this.net = net;
-		this.idMap = idMap;
+		this.atomicPropositionMap = atomicPropositionMap;
 		this.marking = marking;
 		this.fired = fired;
 		this.previous = previous;
@@ -47,23 +48,13 @@ public class ConverterAction extends RecursiveAction {
 			Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
 		}
 		else for (Set<? extends TransitionI> enabled: net.getParallelEnabledTransitions(marking)) {
-			TreeSet<String> ap = mapTransitionIds(enabled);
-			TreeSet<String> previousAp = new TreeSet<>(new ComparableComparator());
+			TreeSet<String> ap = KripkeConverter.getAtomicPropositions(marking, enabled, atomicPropositionMap);
+			TreeSet<String> previousAp = new TreeSet<>(new ComparableComparator<String>());
 			previousAp.addAll(previous.getAtomicPropositions());
-			previousAp.remove(idMap.addID((fired.isTau() ? "tau" : (fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
-			//previousAp.remove(idMap.addID((fired.getName().isEmpty() ? fired.getId() : fired.getName())));
+			previousAp.remove(fired.isTau() ? atomicPropositionMap.getAP(KripkeConverter.tau) : atomicPropositionMap.getAP(ExpressionBuilder.parseExpression((fired.getName().isEmpty() ? fired.getId() : fired.getName()))));
 
 			if(ap.containsAll(previousAp)) {
 				State found = new State(marking.toString(), ap);
-
-				if (marking instanceof DataMarkingI) {
-					Set<String> data = new HashSet<>();
-					for (String b : ((DataMarkingI) marking).getBindings().keySet())
-						if (!b.equalsIgnoreCase("nashorn.global"))
-							data.add(b + "=" + ((DataMarkingI) marking).getBindings().get(b));
-					found.addAP(data);
-				}
-
 				State existing = kripke.addNext(previous, found);
 
 				if (found == existing) { //if found is a new state
@@ -75,22 +66,11 @@ public class ConverterAction extends RecursiveAction {
 					Set<ConverterAction> nextActions = new HashSet<>();
 					for (TransitionI transition : enabled)
 						for (MarkingI step : net.fireTransition(transition, marking))
-							nextActions.add(new ConverterAction(kripke, net, idMap, step, transition, found));
+							nextActions.add(new ConverterAction(kripke, net, atomicPropositionMap, step, transition, found));
 
 					invokeAll(nextActions);
 				}
 			}
 		}
-	}
-
-	private TreeSet<String> mapTransitionIds(Set<? extends TransitionI> transitions) {
-		TreeSet<String> aps = new TreeSet<String>(new ComparableComparator());
-
-		for (TransitionI transition: transitions) {
-			aps.add(idMap.addID((transition.isTau() ? "tau" : (transition.getName().isEmpty() ? transition.getId() : transition.getName()))));
-			//aps.add(idMap.addID((transition.getName().isEmpty() ? transition.getId() : transition.getName())));
-		}
-
-		return aps;
 	}
 }

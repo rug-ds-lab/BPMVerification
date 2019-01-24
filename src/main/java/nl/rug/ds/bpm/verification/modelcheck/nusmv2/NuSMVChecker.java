@@ -5,9 +5,8 @@ import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.IDMap;
+import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
 import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
@@ -28,8 +27,8 @@ public class NuSMVChecker extends Checker {
 	}
 
 	@Override
-	public void addFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
-		NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, idMap, groupMap);
+	public void addFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
+		NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, atomicPropositionMap);
 		formulas.add(nuSMVFormula);
 		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
 	}
@@ -112,12 +111,12 @@ public class NuSMVChecker extends Checker {
 			}
 			else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
 				String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
-				String id = event.getFormula().getIdMap().getID(ap);
+				String id = event.getFormula().getAtomicPropositionMap().getID(ap).toString();
 				event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
 			}
 			else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
 				String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
-				String id = event.getFormula().getIdMap().getID(ap);
+				String id = event.getFormula().getAtomicPropositionMap().getID(ap).toString();
 				event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
 			}
 		}

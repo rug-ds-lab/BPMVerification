@@ -1,5 +1,8 @@
 package nl.rug.ds.bpm.verification;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
+import nl.rug.ds.bpm.expression.ExpressionBuilder;
+import nl.rug.ds.bpm.expression.LogicalType;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
@@ -7,11 +10,10 @@ import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.util.map.TreeSetMap;
 import nl.rug.ds.bpm.verification.convert.net.KripkeConverter;
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.IDMap;
+import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.kripke.Kripke;
 import nl.rug.ds.bpm.verification.model.kripke.State;
 import nl.rug.ds.bpm.verification.modelcheck.Checker;
@@ -30,8 +32,7 @@ public class SetVerifier {
 	private Kripke kripke;
 	private VerifiableNet net;
 	private EventHandler eventHandler;
-	private IDMap specIdMap;
-	private TreeSetMap<String, String> groupMap;
+	private AtomicPropositionMap<CompositeExpression> apMap;
 	private BPMSpecification specification;
 	private SpecificationSet specificationSet;
 	private List<Specification> specifications;
@@ -52,8 +53,7 @@ public class SetVerifier {
 		for(Condition condition: conditions)
 			Logger.log("\t" + condition.getCondition(), LogEvent.VERBOSE);
 		
-		specIdMap = getIdMap();
-		groupMap = getGroupMap(specIdMap);
+		apMap = getAPMap();
 	}
 	
 	public void buildKripke(boolean reduce) throws ConverterException {
@@ -61,7 +61,7 @@ public class SetVerifier {
 		for (Condition condition : conditions)
 			conds.add(condition.getCondition());
 
-		KripkeConverter converter = new KripkeConverter(net, specIdMap, conds);
+		KripkeConverter converter = new KripkeConverter(net, apMap, conds);
 		
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		long t0 = System.nanoTime();
@@ -92,15 +92,15 @@ public class SetVerifier {
 		Logger.log("Reducing Kripke structure", LogEvent.INFO);
 		Logger.log("Removing unused atomic propositions", LogEvent.VERBOSE);
 		Set<String> unusedAP = new HashSet<>(kripke.getAtomicPropositions());
-		TreeSet<String> unknownAP = new TreeSet<>(new ComparableComparator());
+		TreeSet<String> unknownAP = new TreeSet<>(new ComparableComparator<String>());
 		
-		unusedAP.removeAll(specIdMap.getAPKeys());
+		unusedAP.removeAll(apMap.getAPKeys());
 		
-		unknownAP.addAll(specIdMap.getAPKeys());
+		unknownAP.addAll(apMap.getAPKeys());
 		unknownAP.removeAll(kripke.getAtomicPropositions());
 
-		for (String id: converter.getIdMap().getIDKeys())
-			specIdMap.addID(id, converter.getIdMap().getAP(id));
+		for (CompositeExpression id: converter.getAtomicPropositionMap().getIDKeys())
+			apMap.addID(id, converter.getAtomicPropositionMap().getAP(id));
 
 		if (reduce) {
 			PropositionOptimizer propositionOptimizer = new PropositionOptimizer(kripke, unusedAP);
@@ -145,7 +145,7 @@ public class SetVerifier {
 		Logger.log("Collecting specifications", LogEvent.INFO);
 		for (Specification specification: specifications)
 			for (Formula formula: specification.getSpecificationType().getFormulas())
-				checker.addFormula(formula, specification, specIdMap, groupMap);
+				checker.addFormula(formula, specification, apMap);
 		
 		Logger.log("Generating model check input", LogEvent.VERBOSE);
 		checker.createModel(kripke);
@@ -169,42 +169,23 @@ public class SetVerifier {
 			throw new CheckerException("Model modelcheck error\n" + checker.getOutputChecker());
 	}
 	
-	private IDMap getIdMap() {
-		IDMap idMap = new IDMap();
+	private AtomicPropositionMap<CompositeExpression> getAPMap() {
+		AtomicPropositionMap<CompositeExpression> atomicPropositionMap = new AtomicPropositionMap<>();
 		
 		for (Specification s: specificationSet.getSpecifications())
-			for (InputElement inputElement: s.getInputElements()) {
-				idMap.addID(inputElement.getElement());
-				Logger.log("Mapping " + inputElement.getElement() + " to " + idMap.getAP(inputElement.getElement()), LogEvent.VERBOSE);
-				//inputElement.setElement(idMap.getAP(inputElement.getElement()));
-			}
+			for (InputElement inputElement: s.getInputElements())
+				atomicPropositionMap.addID(ExpressionBuilder.parseExpression(inputElement.getElement()));
 		
 		for (Group group: specification.getGroups()) {
-			//group.setId(idMap.getAP(group.getId()));
-			for (Element element : group.getElements()) {
-				idMap.addID(element.getId());
-				Logger.log("Mapping " + element.getId() + " to " + idMap.getAP(element.getId()), LogEvent.VERBOSE);
-				//element.setId(idMap.getAP(element.getId()));
-			}
+			CompositeExpression groupExpression = new CompositeExpression(LogicalType.XOR);
+			for (Element element : group.getElements())
+				groupExpression.addArgument(ExpressionBuilder.parseExpression(element.getId()));
+			atomicPropositionMap.addID(groupExpression);
 		}
 		
-		return idMap;
+		return atomicPropositionMap;
 	}
-	
-	public TreeSetMap<String, String> getGroupMap(IDMap idMap) {
-		TreeSetMap<String, String> groupMap = new TreeSetMap<>();
-		
-		for (Group group: specification.getGroups()) {
-			idMap.addID(group.getId());
-			Logger.log("New group " + group.getId() + " as " + idMap.getAP(group.getId()), LogEvent.VERBOSE);
-			for (Element element: group.getElements()) {
-				groupMap.add(idMap.getAP(group.getId()), idMap.getAP(element.getId()));
-				Logger.log("\t " + element.getId(), LogEvent.VERBOSE);
-			}
-		}
-		return groupMap;
-	}
-	
+
 	public Kripke getKripke() {
 		return kripke;
 	}

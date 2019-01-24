@@ -1,12 +1,12 @@
 package nl.rug.ds.bpm.verification.modelcheck;
 
+import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Input;
 import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.FormulaException;
-import nl.rug.ds.bpm.util.map.TreeSetMap;
-import nl.rug.ds.bpm.verification.map.IDMap;
+import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 
 import java.util.Iterator;
 import java.util.List;
@@ -17,16 +17,14 @@ import java.util.stream.Collectors;
  * Created by Heerko Groefsema on 09-Jun-17.
  */
 public abstract class CheckerFormula {
-	protected IDMap idMap;
-	protected TreeSetMap<String, String> groupMap;
+	protected AtomicPropositionMap atomicPropositionMap;
 	protected Formula formula;
 	protected Specification specification;
 	
-	public CheckerFormula(Formula formula, Specification specification, IDMap idMap, TreeSetMap<String, String> groupMap) {
+	public CheckerFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
 		this.formula = formula;
 		this.specification = specification;
-		this.idMap = idMap;
-		this.groupMap = groupMap;
+		this.atomicPropositionMap = atomicPropositionMap;
 	}
 	
 	public Formula getFormula() {
@@ -56,23 +54,13 @@ public abstract class CheckerFormula {
 				throw new FormulaException("Input " + input.getValue() + " has no matching elements in formula " + getOriginalFormula());
 			}
 			else if(elements.size() == 1) {
-				String mapID = idMap.getAP(elements.get(0).getElement());
-				if(groupMap.keySet().contains(mapID))
-					mapID = groupMap.toString(mapID);
-				APBuilder = mapID;
+				APBuilder = atomicPropositionMap.getAP(ExpressionBuilder.parseExpression(elements.get(0).getElement()));
 			}
 			else {
 				Iterator<InputElement> inputElementIterator = elements.iterator();
-				String mapID = idMap.getAP(inputElementIterator.next().getElement());
-				if(groupMap.keySet().contains(mapID))
-					mapID = groupMap.toString(mapID);
-				APBuilder = mapID;
-				while (inputElementIterator.hasNext()) {
-					mapID = idMap.getAP(inputElementIterator.next().getElement());
-					if(groupMap.keySet().contains(mapID))
-						mapID = groupMap.toString(mapID);
-					APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + mapID + ")";
-				}
+				APBuilder = atomicPropositionMap.getAP(ExpressionBuilder.parseExpression(inputElementIterator.next().getElement()));
+				while (inputElementIterator.hasNext())
+					APBuilder = "(" + APBuilder + (input.getType().equalsIgnoreCase("and") ? " & " : " | ") + atomicPropositionMap.getAP(ExpressionBuilder.parseExpression(inputElementIterator.next().getElement())) + ")";
 			}
 			mappedFormula = mappedFormula.replaceAll(Matcher.quoteReplacement(input.getValue()), APBuilder);
 		}
@@ -104,11 +92,7 @@ public abstract class CheckerFormula {
 		return mappedFormula;
 	}
 
-	public IDMap getIdMap() {
-		return idMap;
-	}
-
-	public TreeSetMap<String, String> getGroupMap() {
-		return groupMap;
+	public AtomicPropositionMap getAtomicPropositionMap() {
+		return atomicPropositionMap;
 	}
 }
