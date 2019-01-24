@@ -119,23 +119,19 @@ public class TreeSetMap<K,V> implements Map<K,Set<V>> {
 			if (keyIterator.hasNext())
 				sb = sb + "\n";
 		}
-		return sb.toString();
+		return sb;
 	}
 
 	public String toString(K key) {
-		String sb = "";
-		Set<V> members = map.get(key);
-		if(members.size() == 1) {
-			sb = members.iterator().next().toString();
+		String sb = key.toString() + ": (";
+
+		Iterator<V> iterator = map.get(key).iterator();
+		while (iterator.hasNext()) {
+			sb = sb + iterator.next();
+			if (iterator.hasNext())
+				sb = sb + ", ";
 		}
-		else if(members.size() > 1) {
-			Iterator<V> iterator = members.iterator();
-			sb = iterator.next().toString();
-			while (iterator.hasNext()) {
-				sb = "(" + sb + " | " + iterator.next() + ")";
-			}
-		}
-		//else empty
-		return sb.toString();
+
+		return sb + ")";
 	}
 }
