@@ -44,11 +44,12 @@ public class AtomicPropositionMap<T extends Comparable<T>> {
 
     public synchronized void addID(T id, String ap) {
         map.put(id, ap);
+        Logger.log("Remapping " + id.toString() + " to " + ap, LogEvent.VERBOSE);
     }
 
-    public String getAP(T id) {
-        return map.get(id);
-    }
+    public boolean contains(T id) { return map.containsKey(id); }
+
+    public String getAP(T id) { return map.get(id); }
 
     public T getID(String ap) {
         return map.getKey(ap);

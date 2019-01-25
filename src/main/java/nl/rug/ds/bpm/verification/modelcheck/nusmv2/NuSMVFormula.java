@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.modelcheck.nusmv2;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.FormulaException;
@@ -11,7 +12,7 @@ import nl.rug.ds.bpm.verification.modelcheck.CheckerFormula;
  */
 public class NuSMVFormula extends CheckerFormula {
 
-    public NuSMVFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
+    public NuSMVFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
         super(formula, specification, atomicPropositionMap);
     }
 

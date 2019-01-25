@@ -180,7 +180,8 @@ public class SetVerifier {
 			CompositeExpression groupExpression = new CompositeExpression(LogicalType.XOR);
 			for (Element element : group.getElements())
 				groupExpression.addArgument(ExpressionBuilder.parseExpression(element.getId()));
-			atomicPropositionMap.addID(groupExpression);
+			String ap = atomicPropositionMap.addID(groupExpression);
+			atomicPropositionMap.addID(ExpressionBuilder.parseExpression(group.getId()), ap);
 		}
 		
 		return atomicPropositionMap;

@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.modelcheck;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Input;
@@ -17,11 +18,11 @@ import java.util.stream.Collectors;
  * Created by Heerko Groefsema on 09-Jun-17.
  */
 public abstract class CheckerFormula {
-	protected AtomicPropositionMap atomicPropositionMap;
+	protected AtomicPropositionMap<CompositeExpression> atomicPropositionMap;
 	protected Formula formula;
 	protected Specification specification;
 	
-	public CheckerFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
+	public CheckerFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
 		this.formula = formula;
 		this.specification = specification;
 		this.atomicPropositionMap = atomicPropositionMap;
@@ -48,7 +49,7 @@ public abstract class CheckerFormula {
 		
 		for (Input input: specification.getSpecificationType().getInputs()) {
 			List<InputElement> elements = specification.getInputElements().stream().filter(element -> element.getTarget().equals(input.getValue())).collect(Collectors.toList());
-			
+
 			String APBuilder = "";
 			if(elements.size() == 0) {
 				throw new FormulaException("Input " + input.getValue() + " has no matching elements in formula " + getOriginalFormula());
@@ -92,7 +93,7 @@ public abstract class CheckerFormula {
 		return mappedFormula;
 	}
 
-	public AtomicPropositionMap getAtomicPropositionMap() {
+	public AtomicPropositionMap<CompositeExpression> getAtomicPropositionMap() {
 		return atomicPropositionMap;
 	}
 }

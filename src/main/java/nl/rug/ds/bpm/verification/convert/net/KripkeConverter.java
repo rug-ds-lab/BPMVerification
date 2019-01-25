@@ -16,8 +16,10 @@ import nl.rug.ds.bpm.verification.model.kripke.State;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class KripkeConverter {
+    private static ReentrantLock lock = new ReentrantLock();
 	public final static CompositeExpression tau = ExpressionBuilder.parseExpression("tau");
 
 	private VerifiableNet net;
@@ -30,8 +32,7 @@ public class KripkeConverter {
         this.conditions = conditions;
         this.atomicPropositionMap = new AtomicPropositionMap("t", atomicPropositionMap.getMap());
 
-        atomicPropositionMap.addID(tau);
-		State.resetStateId();
+        State.resetStateId();
     }
 	
 	public Kripke convert() throws ConverterException {
@@ -67,17 +68,21 @@ public class KripkeConverter {
 		return atomicPropositionMap;
 	}
 
-	public synchronized static TreeSet<String> getAtomicPropositions(MarkingI marking, Set<? extends TransitionI> transitions, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
+	public static TreeSet<String> getAtomicPropositions(MarkingI marking, Set<? extends TransitionI> transitions, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
         TreeSet<String> aps = new TreeSet<String>(new ComparableComparator<String>());
+		TreeSet<CompositeExpression> toAdd = new TreeSet<>(new ComparableComparator<CompositeExpression>());
 
         CompositeExpression stateExpression = new CompositeExpression(LogicalType.XOR);
 		for (TransitionI transition: transitions) {
-			if (transition.isTau())
+			if (transition.isTau()) {
 				stateExpression.addArgument(tau);
+				toAdd.add(tau);
+			}
 			else {
 				CompositeExpression transitionExpression = ExpressionBuilder.parseExpression((transition.getName().isEmpty() ? transition.getId() : transition.getName()));
-				atomicPropositionMap.addID(transitionExpression);
 				stateExpression.addArgument(transitionExpression);
+				if (!atomicPropositionMap.contains(transitionExpression))
+					toAdd.add(transitionExpression);
 			}
 		}
 
@@ -86,10 +91,16 @@ public class KripkeConverter {
 				if (!b.equalsIgnoreCase("nashorn.global"))
 					stateExpression.addArgument(ExpressionBuilder.parseExpression((b + " == " + ((DataMarkingI) marking).getBindings().get(b))));
 
-		for (CompositeExpression expression: atomicPropositionMap.getIDKeys())
-			if (expression.isFulfilledBy(stateExpression))
-				aps.add(atomicPropositionMap.getAP(expression));
-
+		lock.lock();
+		try {
+			for (CompositeExpression expression: atomicPropositionMap.getIDKeys())
+				if (expression.isFulfilledBy(stateExpression))
+					aps.add(atomicPropositionMap.getAP(expression));
+			for (CompositeExpression expression: toAdd)
+				aps.add(atomicPropositionMap.addID(expression));
+		} finally {
+			lock.unlock();
+		}
 		return aps;
     }
 }

@@ -111,12 +111,12 @@ public class NuSMVChecker extends Checker {
 			}
 			else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
 				String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
-				String id = event.getFormula().getAtomicPropositionMap().getID(ap).toString();
+				String id = event.getFormula().getAtomicPropositionMap().getID(ap).getOriginalExpression();
 				event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
 			}
 			else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
 				String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
-				String id = event.getFormula().getAtomicPropositionMap().getID(ap).toString();
+				String id = event.getFormula().getAtomicPropositionMap().getID(ap).getOriginalExpression();
 				event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
 			}
 		}
