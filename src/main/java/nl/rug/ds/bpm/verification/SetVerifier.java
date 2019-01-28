@@ -177,7 +177,7 @@ public class SetVerifier {
 				atomicPropositionMap.addID(ExpressionBuilder.parseExpression(inputElement.getElement()));
 		
 		for (Group group: specification.getGroups()) {
-			CompositeExpression groupExpression = new CompositeExpression(LogicalType.XOR);
+			CompositeExpression groupExpression = new CompositeExpression(LogicalType.OR);
 			for (Element element : group.getElements())
 				groupExpression.addArgument(ExpressionBuilder.parseExpression(element.getId()));
 			String ap = atomicPropositionMap.addID(groupExpression);
