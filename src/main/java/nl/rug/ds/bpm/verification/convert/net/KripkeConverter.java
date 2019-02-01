@@ -72,7 +72,7 @@ public class KripkeConverter {
         TreeSet<String> aps = new TreeSet<String>(new ComparableComparator<String>());
 		TreeSet<CompositeExpression> toAdd = new TreeSet<>(new ComparableComparator<CompositeExpression>());
 
-        CompositeExpression stateExpression = new CompositeExpression(LogicalType.OR);
+        CompositeExpression stateExpression = new CompositeExpression(LogicalType.AND);
 		for (TransitionI transition: transitions) {
 			if (transition.isTau()) {
 				stateExpression.addArgument(tau);
