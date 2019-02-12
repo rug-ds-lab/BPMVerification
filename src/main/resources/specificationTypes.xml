@@ -91,6 +91,18 @@
 					hold = "p are parallel"
 					fail = "p are not parallel" />
 		</specificationType>
+		
+		<specificationType id="ExistParallel">
+			<inputs>
+				<input type="and">p</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">EF(p)</formula>
+			</formulas>
+			<message
+					hold = "p are sometimes parallel"
+					fail = "p are never parallel" />
+		</specificationType>
 
 		<specificationType id="Fairness">
 			<inputs>
