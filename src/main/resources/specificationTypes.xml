@@ -104,6 +104,19 @@
 					fail = "p are never parallel" />
 		</specificationType>
 
+		<specificationType id="NeverParallel">
+			<inputs>
+				<input type="or">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> AG(!q)) </formula>
+			</formulas>
+			<message
+					hold = "q are never parallel when p holds"
+					fail = "q may be parallel when p holds" />
+		</specificationType>
+		
 		<specificationType id="Fairness">
 			<inputs>
 				<input type="or">p</input>
