@@ -117,6 +117,19 @@
 					fail = "q may be parallel when p holds" />
 		</specificationType>
 		
+		<specificationType id="NeverParallelAnd">
+			<inputs>
+				<input type="or">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="CTLSPEC">AG(p -> AG(!q)) </formula>
+			</formulas>
+			<message
+					hold = "q are never parallel when p holds"
+					fail = "q may be parallel when p holds" />
+		</specificationType>
+		
 		<specificationType id="Fairness">
 			<inputs>
 				<input type="or">p</input>
@@ -127,6 +140,46 @@
 			<message
 					hold = "p is fair"
 					fail = "p is not fair" />
+		</specificationType>
+
+		<specificationType id="AlwaysEventualResponse">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">G(p -> F(q)) </formula>
+			</formulas>
+			<message
+					hold = "p is eventually followed by q"
+					fail = "p is not eventually followed by q" />
+		</specificationType>
+
+		<specificationType id="FinalEventualResponse">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">F(p) -> F(q) </formula>
+			</formulas>
+			<message
+					hold = "p is at least once eventually followed by q"
+					fail = "p is never eventually followed by q" />
+		</specificationType>
+
+
+		<specificationType id="ImpliedExclusion">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">F(p) -> G(!q) </formula>
+			</formulas>
+			<message
+					hold = "p implies that q never occurs"
+					fail = "despite p, q still occurs" />
 		</specificationType>
 	</specificationTypes>
 </bpmSpecification>
