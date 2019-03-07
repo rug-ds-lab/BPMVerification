@@ -73,7 +73,7 @@ public class NuSMVInteractiveChecker extends Checker {
 	public List<VerificationEvent> checkModel() throws CheckerException {
 		List<VerificationEvent> results = new ArrayList<>();
 		try {
-			scanner.writeln("reset");
+			scanner.reset();
 			scanner.writeln("read_model -i " + file.getAbsolutePath());
 			scanner.writeln("go");
 
@@ -125,8 +125,11 @@ public class NuSMVInteractiveChecker extends Checker {
 			throw new CheckerException("Failed to call NuSMV2:\n" + outputChecker);
 		}
 
-		for (String line : scanner.getErrors())
-			outputChecker.append(line + "\n");
+		for (String line : scanner.getErrors()) {
+			String trimmed = line.trim();
+			if (!trimmed.isEmpty())
+				outputChecker.append(line + "\n");
+		}
 
 		return results;
 	}

@@ -71,6 +71,12 @@ public class NuSMVScanner {
 		return results;
 	}
 
+	public void reset() {
+		writeln("reset");
+		while (hasNext())
+			next();
+	}
+
 	public void close() {
 		writeln("quit");
 
