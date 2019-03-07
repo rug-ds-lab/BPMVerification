@@ -73,14 +73,14 @@ public class NuSMVInteractiveChecker extends Checker {
 	public List<VerificationEvent> checkModel() throws CheckerException {
 		List<VerificationEvent> results = new ArrayList<>();
 		try {
-			scanner.reset();
+			scanner.writeln("reset");
 			scanner.writeln("read_model -i " + file.getAbsolutePath());
 			scanner.writeln("go");
 
-			List<CheckerFormula> formulaList = formulas.stream()
-														.filter(f ->
-																f.getFormula().getLanguage().equalsIgnoreCase("ctlspec") || f.getFormula().getLanguage().equalsIgnoreCase("ltlspec")
-														).collect(Collectors.toList());
+			List<CheckerFormula> formulaList = new ArrayList<>();
+			for (CheckerFormula f: formulas)
+				if (f.getFormula().getLanguage().equalsIgnoreCase("ctlspec") || f.getFormula().getLanguage().equalsIgnoreCase("ltlspec"))
+					formulaList.add(f);
 
 			for (CheckerFormula formula: formulaList) {
 				scanner.writeln((formula.getFormula().getLanguage().equalsIgnoreCase("ctlspec") ? "check_ctlspec" : "check_ltlspec") + " -p " + formula.getCheckerFormula());
@@ -121,12 +121,12 @@ public class NuSMVInteractiveChecker extends Checker {
 		catch (Exception e) {
 			while (scanner.hasNext())
 				outputChecker.append(scanner.next() + "\n");
-
+			e.printStackTrace();
 			throw new CheckerException("Failed to call NuSMV2:\n" + outputChecker);
 		}
 
 		for (String line : scanner.getErrors()) {
-			String trimmed = line.trim();
+			String trimmed = line.trim().strip();
 			if (!trimmed.isEmpty())
 				outputChecker.append(line + "\n");
 		}

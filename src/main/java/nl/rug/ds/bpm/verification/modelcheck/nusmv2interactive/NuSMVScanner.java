@@ -1,5 +1,8 @@
 package nl.rug.ds.bpm.verification.modelcheck.nusmv2interactive;
 
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +39,14 @@ public class NuSMVScanner {
 	}
 
 	public void writeln(String message) {
-		outputStream.println(message);
-		outputStream.flush();
-		read();
+		try {
+			outputStream.println(message);
+			outputStream.flush();
+			read();
+		}
+		catch (Exception e) {
+			Logger.log("Failed to read NuSMV2 feedback for message " + message, LogEvent.ERROR);
+		}
 	}
 
 	public boolean hasNext() {
@@ -69,12 +77,6 @@ public class NuSMVScanner {
 		catch (Exception e) {}
 
 		return results;
-	}
-
-	public void reset() {
-		writeln("reset");
-		while (hasNext())
-			next();
 	}
 
 	public void close() {
