@@ -51,11 +51,19 @@ public class NuSMVFileWriter {
 		contents = sb.toString();
 
 		try {
-			if (file.exists())
+			if (file.length() > 0) {
 				file.delete();
+				file.createNewFile();
+			}
+		} catch (IOException e) {
+			throw new CheckerException("Failed to overwrite file" +  file.toString());
+		}
 
+
+		try {
 			PrintWriter writer = new PrintWriter(file);
 			writer.println(contents);
+			writer.flush();
 			writer.close();
 		} catch (IOException e) {
 			throw new CheckerException("Failed to write to file" +  file.toString());

@@ -57,6 +57,9 @@ public class NuSMVInteractiveChecker extends Checker {
 
 	@Override
 	public void createModel(Kripke kripke) throws CheckerException {
+		inputChecker = new StringBuilder();
+		outputChecker = new StringBuilder();
+
 		List<CheckerFormula> formulaList = formulas.stream().filter(f -> f.getFormula().getLanguage().equalsIgnoreCase("fairness")).collect(Collectors.toList());
 
 		NuSMVFileWriter fileWriter;
