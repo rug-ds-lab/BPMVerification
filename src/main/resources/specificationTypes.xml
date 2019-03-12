@@ -155,6 +155,19 @@
 					fail = "p is not eventually followed by q" />
 		</specificationType>
 
+		<specificationType id="NeverEventualResponse">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">G((!q S p) | H(!p))</formula>
+			</formulas>
+			<message
+					hold = "p is never eventually followed by q"
+					fail = "p may be eventually followed by q" />
+		</specificationType>
+		
 		<specificationType id="FinalEventualResponse">
 			<inputs>
 				<input type="and">p</input>
