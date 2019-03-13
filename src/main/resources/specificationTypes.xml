@@ -168,6 +168,33 @@
 					fail = "p may be eventually followed by q" />
 		</specificationType>
 		
+		<specificationType id="Cooccurrence">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">G(p -> F(q) | H(q))</formula>
+			</formulas>
+			<message
+					hold = "p implies q"
+					fail = "p does not always imply q" />
+		</specificationType>
+		
+		<specificationType id="NoCooccurrence">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+				<input type="or">r</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">F(p) -> G(!q | (q U r))</formula>
+			</formulas>
+			<message
+					hold = "p does not imply q except when r"
+					fail = "p may imply q without r" />
+		</specificationType>
+		
 		<specificationType id="FinalEventualResponse">
 			<inputs>
 				<input type="and">p</input>
