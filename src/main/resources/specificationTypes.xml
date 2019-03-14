@@ -161,7 +161,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G((!q S p) | H(!p))</formula>
+				<formula language="LTLSPEC">G(p -> X(G(!q)))</formula>
 			</formulas>
 			<message
 					hold = "p is never eventually followed by q"
@@ -188,11 +188,39 @@
 				<input type="or">r</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">F(p) -> G(!q | (q U r))</formula>
+				<formula language="LTLSPEC">F(p) -> G(!q | F(r))</formula>
 			</formulas>
 			<message
 					hold = "p does not imply q except when r"
 					fail = "p may imply q without r" />
+		</specificationType>
+				
+				
+		<specificationType id="NoEventualCooccurrence">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">G(p -> G(!q))</formula>
+			</formulas>
+			<message
+					hold = "p does not imply q except when r"
+					fail = "p may imply q without r" />
+		</specificationType>
+		
+		<specificationType id="RequirementCompensation">
+			<inputs>
+				<input type="and">p</input>
+				<input type="and">q</input>
+				<input type="or">r</input>
+			</inputs>
+			<formulas>
+				<formula language="LTLSPEC">G(p -> (H(q) | F(r)))</formula>
+			</formulas>
+			<message
+					hold = "p is preceded by q or succeeded by r"
+					fail = "p is not preceded by q or succeeded by r" />
 		</specificationType>
 		
 		<specificationType id="FinalEventualResponse">
