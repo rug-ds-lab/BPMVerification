@@ -110,8 +110,8 @@ public class SetVerifier {
 			t0 = System.nanoTime();
 			StutterOptimizer stutterOptimizer = new StutterOptimizer(kripke);
 			Logger.log("Partitioning states into stutter blocks", LogEvent.VERBOSE);
-			//stutter.linearPreProcess();
-			stutterOptimizer.treeSearchPreProcess();
+			stutterOptimizer.linearPreProcess();
+			//stutterOptimizer.treeSearchPreProcess();
 			stutterOptimizer.optimize();
 			t1 = System.nanoTime();
 

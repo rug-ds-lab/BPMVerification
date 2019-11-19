@@ -104,7 +104,7 @@ public class Block {
 			Iterator<State> i = s.getNextStates().iterator();
 			while (i.hasNext() && isBottom) {
 				State state = i.next();
-				if(state.getBlock() == this)
+				if(state != s && state.getBlock() == this)
 				//if(nonbottom.contains(state) || bottom.contains(state))
 					isBottom = false;
 			}
@@ -132,7 +132,7 @@ public class Block {
 			Iterator<State> i = s.getNextStates().iterator();
 			while (i.hasNext() && isBottom) {
 				State state = i.next();
-				if(state.getBlock() == this)
+				if(state != s && state.getBlock() == this)
 				//if(nonbottom.contains(state) || bottom.contains(state))
 					isBottom = false;
 			}
