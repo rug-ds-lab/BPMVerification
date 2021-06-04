@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.main;
+package nl.rug.ds.bpm.test;
 
 import nl.rug.ds.bpm.petrinet.ddnet.DataDrivenNet;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;

@@ -1,6 +1,6 @@
 package nl.rug.ds.bpm.specification.jaxb;
 
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

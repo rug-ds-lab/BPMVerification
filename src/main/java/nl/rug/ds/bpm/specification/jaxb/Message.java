@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.specification.jaxb;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
 
 /**
  * Created by Heerko Groefsema on 29-Sep-17.

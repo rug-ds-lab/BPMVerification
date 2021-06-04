@@ -10,21 +10,26 @@ The package provides the following functionality:
 ### Structure
 The package is structured as followed:
 
-* eventStructure
-* main
-* specification
-  * jaxb
-  * map
-  * marshaller
-  * parser
-* variability
-* verification
-  * convert
-  * event
-  * map
-  * model.kripke
-  * modelcheck
-  * optimize
+Under `src/main` you will find
+* nl.rug.ds.bpm
+  * eventStructure
+  * specification
+    * jaxb
+    * map
+    * marshaller
+    * parser
+  * variability
+  * verification
+    * convert
+    * event
+    * map
+    * model.kripke
+    * modelcheck
+    * optimize
+  
+Under `src/test` you will find
+* nl.rug.ds.bpm
+  * test
 
 ### Usage
 The package provides two core functionalities contained within the following classes:
@@ -32,7 +37,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.NetVerifier
 
-Self explanatory examples using these classes can be found in nl.rug.ds.bpm.main.
+Self explanatory examples using these classes can be found in nl.rug.ds.bpm.test in the src/test directory.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
