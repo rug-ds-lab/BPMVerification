@@ -11,12 +11,13 @@ import nl.rug.ds.bpm.util.exception.SpecificationException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
-import nl.rug.ds.bpm.verification.NetVerifier;
+import nl.rug.ds.bpm.verification.VerificationFactory;
+import nl.rug.ds.bpm.verification.checker.Checker;
+import nl.rug.ds.bpm.verification.checker.CheckerFactory;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.verification.modelcheck.Checker;
-import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
-import nl.rug.ds.bpm.verification.modelcheck.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.verifier.Verifier;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -82,10 +83,16 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 			//DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
 
 			//Make a verifier
-			NetVerifier verifier = new NetVerifier(pn, factory);
+			Verifier verifier;
+			if (reduce)
+				verifier = VerificationFactory.createStutterVerifier(pn, VerificationFactory.loadSpecification(new File(specification)), factory);
+			else
+				verifier = VerificationFactory.createKripkeVerifier(pn, VerificationFactory.loadSpecification(new File(specification)), factory);
+
 			verifier.addEventListener(this);
+
 			//Start verification
-			verifier.verify(new File(specification), reduce);
+			verifier.verify();
 		} catch (Exception e) {
 			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
@@ -94,10 +101,16 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 	public void verify(VerifiableNet pn, BPMSpecification specification) {
 		try {
 			//Make a verifier
-			NetVerifier verifier = new NetVerifier(pn, factory);
+			Verifier verifier;
+			if (reduce)
+				verifier = VerificationFactory.createStutterVerifier(pn, specification, factory);
+			else
+				verifier = VerificationFactory.createKripkeVerifier(pn, specification, factory);
+
 			verifier.addEventListener(this);
+
 			//Start verification
-			verifier.verify(specification, reduce);
+			verifier.verify();
 		} catch (Exception e) {
 			Logger.log("Verification failure", LogEvent.CRITICAL);
 		}
@@ -132,17 +145,17 @@ public class InteractiveVerifier implements VerificationEventListener, Verificat
 		return reduce;
 	}
 
+	public long getMaximumStates() {
+		return Verifier.getMaximumStates();
+	}
+
 	//Set maximum size of state space
 	//Safety feature, prevents memory issues
 	//Standard value of 7 million
 	//(equals models of 4 parallel branches with each 50 activities)
 	//Lower if on machine with limited memory
 	public void setMaximumStates(int amount) {
-		NetVerifier.setMaximumStates(amount);
-	}
-
-	public int getMaximumStates() {
-		return NetVerifier.getMaximumStates();
+		Verifier.setMaximumStates(amount);
 	}
 	
 	public int getLogLevel() {

@@ -47,9 +47,17 @@ public class AtomicPropositionMap<T extends Comparable<T>> {
         Logger.log("Remapping " + id.toString() + " to " + ap, LogEvent.VERBOSE);
     }
 
-    public boolean contains(T id) { return map.containsKey(id); }
+    public synchronized void merge(AtomicPropositionMap<T> atomicPropositionMap) {
+        map.putAll(atomicPropositionMap.getMap());
+    }
 
-    public String getAP(T id) { return map.get(id); }
+    public boolean contains(T id) {
+        return map.containsKey(id);
+    }
+
+    public String getAP(T id) {
+        return map.get(id);
+    }
 
     public T getID(String ap) {
         return map.getKey(ap);

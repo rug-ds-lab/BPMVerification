@@ -9,12 +9,13 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.variability.SpecificationToXML;
 import nl.rug.ds.bpm.variability.VariabilitySpecification;
-import nl.rug.ds.bpm.verification.NetVerifier;
+import nl.rug.ds.bpm.verification.VerificationFactory;
+import nl.rug.ds.bpm.verification.checker.Checker;
+import nl.rug.ds.bpm.verification.checker.CheckerFactory;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
-import nl.rug.ds.bpm.verification.modelcheck.Checker;
-import nl.rug.ds.bpm.verification.modelcheck.CheckerFactory;
-import nl.rug.ds.bpm.verification.modelcheck.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.verifier.Verifier;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -73,10 +74,6 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				//Create Petri net object from the first pnml net
 				PlaceTransitionNet pn = new PlaceTransitionNet(pnset.iterator().next());
 
-				//Make a verifier
-				NetVerifier verifier = new NetVerifier(pn, factory);
-				verifier.addEventListener(this);
-
 				if (args.length > 3)
 					Checker.setOutputPath(args[3]);
 				if (args.length > 4)
@@ -86,8 +83,18 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				else
 					Logger.setLogLevel(LogEvent.INFO);
 
+				//Make a verifier
+				Verifier verifier;
+				verifier = VerificationFactory.createMultiVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+//				if (reduce)
+//					verifier = VerificationFactory.createStutterVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+//				else
+//					verifier = VerificationFactory.createKripkeVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+
+				verifier.addEventListener(this);
+
 				//Start verification
-				verifier.verify(spec, reduce);
+				verifier.verify();
 			}
 			else {
 				printUsage();
@@ -113,10 +120,6 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				//Create Petri net object from the first pnml net
 				DataDrivenNet pn = new DataDrivenNet(pnset.iterator().next());
 
-				//Make a verifier
-				NetVerifier verifier = new NetVerifier(pn, factory);
-				verifier.addEventListener(this);
-
 				if (args.length > 3)
 					Checker.setOutputPath(args[3]);
 				if (args.length > 4)
@@ -126,8 +129,17 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				else
 					Logger.setLogLevel(LogEvent.INFO);
 
+				//Make a verifier
+				Verifier verifier;
+				if (reduce)
+					verifier = VerificationFactory.createStutterVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+				else
+					verifier = VerificationFactory.createKripkeVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+
+				verifier.addEventListener(this);
+
 				//Start verification
-				verifier.verify(spec, reduce);
+				verifier.verify();
 			}
 			else {
 				printUsage();
