@@ -185,7 +185,7 @@ public class SubStructure extends AbstractStructure {
      * @param atomicPropositions the set of atomic propositions that hold in this state.
      * @return the created StutterState.
      */
-    public StutterState createState(Set<String> atomicPropositions) {
+    public synchronized StutterState createState(Set<String> atomicPropositions) {
         TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
         ap.addAll(atomicPropositions);
         StutterState state = new StutterState(ap, this);
