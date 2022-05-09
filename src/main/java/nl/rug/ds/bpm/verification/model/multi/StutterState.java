@@ -97,7 +97,7 @@ public class StutterState extends AbstractState {
      * @return true if the merge was successful.
      */
     public boolean merge(StutterState other) {
-        boolean equals = other.equals(this);
+        boolean equals = other.equals(this) && other != this;
 
         if (equals) {
             states.addAll(other.getSubStates());
@@ -107,6 +107,7 @@ public class StutterState extends AbstractState {
 
         return equals;
     }
+
 
     @Override
     public int compareTo(State o) {

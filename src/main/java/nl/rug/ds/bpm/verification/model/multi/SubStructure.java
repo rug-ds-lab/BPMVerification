@@ -9,6 +9,7 @@ import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -100,7 +101,10 @@ public class SubStructure extends AbstractStructure {
         //Else next is not new (nparent != null)
         //    If next has not the same parent as current (cparent != nparent)
         //        If next has the same relevant AP as the parent of current
-        //            Merge parents
+        //            If next is a merge from states of same parents
+        //                Merge parents
+        //            Else next is a merge from states of multiple different parents
+        //                Do nothing
         //        Else next has different relevant AP than the parent of current
         //            If next is a merge from states of multiple different parents
         //                Create a new parent for next
@@ -112,6 +116,7 @@ public class SubStructure extends AbstractStructure {
         //        Do nothing
 
         if (nparent == null) {
+            //TODO method createAP
             TreeSet<String> nap = new TreeSet<String>(new ComparableComparator<String>());
             nap.addAll(next.getAtomicPropositions());
             nap.retainAll(this.atomicPropositions);
@@ -123,29 +128,32 @@ public class SubStructure extends AbstractStructure {
                 next.setParent(this, nparent);
             }
         } else if (cparent != nparent) {
-            if (cparent.equals(nparent))
+            //TODO method mergeable
+            boolean sameParent = true;
+            Iterator<State> previous = next.getPreviousStates().iterator();
+            while (sameParent && previous.hasNext())
+                sameParent = cparent.equals(((MultiState) previous.next()).getParent(this));
+
+            if (cparent.equals(nparent) && sameParent) {
                 cparent.merge(nparent);
-            else {
-                TreeSet<State> previousParents = new TreeSet<State>(new ComparableComparator<State>());
-                for (State previous : next.getPreviousStates())
-                    previousParents.add(((MultiState) previous).getParent(this));
+                states.remove(nparent);
+            } else if (!sameParent) {
+                //TODO method split
+                StutterState newparent = createState(next.getParent(this).getAtomicPropositions());
+                StutterState nextparent = createState(next.getParent(this).getAtomicPropositions());
+                next.setParent(this, newparent);
 
-                if (previousParents.size() > 1) {
-                    StutterState newparent = createState(next.getParent(this).getAtomicPropositions());
-                    StutterState nextparent = createState(next.getParent(this).getAtomicPropositions());
-                    next.setParent(this, newparent);
+                for (State nextOfNext : next.getNextStates())
+                    ((MultiState) nextOfNext).updateParent(this, nparent, nextparent);
 
-                    for (State nextOfNext : next.getNextStates())
-                        ((MultiState) nextOfNext).updateParent(this, nparent, nextparent);
+                if (nextparent.getSubStates().isEmpty())
+                    states.remove(nextparent);
 
-                    if (nextparent.getSubStates().isEmpty())
-                        states.remove(nextparent);
+                if (nparent.getSubStates().isEmpty())
+                    states.remove(nparent);
 
-                    if (nparent.getSubStates().isEmpty())
-                        states.remove(nparent);
 
-                    nparent = newparent;
-                }
+                nparent = newparent;
             }
         }
 
