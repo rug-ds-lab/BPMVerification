@@ -181,6 +181,15 @@ public abstract class AbstractState implements State {
         return previousStates;
     }
 
+    /**
+     * Returns whether this state includes itself as a reachable next state.
+     *
+     * @return true iff this state includes itself as a reachable next state.
+     */
+    public boolean isReflexive() {
+        return getNextStates().stream().anyMatch(s -> s == this);
+    }
+
     @Override
     public String toString() {
         return id + ": {" + hash + "}";

@@ -9,7 +9,6 @@ import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -45,9 +44,6 @@ public class SubStructure extends AbstractStructure {
      */
     @Override
     public synchronized State addInitial(State s) throws ConverterException {
-        if (states.size() >= maximum || atomicPropositions.size() >= maximum)
-            throw new ConverterException("Maximum state space reached (at " + maximum + " states/propositions)");
-
         State known = addState(s);
         initial.add(((MultiState) known).getParent(this));
 
@@ -62,13 +58,8 @@ public class SubStructure extends AbstractStructure {
      */
     public synchronized State addState(MultiState s) {
         if (s.getParent(this) == null) {
-            TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
-            ap.addAll(s.getAtomicPropositions());
-            ap.retainAll(this.atomicPropositions);
-
-            StutterState ss = new StutterState(ap, this);
-            ss.addSubState(s);
-
+            StutterState ss = new StutterState(createAtomicPropositions(s.getAtomicPropositions()), this);
+            ss.addEntryState(s);
             s.setParent(this, ss);
             states.add(ss);
         }
@@ -93,71 +84,46 @@ public class SubStructure extends AbstractStructure {
         StutterState cparent = current.getParent(this);
         StutterState nparent = next.getParent(this);
 
-        //If next is new (nparent == null)
-        //    If next has the same relevant AP as the parent of current
-        //        Add next to current parent
-        //    Else next has different relevant AP than the parent of current
-        //        Create a new parent for next
-        //Else next is not new (nparent != null)
-        //    If next has not the same parent as current (cparent != nparent)
-        //        If next has the same relevant AP as the parent of current
-        //            If next is a merge from states of same parents
-        //                Merge parents
-        //            Else next is a merge from states of multiple different parents
-        //                Do nothing
-        //        Else next has different relevant AP than the parent of current
-        //            If next is a merge from states of multiple different parents
-        //                Create a new parent for next
-        //                Remove next from nparent
-        //                For any future state of next within cparent, create and assign a new parent
-        //            Else next is a merge from single parent
-        //                Do nothing
-        //    Else next has the same parent as current (cparent == nparent)
-        //        Do nothing
+        Set<String> nextRelAP = createAtomicPropositions(next.getAtomicPropositions());
 
-        if (nparent == null) {
-            //TODO method createAP
-            TreeSet<String> nap = new TreeSet<String>(new ComparableComparator<String>());
-            nap.addAll(next.getAtomicPropositions());
-            nap.retainAll(this.atomicPropositions);
+        boolean nextIsNew = nparent == null; // If true, next is not yet in this substructure.
+        boolean nextEqualsCurrentParent = cparent.getAtomicPropositions().equals(nextRelAP); // If true, next belongs in cparent, else next is an entry state and current an exit state.
+        boolean arcCreatesSink = current == next; // The arc is a back arc from and to the same state.
+        boolean arcCreatesLoop = nparent != null && next.isInLoop(this); // The arc is a back arc.
+        boolean haveMergableParents = cparent != nparent && cparent.equals(nparent); // The arc connects mergable parents
 
-            if (nap.equals(cparent.getAtomicPropositions()))
-                next.setParent(this, cparent);
-            else {
-                nparent = createState(nap);
-                next.setParent(this, nparent);
-            }
-        } else if (cparent != nparent) {
-            //TODO method mergeable
-            boolean sameParent = true;
-            Iterator<State> previous = next.getPreviousStates().iterator();
-            while (sameParent && previous.hasNext())
-                sameParent = cparent.equals(((MultiState) previous.next()).getParent(this));
-
-            if (cparent.equals(nparent) && sameParent) {
-                cparent.merge(nparent);
-                states.remove(nparent);
-            } else if (!sameParent) {
-                //TODO method split
-                StutterState newparent = createState(next.getParent(this).getAtomicPropositions());
-                StutterState nextparent = createState(next.getParent(this).getAtomicPropositions());
-                next.setParent(this, newparent);
-
-                for (State nextOfNext : next.getNextStates())
-                    ((MultiState) nextOfNext).updateParent(this, nparent, nextparent);
-
-                if (nextparent.getSubStates().isEmpty())
-                    states.remove(nextparent);
-
-                if (nparent.getSubStates().isEmpty())
-                    states.remove(nparent);
-
-
-                nparent = newparent;
-            }
+        // Initialize nparent if needed
+        if (nextIsNew && nextEqualsCurrentParent)
+            nparent = cparent;
+        else if (nextIsNew) {
+            nparent = createParent(nextRelAP);
         }
 
-        return nparent;
+        // Add next to the nparent
+        nparent.addSubState(next);
+        next.setParent(this, nparent);
+
+        // Add next as an entry state if it differs from cparent
+        if (!nextEqualsCurrentParent)
+            nparent.addEntryState(next);
+
+        // Merge and split parents if needed
+        if (haveMergableParents) {
+            cparent.merge(nparent);
+            boolean split = cparent.split(createParent(cparent.getAtomicPropositions()));
+            while (split)
+                split = cparent.split(createParent(cparent.getAtomicPropositions()));
+        }
+
+        // Add current as an exit state and split if needed
+        if (arcCreatesLoop || arcCreatesSink || !nextEqualsCurrentParent) {
+            cparent.addExitState(current);
+            boolean split = cparent.split(createParent(cparent.getAtomicPropositions()));
+            while (split)
+                split = cparent.split(createParent(cparent.getAtomicPropositions()));
+        }
+
+        return next;
     }
 
     @Override
@@ -188,12 +154,27 @@ public class SubStructure extends AbstractStructure {
     }
 
     /**
+     * Returns the set of relevant atomic propositions to this SubStructure within a given set.
+     *
+     * @param atomicPropositions a given set of atomic propositions
+     * @return the set of relevant atomic propositions to this SubStructure within a given set.
+     */
+    public synchronized Set<String> createAtomicPropositions(Set<String> atomicPropositions) {
+        TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
+
+        ap.addAll(atomicPropositions);
+        ap.retainAll(this.atomicPropositions);
+
+        return ap;
+    }
+
+    /**
      * Creates and adds a new StutterState to this SubStructure.
      *
      * @param atomicPropositions the set of atomic propositions that hold in this state.
      * @return the created StutterState.
      */
-    public synchronized StutterState createState(Set<String> atomicPropositions) {
+    public synchronized StutterState createParent(Set<String> atomicPropositions) {
         TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
         ap.addAll(atomicPropositions);
         StutterState state = new StutterState(ap, this);

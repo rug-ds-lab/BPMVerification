@@ -90,7 +90,11 @@ public class MultiStructureConverterAction extends AbstractConverterAction {
                 if (isNew(created, found) && !isSink(enabled))
                     nextActions.addAll(nextActions(found, enabled));
                 else {
-                    makeSink(found);
+                    multiStructure.addNext(found, found); //makeSink(found);
+
+                    for (SubStructure subStructure : multiStructure.getSubStructures())
+                        subStructure.addNext(found, found);
+
                     Logger.log("Encountered empty initial marking, setting sink state.", LogEvent.WARNING);
                 }
             } catch (ConverterException e) {
@@ -127,8 +131,11 @@ public class MultiStructureConverterAction extends AbstractConverterAction {
                 }
 
                 if (isNew(created, found)) {
-                    if (isSink(enabled))
-                        makeSink(found);
+                    if (isSink(enabled)) {
+                        multiStructure.addNext(found, found); //makeSink(found);
+                        for (SubStructure subStructure : multiStructure.getSubStructures())
+                            subStructure.addNext(found, found);
+                    }
 
                     nextActions.addAll(nextActions(found, enabled));
                 }
