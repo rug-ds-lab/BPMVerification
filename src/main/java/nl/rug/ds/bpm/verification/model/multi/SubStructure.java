@@ -6,9 +6,13 @@ import nl.rug.ds.bpm.expression.LogicalType;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.ConverterException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
+import nl.rug.ds.bpm.util.pair.Pair;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -18,6 +22,7 @@ import java.util.TreeSet;
 public class SubStructure extends AbstractStructure {
     private final SpecificationSet specificationSet;
     private final CompositeExpression conditionExpression;
+    private final Set<Pair<MultiState, MultiState>> relations;
 
     /**
      * Creates a substructure.
@@ -31,6 +36,7 @@ public class SubStructure extends AbstractStructure {
         this.atomicPropositions.addAll(atomicPropositions);
 
         conditionExpression = new CompositeExpression(LogicalType.AND);
+        relations = new HashSet<>();
 
         for (String condition : conditions)
             conditionExpression.addArgument(ExpressionBuilder.parseExpression(condition));
@@ -74,13 +80,15 @@ public class SubStructure extends AbstractStructure {
 
     /**
      * Add a relation from the given current state to the given next state.
-     * Assign stutter states accordingly, but don't add relations between stutter states (done after assigning all).
+     * Assign stutter states accordingly, track relations between stutter states as pairs of Exit-Entry MultiStates.
+     * Merge but don't split. Split during finalize.
      *
      * @param current a state current to this transition system.
      * @param next    the state that must become accessible from the given current state.
      * @return next if new, otherwise the known equaling state.
      */
     public synchronized State addNext(MultiState current, MultiState next) {
+        Logger.log("AddNext StutterState: " + current + " to " + next, LogEvent.DEBUG);
         StutterState cparent = current.getParent(this);
         StutterState nparent = next.getParent(this);
 
@@ -89,38 +97,43 @@ public class SubStructure extends AbstractStructure {
         boolean nextIsNew = nparent == null; // If true, next is not yet in this substructure.
         boolean nextEqualsCurrentParent = cparent.getAtomicPropositions().equals(nextRelAP); // If true, next belongs in cparent, else next is an entry state and current an exit state.
         boolean arcCreatesSink = current == next; // The arc is a back arc from and to the same state.
-        boolean arcCreatesLoop = nparent != null && next.isInLoop(this); // The arc is a back arc.
+        boolean arcCreatesLoop = nparent != null && current.isInLoop(this); // The arc is a back arc.
         boolean haveMergableParents = cparent != nparent && cparent.equals(nparent); // The arc connects mergable parents
 
         // Initialize nparent if needed
-        if (nextIsNew && nextEqualsCurrentParent)
+        if (nextIsNew && nextEqualsCurrentParent) {
             nparent = cparent;
-        else if (nextIsNew) {
+            Logger.log("Same parent " + next, LogEvent.DEBUG);
+        } else if (nextIsNew) {
             nparent = createParent(nextRelAP);
-        }
+            Logger.log("New parent " + next, LogEvent.DEBUG);
+        } else
+            Logger.log("Existing new parent " + next, LogEvent.DEBUG);
 
         // Add next to the nparent
-        nparent.addSubState(next);
-        next.setParent(this, nparent);
+        if (nextIsNew) {
+            next.setParent(this, nparent);
+        }
 
         // Add next as an entry state if it differs from cparent
-        if (!nextEqualsCurrentParent)
+        if (!nextEqualsCurrentParent) {
             nparent.addEntryState(next);
+            Logger.log("Is entry " + next, LogEvent.DEBUG);
+        }
 
         // Merge and split parents if needed
         if (haveMergableParents) {
-            cparent.merge(nparent);
-            boolean split = cparent.split(createParent(cparent.getAtomicPropositions()));
-            while (split)
-                split = cparent.split(createParent(cparent.getAtomicPropositions()));
+            if (cparent.merge(nparent)) {
+                states.remove(nparent);
+                Logger.log("Merged " + cparent, LogEvent.DEBUG);
+            }
         }
 
         // Add current as an exit state and split if needed
         if (arcCreatesLoop || arcCreatesSink || !nextEqualsCurrentParent) {
             cparent.addExitState(current);
-            boolean split = cparent.split(createParent(cparent.getAtomicPropositions()));
-            while (split)
-                split = cparent.split(createParent(cparent.getAtomicPropositions()));
+            relations.add(new Pair<>(current, next));
+            Logger.log("Creates exit " + next, LogEvent.DEBUG);
         }
 
         return next;
@@ -188,25 +201,31 @@ public class SubStructure extends AbstractStructure {
      * adding a safety state, and clearing pointers to the full state space.
      */
     public void finalizeStructure() {
-        states.add(new StutterState(atomicPropositions, this));
+        Set<StutterState> toAdd = new TreeSet<StutterState>(new ComparableComparator<State>());
 
-        for (State stutterState : states) {
-            for (State child : ((StutterState) stutterState).getSubStates()) {
-                for (State nextChild : child.getNextStates()) {
-                    StutterState nextParent = ((MultiState) nextChild).getParent(this);
-                    if (stutterState.compareTo(nextParent) != 0) {
-                        stutterState.addNext(nextParent);
-                        nextParent.addPrevious(stutterState);
-                    }
-                }
+        StutterState safety = new StutterState(atomicPropositions, this);
+        safety.addNext(safety);
+        safety.addPrevious(safety);
+        toAdd.add(safety);
+
+        for (State state : states) {
+            StutterState block = (StutterState) state;
+            StutterState split = block.split();
+            while (split != null) {
+                toAdd.add(split);
+                block.addNext(split);
+                split.addPrevious(block);
+
+                Logger.log("Split while " + split, LogEvent.DEBUG);
+                split = block.split();
             }
+        }
 
-            ((StutterState) stutterState).getSubStates().clear();
+        states.addAll(toAdd);
 
-            if (stutterState.getNextStates().isEmpty()) {
-                stutterState.addNext(stutterState);
-                stutterState.addPrevious(stutterState);
-            }
+        for (Pair<MultiState, MultiState> relation : relations) {
+            relation.getFirst().getParent(this).addNext(relation.getSecond().getParent(this));
+            relation.getSecond().getParent(this).addPrevious(relation.getFirst().getParent(this));
         }
     }
 }

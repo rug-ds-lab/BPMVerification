@@ -1,6 +1,8 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
 
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
 
@@ -61,30 +63,15 @@ public class MultiState extends KripkeState {
     }
 
     /**
-     * Updates the parent of this and all next states within the given substructure while they belong to current.
-     *
-     * @param subStructure the SubStructure the given parent belongs to.
-     * @param current      the currently assigned parent.
-     * @param newparent    the parent to assign.
-     */
-    public void updateNextParents(SubStructure subStructure, StutterState current, StutterState newparent) {
-        if (parents.get(subStructure) == current) {
-            setParent(subStructure, newparent);
-
-            for (State next : getNextStates())
-                ((MultiState) next).updateNextParents(subStructure, current, newparent);
-        }
-    }
-
-    /**
-     * Updates the parent of this and all previous states within the given substructure while they belong to current.
+     * Updates the parent of this and all previous states within the given substructure while
+     * they belong to current and have no other reachable parents.
      *
      * @param subStructure the SubStructure the given parent belongs to.
      * @param current      the currently assigned parent.
      * @param newparent    the parent to assign.
      */
     public void updatePreviousParents(SubStructure subStructure, StutterState current, StutterState newparent) {
-        if (parents.get(subStructure) == current) {
+        if (parents.get(subStructure) == current && getNextParents(subStructure).stream().allMatch(p -> p == newparent)) {
             setParent(subStructure, newparent);
 
             for (State previous : getPreviousStates())
@@ -124,7 +111,7 @@ public class MultiState extends KripkeState {
      * @return Set of StutterStates.
      */
     public Set<StutterState> getNextParents(SubStructure subStructure) {
-        return nextStates.stream().map(s -> ((MultiState) s).getParent(subStructure)).collect(Collectors.toSet());
+        return nextStates.stream().filter(s -> s != this).map(s -> ((MultiState) s).getParent(subStructure)).collect(Collectors.toSet());
     }
 
     /**
@@ -137,7 +124,10 @@ public class MultiState extends KripkeState {
         StutterState parent = getParent(subStructure);
         Set<StutterState> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> ((MultiState) s).getNextParents(subStructure).stream()).collect(Collectors.toSet());
 
-        return parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
+        boolean splitter = parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
+        Logger.log("Is splitter " + this + " others: " + otherParents.stream().map(Objects::toString).collect(Collectors.joining(",")) + " is " + splitter, LogEvent.DEBUG);
+
+        return splitter;
     }
 
     @Override

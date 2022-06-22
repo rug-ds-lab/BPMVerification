@@ -90,11 +90,6 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
         Logger.log("Calculating multi structure", LogEvent.INFO);
         double delta = compute(structureFactory.createConverter(net, net.getInitialMarking(), structure));
         Logger.log("Calculated multi structure with " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
-        if (Logger.getLogLevel() <= LogEvent.DEBUG) {
-            Logger.log("\n" + structure, LogEvent.DEBUG);
-            for (SubStructure subStructure : ((MultiStructure) structure).getSubStructures())
-                Logger.log("Substructure:\n" + subStructure, LogEvent.DEBUG);
-        }
     }
 
     /**
@@ -120,6 +115,12 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
      */
     protected void finalize(Structure structure) {
         ((MultiStructure) structure).finalizeStructure();
+
+        if (Logger.getLogLevel() <= LogEvent.DEBUG) {
+            Logger.log("\n" + structure, LogEvent.DEBUG);
+            for (SubStructure subStructure : ((MultiStructure) structure).getSubStructures())
+                Logger.log("Substructure:\n" + subStructure, LogEvent.DEBUG);
+        }
     }
 
     /**

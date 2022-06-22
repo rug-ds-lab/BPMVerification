@@ -186,10 +186,15 @@ public class StutterState extends AbstractState {
         return equals;
     }
 
-    public boolean split(StutterState newparent) {
+    public StutterState split() {
         MultiState splitter = (MultiState) exitStates.stream().filter(s -> ((MultiState) s).isSplitter(this.parent)).findFirst().orElse(null);
+        StutterState newparent = null;
 
         if (splitter != null) {
+            TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
+            ap.addAll(this.atomicPropositions);
+            newparent = new StutterState(ap, this.parent);
+
             splitter.updatePreviousParents(this.parent, this, newparent);
             newparent.addExitState(splitter);
 
@@ -198,7 +203,7 @@ public class StutterState extends AbstractState {
                     newparent.addEntryState(s);
         }
 
-        return splitter != null;
+        return newparent;
     }
 
     @Override
