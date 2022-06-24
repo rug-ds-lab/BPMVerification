@@ -51,7 +51,7 @@ public class SubStructure extends AbstractStructure {
     @Override
     public synchronized State addInitial(State s) throws ConverterException {
         State known = addState(s);
-        initial.add(((MultiState) known).getParent(this));
+        addRelation(null, (MultiState) s);
 
         return known;
     }
@@ -64,8 +64,7 @@ public class SubStructure extends AbstractStructure {
      */
     public synchronized State addState(MultiState s) {
         if (s.getParent(this) == null) {
-            StutterState ss = new StutterState(createAtomicPropositions(s.getAtomicPropositions()), this);
-            ss.addEntryState(s);
+            StutterState ss = createParent(createAtomicPropositions(s.getAtomicPropositions()));
             s.setParent(this, ss);
             states.add(ss);
         }
@@ -115,12 +114,6 @@ public class SubStructure extends AbstractStructure {
             next.setParent(this, nparent);
         }
 
-        // Add next as an entry state if it differs from cparent
-        if (!nextEqualsCurrentParent) {
-            nparent.addEntryState(next);
-            Logger.log("Is entry " + next, LogEvent.DEBUG);
-        }
-
         // Merge and split parents if needed
         if (haveMergableParents) {
             if (cparent.merge(nparent)) {
@@ -132,7 +125,7 @@ public class SubStructure extends AbstractStructure {
         // Add current as an exit state and split if needed
         if (arcCreatesLoop || arcCreatesSink || !nextEqualsCurrentParent) {
             cparent.addExitState(current);
-            relations.add(new Pair<>(current, next));
+            addRelation(current, next);
             Logger.log("Creates exit " + next, LogEvent.DEBUG);
         }
 
@@ -145,6 +138,11 @@ public class SubStructure extends AbstractStructure {
         if (current.getClass() == MultiState.class && next.getClass() == MultiState.class)
             r = addNext((MultiState) current, (MultiState) next);
         return r;
+    }
+
+    public void addRelation(MultiState current, MultiState next) {
+        relations.add(new Pair<>(current, next));
+        Logger.log("Adding block relation from " + current + " to " + next, LogEvent.DEBUG);
     }
 
     /**
@@ -213,9 +211,6 @@ public class SubStructure extends AbstractStructure {
             StutterState split = block.split();
             while (split != null) {
                 toAdd.add(split);
-                block.addNext(split);
-                split.addPrevious(block);
-
                 Logger.log("Split while " + split, LogEvent.DEBUG);
                 split = block.split();
             }
@@ -224,8 +219,12 @@ public class SubStructure extends AbstractStructure {
         states.addAll(toAdd);
 
         for (Pair<MultiState, MultiState> relation : relations) {
-            relation.getFirst().getParent(this).addNext(relation.getSecond().getParent(this));
-            relation.getSecond().getParent(this).addPrevious(relation.getFirst().getParent(this));
+            if (relation.getFirst() == null)
+                initial.add(relation.getSecond().getParent(this));
+            else {
+                relation.getFirst().getParent(this).addNext(relation.getSecond().getParent(this));
+                relation.getSecond().getParent(this).addPrevious(relation.getFirst().getParent(this));
+            }
         }
     }
 }

@@ -15,22 +15,20 @@ import java.util.stream.Collectors;
  */
 public class StutterState extends AbstractState {
     protected TreeSet<State> states;
-    protected TreeSet<State> entryStates;
     protected TreeSet<State> exitStates;
-    protected SubStructure parent;
+    protected SubStructure subStructure;
 
     /**
      * Creates a stutter state.
      *
      * @param atomicPropositions the atomic propositions that hold in this state.
-     * @param parent             the substructure this stutter state belongs to.
+     * @param subStructure       the substructure this stutter state belongs to.
      */
-    public StutterState(Set<String> atomicPropositions, SubStructure parent) {
+    public StutterState(Set<String> atomicPropositions, SubStructure subStructure) {
         super(atomicPropositions);
         states = new TreeSet<State>(new ComparableComparator<State>());
-        entryStates = new TreeSet<State>(new ComparableComparator<State>());
         exitStates = new TreeSet<State>(new ComparableComparator<State>());
-        this.parent = parent;
+        this.subStructure = subStructure;
     }
 
     @Override
@@ -72,7 +70,7 @@ public class StutterState extends AbstractState {
      * @return true if the set of sub-states changed as a result of this call.
      */
     public boolean removeSubState(State s) {
-        return states.remove(s) || entryStates.remove(s) || exitStates.remove(s);
+        return states.remove(s) || exitStates.remove(s);
     }
 
     /**
@@ -82,7 +80,7 @@ public class StutterState extends AbstractState {
      * @return true if the set of sub-states changed as a result of this call.
      */
     public boolean removeSubStates(Set<State> s) {
-        return states.removeAll(s) || entryStates.removeAll(s) || exitStates.removeAll(s);
+        return states.removeAll(s) || exitStates.removeAll(s);
     }
 
     /**
@@ -92,35 +90,6 @@ public class StutterState extends AbstractState {
      */
     public Set<State> getSubStates() {
         return states;
-    }
-
-    /**
-     * Add an entry state to this stutter state.
-     *
-     * @param s the state to add.
-     * @return true if this stutter state did not already contain the given state as an entry state.
-     */
-    public boolean addEntryState(State s) {
-        return entryStates.add(s);
-    }
-
-    /**
-     * Remove a state from the entry states of this stutter state.
-     *
-     * @param s the state to remove.
-     * @return true if the state was removed from the entry states of this stutter state.
-     */
-    public boolean removeEntryState(State s) {
-        return entryStates.remove(s);
-    }
-
-    /**
-     * Returns the set of entry states that are part of this stutter state.
-     *
-     * @return the set of entry states that are part of this stutter state.
-     */
-    public TreeSet<State> getEntryStates() {
-        return entryStates;
     }
 
     /**
@@ -174,36 +143,38 @@ public class StutterState extends AbstractState {
         if (equals) {
             states.addAll(other.getSubStates());
             for (State ms : other.getSubStates())
-                ((MultiState) ms).setParent(this.parent, this);
-            for (State entry : other.getEntryStates())
-                if (!entry.getPreviousStates().stream().allMatch(e -> ((MultiState) e).getParent(this.parent) == this))
-                    entryStates.add(entry);
-            for (State exit : other.getEntryStates())
-                if (!exit.getNextStates().stream().allMatch(e -> ((MultiState) e).getParent(this.parent) == this))
-                    entryStates.add(exit);
+                ((MultiState) ms).setParent(this.subStructure, this);
         }
 
         return equals;
     }
 
     public StutterState split() {
-        MultiState splitter = (MultiState) exitStates.stream().filter(s -> ((MultiState) s).isSplitter(this.parent)).findFirst().orElse(null);
-        StutterState newparent = null;
+        MultiState splitter = (MultiState) exitStates.stream().filter(s -> ((MultiState) s).isSplitter(this.subStructure)).findFirst().orElse(null);
 
         if (splitter != null) {
-            TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
-            ap.addAll(this.atomicPropositions);
-            newparent = new StutterState(ap, this.parent);
+            StutterState newparent = new StutterState(this.subStructure.createAtomicPropositions(this.atomicPropositions), this.subStructure);
 
-            splitter.updatePreviousParents(this.parent, this, newparent);
-            newparent.addExitState(splitter);
+            splitter.setParent(subStructure, newparent);
+            for (State prev : splitter.getPreviousStates())
+                ((MultiState) prev).updatePreviousParents(this.subStructure, this, newparent);
+
+            for (State s : getSubStates())
+                for (State next : s.getNextStates())
+                    if (((MultiState) next).getParent(this.subStructure) != this) {
+                        addExitState(s);
+                        this.subStructure.addRelation((MultiState) s, (MultiState) next);
+                    }
 
             for (State s : newparent.getSubStates())
-                if (s.getPreviousStates().stream().anyMatch(state -> ((MultiState) s).getParent(this.parent) != this))
-                    newparent.addEntryState(s);
+                for (State next : s.getNextStates())
+                    if (((MultiState) next).getParent(this.subStructure) != newparent) {
+                        addExitState(s);
+                        this.subStructure.addRelation((MultiState) s, (MultiState) next);
+                    }
         }
 
-        return newparent;
+        return (splitter == null ? null : splitter.getParent(this.subStructure));
     }
 
     @Override
