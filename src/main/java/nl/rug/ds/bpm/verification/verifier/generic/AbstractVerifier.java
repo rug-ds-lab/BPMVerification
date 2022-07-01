@@ -14,6 +14,8 @@ import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.event.EventHandler;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
+import nl.rug.ds.bpm.verification.model.State;
+import nl.rug.ds.bpm.verification.model.Structure;
 import nl.rug.ds.bpm.verification.model.StructureFactory;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 
@@ -25,18 +27,18 @@ import java.util.Locale;
 /**
  * Abstract class representing a verifier.
  */
-public abstract class AbstractVerifier implements Verifier {
-	protected StructureFactory structureFactory;
-	protected EventHandler eventHandler;
+public abstract class AbstractVerifier<F extends StructureFactory<? extends State<?>, ? extends Structure<?>>> implements Verifier {
+    protected F structureFactory;
+    protected EventHandler eventHandler;
 
-	protected VerifiableNet net;
-	protected BPMSpecification specification;
-	protected CheckerFactory checkerFactory;
+    protected VerifiableNet net;
+    protected BPMSpecification specification;
+    protected CheckerFactory checkerFactory;
 
-	protected HashMap<String, SpecificationType> specificationTypes;
+    protected HashMap<String, SpecificationType> specificationTypes;
 
-	/**
-	 * Creates the abstract verifier.
+    /**
+     * Creates the abstract verifier.
 	 *
 	 * @param net            The VerifiableNet that represents the model on which the given specification must be verified.
 	 * @param specification  The specification must be verified on the given model (i.e., net).

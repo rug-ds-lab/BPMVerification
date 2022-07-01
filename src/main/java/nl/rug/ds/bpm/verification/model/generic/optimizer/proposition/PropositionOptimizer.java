@@ -1,8 +1,8 @@
 package nl.rug.ds.bpm.verification.model.generic.optimizer.proposition;
 
 import nl.rug.ds.bpm.util.comparator.StringComparator;
-import nl.rug.ds.bpm.verification.model.State;
-import nl.rug.ds.bpm.verification.model.Structure;
+import nl.rug.ds.bpm.verification.model.generic.AbstractState;
+import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -11,15 +11,15 @@ import java.util.TreeSet;
  * Class that optimizes a Structure by removing irrelevant atomic propositions.
  */
 public class PropositionOptimizer {
-    private Structure structure;
-    private TreeSet<String> optimizedPropositions;
+    private final AbstractStructure<? extends AbstractState<?>> structure;
+    private final TreeSet<String> optimizedPropositions;
 
     /**
      * Creates a PropositionOptimizer to optimize the given Structure.
      *
      * @param structure the Structure to optimize.
      */
-    public PropositionOptimizer(Structure structure) {
+    public PropositionOptimizer(AbstractStructure<? extends AbstractState<?>> structure) {
         this.structure = structure;
         optimizedPropositions = new TreeSet<>(new StringComparator());
     }
@@ -30,7 +30,7 @@ public class PropositionOptimizer {
      * @param structure the Structure to optimize.
      * @param AP        the set of atomic propositions to remove.
      */
-    public PropositionOptimizer(Structure structure, Set<String> AP) {
+    public PropositionOptimizer(AbstractStructure<? extends AbstractState<?>> structure, Set<String> AP) {
         this(structure);
         optimize(AP);
     }
@@ -43,7 +43,7 @@ public class PropositionOptimizer {
     public void optimize(Set<String> AP) {
         optimizedPropositions.addAll(AP);
 
-        for (State s : structure.getStates())
+        for (AbstractState<?> s : structure.getStates())
             s.removeAtomicPropositions(AP);
 
         structure.getAtomicPropositions().removeAll(AP);

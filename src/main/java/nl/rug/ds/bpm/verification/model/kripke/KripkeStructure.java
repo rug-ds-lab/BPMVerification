@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * Class that implements a Kripke structure transition system.
  */
-public class KripkeStructure extends AbstractStructure {
+public class KripkeStructure extends AbstractStructure<KripkeState> {
 
     /**
      * Creates a Kripke structure.

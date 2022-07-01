@@ -11,12 +11,12 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.converter.ConverterAction;
+import nl.rug.ds.bpm.verification.converter.kripke.KripkeStructureConverterAction;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.ConditionalStructure;
-import nl.rug.ds.bpm.verification.model.State;
-import nl.rug.ds.bpm.verification.model.Structure;
+import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
+import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 import nl.rug.ds.bpm.verification.model.kripke.factory.KripkeFactory;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 import nl.rug.ds.bpm.verification.verifier.generic.AbstractVerifier;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Class implementing a Verifier that uses a Kripke structure.
  */
-public class KripkeVerifier extends AbstractVerifier implements Verifier {
+public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements Verifier {
 
 	/**
 	 * Creates a KripkeVerifier.
@@ -62,8 +62,8 @@ public class KripkeVerifier extends AbstractVerifier implements Verifier {
 		structureFactory.getAtomicPropositionMap().merge(specificationPropositions);
 
 		Checker checker = checkerFactory.getChecker();
-		Structure structure = structureFactory.createStructure();
-		addConditions((ConditionalStructure) structure, specificationSet.getConditions());
+		KripkeStructure structure = structureFactory.createStructure();
+		addConditions(structure, specificationSet.getConditions());
 
 		try {
 			compute(structure);
@@ -98,7 +98,7 @@ public class KripkeVerifier extends AbstractVerifier implements Verifier {
 	 *
 	 * @param structure the Structure to populate.
 	 */
-	protected void compute(Structure structure) {
+	protected void compute(KripkeStructure structure) {
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		double delta = compute(structureFactory.createConverter(net, net.getInitialMarking(), structure));
 		Logger.log("Calculated Kripke structure with " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
@@ -112,7 +112,7 @@ public class KripkeVerifier extends AbstractVerifier implements Verifier {
 	 * @param converter the initial conversion step to start the computation from.
 	 * @return the time it took to compute the Structure in nanoseconds.
 	 */
-	protected double compute(ConverterAction converter) {
+	protected double compute(KripkeStructureConverterAction converter) {
 		long t0 = System.nanoTime();
 		converter.computeInitial();
 		long t1 = System.nanoTime();
@@ -129,8 +129,8 @@ public class KripkeVerifier extends AbstractVerifier implements Verifier {
 	 * @param ap        the atomic propositions used.
 	 * @throws ConverterException when the State con not be added.
 	 */
-	protected void finalize(Structure structure, AtomicPropositionMap<CompositeExpression> ap) throws ConverterException {
-		State ghost = structureFactory.createState("ghost", ap.getAPKeys());
+	protected void finalize(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) throws ConverterException {
+		KripkeState ghost = structureFactory.createState("ghost", ap.getAPKeys());
 		ghost.addNext(ghost);
 		ghost.addPrevious(ghost);
 
@@ -145,7 +145,7 @@ public class KripkeVerifier extends AbstractVerifier implements Verifier {
 	 * @param specifications the (sub)set of Specifications to include.
 	 * @throws CheckerException when the conversion fails.
 	 */
-	protected void convert(Checker checker, Structure structure, SpecificationSet specifications) throws CheckerException {
+	protected void convert(Checker checker, KripkeStructure structure, SpecificationSet specifications) throws CheckerException {
 		Logger.log("Collecting specifications", LogEvent.INFO);
 		for (Specification specification : specifications.getSpecifications())
 			for (Formula formula : specification.getSpecificationType().getFormulas())

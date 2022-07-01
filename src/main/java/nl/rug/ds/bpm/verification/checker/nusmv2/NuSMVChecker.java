@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
@@ -9,6 +10,7 @@ import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
+import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
 
 import java.io.*;
@@ -27,14 +29,14 @@ public class NuSMVChecker extends Checker {
 	}
 
 	@Override
-	public void addFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
+	public void addFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
 		NuSMVFormula nuSMVFormula = new NuSMVFormula(formula, specification, atomicPropositionMap);
 		formulas.add(nuSMVFormula);
 		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
 	}
 
 	@Override
-	public void createModel(Structure structure) throws CheckerException {
+	public void createModel(Structure<? extends State<?>> structure) throws CheckerException {
 		NuSMVFileWriter fileWriter;
 		if (out == null)
 			fileWriter = new NuSMVFileWriter(structure, formulas, id);

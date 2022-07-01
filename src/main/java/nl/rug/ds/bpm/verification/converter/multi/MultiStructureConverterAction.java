@@ -8,10 +8,8 @@ import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.converter.generic.AbstractConverterAction;
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.multi.MultiState;
 import nl.rug.ds.bpm.verification.model.multi.MultiStructure;
-import nl.rug.ds.bpm.verification.model.multi.SubStructure;
 import nl.rug.ds.bpm.verification.model.multi.factory.MultiFactory;
 
 import java.util.HashSet;
@@ -22,7 +20,7 @@ import java.util.concurrent.RecursiveAction;
 /**
  * Class that converts a given VerifiableNet into a MultiStructure using RecursiveActions.
  */
-public class MultiStructureConverterAction extends AbstractConverterAction {
+public class MultiStructureConverterAction extends AbstractConverterAction<MultiState> {
     private final MultiFactory multiFactory;
     private final MultiStructure multiStructure;
     private MultiState previous;
@@ -73,27 +71,17 @@ public class MultiStructureConverterAction extends AbstractConverterAction {
             TreeSet<String> AP = multiFactory.addAtomicPropositions(expressions);
             AP.addAll(multiFactory.addAtomicPropositions(multiFactory.inferExpressions(expressions)));
 
-            MultiState created = (MultiState) multiFactory.createState(marking.toString(), AP);
+            MultiState created = multiFactory.createState(marking.toString(), AP);
             CompositeExpression stateExpression = multiFactory.composeExpressions(expressions);
             CompositeExpression guardExpression = multiFactory.composeExpressions(guardExpressions);
 
             try {
-                State found = multiStructure.addInitial(created);
-
-                for (SubStructure subStructure : multiStructure.getSubStructures()) {
-                    if (subStructure.contradicts(stateExpression) || subStructure.contradicts(guardExpression))
-                        subStructure.addState(found);
-                    else
-                        subStructure.addInitial(found);
-                }
+                MultiState found = multiStructure.addInitial(created, stateExpression, guardExpression);
 
                 if (isNew(created, found) && !isSink(enabled))
                     nextActions.addAll(nextActions(found, enabled));
                 else {
-                    multiStructure.addNext(found, found); //makeSink(found);
-
-                    for (SubStructure subStructure : multiStructure.getSubStructures())
-                        subStructure.addNext(found, found);
+                    multiStructure.addNext(found, found, stateExpression, guardExpression); //makeSink(found);
 
                     Logger.log("Encountered empty initial marking, setting sink state.", LogEvent.WARNING);
                 }
@@ -116,25 +104,16 @@ public class MultiStructureConverterAction extends AbstractConverterAction {
             TreeSet<String> AP = multiFactory.addAtomicPropositions(expressions);
             AP.addAll(multiFactory.addAtomicPropositions(multiFactory.inferExpressions(expressions)));
 
-            MultiState created = (MultiState) multiFactory.createState(marking.toString(), AP);
+            MultiState created = multiFactory.createState(marking.toString(), AP);
             CompositeExpression stateExpression = multiFactory.composeExpressions(expressions);
             CompositeExpression guardExpression = multiFactory.composeExpressions(guardExpressions);
 
             try {
-                State found = multiStructure.addNext(previous, created);
-
-                for (SubStructure subStructure : multiStructure.getSubStructures()) {
-                    if (subStructure.contradicts(stateExpression) || subStructure.contradicts(guardExpression))
-                        subStructure.addState(found);
-                    else
-                        subStructure.addNext(previous, found);
-                }
+                MultiState found = multiStructure.addNext(previous, created, stateExpression, guardExpression);
 
                 if (isNew(created, found)) {
                     if (isSink(enabled)) {
-                        multiStructure.addNext(found, found); //makeSink(found);
-                        for (SubStructure subStructure : multiStructure.getSubStructures())
-                            subStructure.addNext(found, found);
+                        multiStructure.addNext(found, found, stateExpression, guardExpression); //makeSink(found);
                     }
 
                     nextActions.addAll(nextActions(found, enabled));
@@ -154,11 +133,11 @@ public class MultiStructureConverterAction extends AbstractConverterAction {
      * @return a set of ConverterActions.
      */
     @Override
-    public Set<? extends RecursiveAction> nextActions(State created, Set<? extends TransitionI> enabled) {
+    public Set<? extends RecursiveAction> nextActions(MultiState created, Set<? extends TransitionI> enabled) {
         Set<MultiStructureConverterAction> nextActions = new HashSet<>();
         for (TransitionI transition : enabled)
             for (MarkingI step : net.fireTransition(transition, marking))
-                nextActions.add(new MultiStructureConverterAction(this.net, step, transition, this.multiFactory, this.multiStructure, (MultiState) created));
+                nextActions.add(new MultiStructureConverterAction(this.net, step, transition, this.multiFactory, this.multiStructure, created));
 
         return nextActions;
     }

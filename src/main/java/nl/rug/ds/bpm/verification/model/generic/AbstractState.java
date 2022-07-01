@@ -13,13 +13,13 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * An abstract state of a transition system.
  */
-public abstract class AbstractState implements State {
+public abstract class AbstractState<S extends State<S>> implements State<S> {
     protected static ReentrantLock lock = new ReentrantLock();
     protected static long stateID = 0;
     protected String id;
     protected String hash;
     protected Set<String> atomicPropositions;
-    protected Set<State> nextStates, previousStates;
+    protected Set<S> nextStates, previousStates;
 
     /**
      * Creates an abstract state.
@@ -106,7 +106,6 @@ public abstract class AbstractState implements State {
      *
      * @param APs the set of atomic propositions to remove.
      */
-    @Override
     public void removeAtomicPropositions(Set<String> APs) {
         atomicPropositions.removeAll(APs);
         hash = String.join("", atomicPropositions);
@@ -117,7 +116,6 @@ public abstract class AbstractState implements State {
      *
      * @param APs the set of atomic propositions to add.
      */
-    @Override
     public void addAtomicPropositions(Set<String> APs) {
         atomicPropositions.addAll(APs);
         hash = String.join("", atomicPropositions);
@@ -129,7 +127,7 @@ public abstract class AbstractState implements State {
      * @param s the next state.
      * @return true if the set of next states did not already contain the given state.
      */
-    public boolean addNext(State s) {
+    public boolean addNext(S s) {
         return nextStates.add(s);
     }
 
@@ -139,7 +137,7 @@ public abstract class AbstractState implements State {
      * @param s the set of next states.
      * @return true if the set of next states changed as a result of this call.
      */
-    public boolean addNext(Set<State> s) {
+    public boolean addNext(Set<S> s) {
         return nextStates.addAll(s);
     }
 
@@ -148,7 +146,7 @@ public abstract class AbstractState implements State {
      *
      * @return the set of next states that are accessible from this state.
      */
-    public Set<State> getNextStates() {
+    public Set<S> getNextStates() {
         return nextStates;
     }
 
@@ -158,7 +156,7 @@ public abstract class AbstractState implements State {
      * @param s the previous state.
      * @return true if the set of previous states did not already contain the given state.
      */
-    public boolean addPrevious(State s) {
+    public boolean addPrevious(S s) {
         return previousStates.add(s);
     }
 
@@ -168,7 +166,7 @@ public abstract class AbstractState implements State {
      * @param s the set of previous states.
      * @return true if the set of previous states changed as a result of this call.
      */
-    public boolean addPrevious(Set<State> s) {
+    public boolean addPrevious(Set<S> s) {
         return previousStates.addAll(s);
     }
 
@@ -177,7 +175,7 @@ public abstract class AbstractState implements State {
      *
      * @return the set of previous states from which this state is accessible.
      */
-    public Set<State> getPreviousStates() {
+    public Set<S> getPreviousStates() {
         return previousStates;
     }
 
@@ -196,7 +194,7 @@ public abstract class AbstractState implements State {
     }
 
     @Override
-    public int compareTo(State o) {
+    public int compareTo(S o) {
         if (this == o)
             return 0;
         if (o == null)
@@ -214,6 +212,6 @@ public abstract class AbstractState implements State {
             return false;
         if (this.getClass() != arg0.getClass())
             return false;
-        return hash.equals(((State) arg0).hash());
+        return hash.equals(((S) arg0).hash());
     }
 }

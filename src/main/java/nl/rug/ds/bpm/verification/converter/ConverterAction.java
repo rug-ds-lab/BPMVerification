@@ -6,7 +6,7 @@ import nl.rug.ds.bpm.verification.model.State;
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
 
-public interface ConverterAction {
+public interface ConverterAction<S extends State<S>> {
 
     /**
      * Computes the initial States and starts the RecursiveAction computation.
@@ -25,7 +25,7 @@ public interface ConverterAction {
      * @param found   the State returned after calling addState(State created).
      * @return created == found.
      */
-    boolean isNew(State created, State found);
+    boolean isNew(S created, S found);
 
     /**
      * Returns true iff the enabled set of Transitions produces a sink State.
@@ -40,7 +40,7 @@ public interface ConverterAction {
      *
      * @param sink the State to turn into a sink.
      */
-    void makeSink(State sink);
+    void makeSink(S sink);
 
     /**
      * Obtains the set of next ConverterActions from the State created by the current ConverterAction and the obtained set of enabled Transitions.
@@ -49,5 +49,5 @@ public interface ConverterAction {
      * @param enabled the obtained set of enabled Transitions.
      * @return a set of ConverterActions.
      */
-    Set<? extends RecursiveAction> nextActions(State created, Set<? extends TransitionI> enabled);
+    Set<? extends RecursiveAction> nextActions(S created, Set<? extends TransitionI> enabled);
 }

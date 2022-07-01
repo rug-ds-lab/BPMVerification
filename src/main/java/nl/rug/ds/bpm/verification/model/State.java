@@ -6,7 +6,7 @@ import java.util.Set;
  * Transition system state interface.
  */
 
-public interface State extends Comparable<State> {
+public interface State<S extends State<S>> extends Comparable<S> {
 
     /**
      * Sets the unique id of the state.
@@ -54,7 +54,7 @@ public interface State extends Comparable<State> {
      * @param s the next state.
      * @return true if the set of next states did not already contain the given state.
      */
-    boolean addNext(State s);
+    boolean addNext(S s);
 
     /**
      * Add a set of states as next states that are accessible from this state.
@@ -62,14 +62,14 @@ public interface State extends Comparable<State> {
      * @param s the set of next states.
      * @return true if the set of next states changed as a result of this call.
      */
-    boolean addNext(Set<State> s);
+    boolean addNext(Set<S> s);
 
     /**
      * Returns the set of next states that are accessible from this state.
      *
      * @return the set of next states that are accessible from this state.
      */
-    Set<State> getNextStates();
+    Set<S> getNextStates();
 
     /**
      * Add a state as a previous state from which this state is accessible.
@@ -77,7 +77,7 @@ public interface State extends Comparable<State> {
      * @param s the previous state.
      * @return true if the set of previous states did not already contain the given state.
      */
-    boolean addPrevious(State s);
+    boolean addPrevious(S s);
 
     /**
      * Add a set of states as previous states from which this state is accessible.
@@ -85,14 +85,14 @@ public interface State extends Comparable<State> {
      * @param s the set of previous states.
      * @return true if the set of previous states changed as a result of this call.
      */
-    boolean addPrevious(Set<State> s);
+    boolean addPrevious(Set<S> s);
 
     /**
      * Returns the set of previous states from which this state is accessible.
      *
      * @return the set of previous states from which this state is accessible.
      */
-    Set<State> getPreviousStates();
+    Set<S> getPreviousStates();
 
     @Override
     String toString();

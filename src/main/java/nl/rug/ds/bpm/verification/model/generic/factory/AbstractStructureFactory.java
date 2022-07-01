@@ -10,6 +10,8 @@ import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.StructureFactory;
+import nl.rug.ds.bpm.verification.model.generic.AbstractState;
+import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -17,7 +19,7 @@ import java.util.TreeSet;
 /**
  * Abstract factory to create Structure, States, and ConverterActions.
  */
-public abstract class AbstractStructureFactory implements StructureFactory {
+public abstract class AbstractStructureFactory<S extends AbstractState<S>, K extends AbstractStructure<S>> implements StructureFactory<S, K> {
     public final static CompositeExpression tau = ExpressionBuilder.parseExpression("tau");
 
     protected AtomicPropositionMap<CompositeExpression> apMap;

@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2interactive;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
@@ -10,6 +11,7 @@ import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFileWriter;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
+import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
 
 import java.io.File;
@@ -48,25 +50,25 @@ public class NuSMVInteractiveChecker extends Checker {
 		catch (Exception e) {}
 	}
 
-	@Override
-	public void addFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap) {
-		NuSMVInteractiveFormula nuSMVFormula = new NuSMVInteractiveFormula(formula, specification, atomicPropositionMap);
-		formulas.add(nuSMVFormula);
-		Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
-	}
+    @Override
+    public void addFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
+        NuSMVInteractiveFormula nuSMVFormula = new NuSMVInteractiveFormula(formula, specification, atomicPropositionMap);
+        formulas.add(nuSMVFormula);
+        Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
+    }
 
-	@Override
-	public void createModel(Structure structure) throws CheckerException {
-		inputChecker = new StringBuilder();
-		outputChecker = new StringBuilder();
+    @Override
+    public void createModel(Structure<? extends State<?>> structure) throws CheckerException {
+        inputChecker = new StringBuilder();
+        outputChecker = new StringBuilder();
 
-		List<CheckerFormula> formulaList = formulas.stream().filter(f -> f.getFormula().getLanguage().equalsIgnoreCase("fairness")).collect(Collectors.toList());
+        List<CheckerFormula> formulaList = formulas.stream().filter(f -> f.getFormula().getLanguage().equalsIgnoreCase("fairness")).collect(Collectors.toList());
 
-		NuSMVFileWriter fileWriter;
-		if (out == null)
-			fileWriter = new NuSMVFileWriter(structure, formulaList, id);
-		else
-			fileWriter = new NuSMVFileWriter(structure, formulaList, id, out);
+        NuSMVFileWriter fileWriter;
+        if (out == null)
+            fileWriter = new NuSMVFileWriter(structure, formulaList, id);
+        else
+            fileWriter = new NuSMVFileWriter(structure, formulaList, id, out);
 
 		file = fileWriter.getFile();
 		inputChecker.append(fileWriter.getContents());

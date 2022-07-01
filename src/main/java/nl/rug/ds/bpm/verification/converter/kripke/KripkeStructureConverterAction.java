@@ -8,7 +8,6 @@ import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.converter.generic.AbstractConverterAction;
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 import nl.rug.ds.bpm.verification.model.kripke.factory.KripkeFactory;
@@ -20,7 +19,7 @@ import java.util.concurrent.RecursiveAction;
 /**
  * Class that converts a given VerifiableNet into a KripkeStructure using RecursiveActions.
  */
-public class KripkeStructureConverterAction extends AbstractConverterAction {
+public class KripkeStructureConverterAction extends AbstractConverterAction<KripkeState> {
 	private final KripkeFactory kripkeFactory;
 	private final KripkeStructure kripkeStructure;
 	private KripkeState previous;
@@ -66,10 +65,10 @@ public class KripkeStructureConverterAction extends AbstractConverterAction {
 				((ConditionalMarkingI) marking).addCondition(condition);
 
 		for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
-			KripkeState created = (KripkeState) kripkeFactory.createState(marking, enabled);
+			KripkeState created = kripkeFactory.createState(marking, enabled);
 
 			try {
-				State found = kripkeStructure.addInitial(created);
+				KripkeState found = kripkeStructure.addInitial(created);
 
 				if (isNew(created, found)) {
 					if (!isSink(enabled))
@@ -121,11 +120,11 @@ public class KripkeStructureConverterAction extends AbstractConverterAction {
 	 * @return a set of ConverterActions.
 	 */
 	@Override
-	public Set<? extends RecursiveAction> nextActions(State created, Set<? extends TransitionI> enabled) {
+	public Set<? extends RecursiveAction> nextActions(KripkeState created, Set<? extends TransitionI> enabled) {
 		Set<KripkeStructureConverterAction> nextActions = new HashSet<>();
 		for (TransitionI transition : enabled)
 			for (MarkingI step : net.fireTransition(transition, marking))
-				nextActions.add(new KripkeStructureConverterAction(this.net, step, transition, this.kripkeFactory, this.kripkeStructure, (KripkeState) created));
+				nextActions.add(new KripkeStructureConverterAction(this.net, step, transition, this.kripkeFactory, this.kripkeStructure, created));
 
 		return nextActions;
 	}

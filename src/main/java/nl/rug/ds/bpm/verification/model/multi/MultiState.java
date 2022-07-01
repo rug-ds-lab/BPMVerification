@@ -1,10 +1,7 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
 
-import nl.rug.ds.bpm.util.log.LogEvent;
-import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.model.State;
-import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
+import nl.rug.ds.bpm.verification.model.generic.MarkedState;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,8 +9,9 @@ import java.util.stream.Collectors;
 /**
  * Class that implements a Kripke state with multiple parent stutter states.
  */
-public class MultiState extends KripkeState {
-    private final Map<SubStructure, StutterState> parents;
+public class MultiState extends MarkedState<MultiState> {
+    private final Map<SubStructure, Block> parents;
+    private boolean inLoop = false;
 
     /**
      * Creates a multi state.
@@ -40,16 +38,12 @@ public class MultiState extends KripkeState {
      * Assigns the given StutterState as the parent of this state within the given substructure.
      *
      * @param subStructure the SubStructure the given parent belongs to.
-     * @param stutterState the parent to assign.
+     * @param block        the parent to assign.
      */
-    public void setParent(SubStructure subStructure, StutterState stutterState) {
-        stutterState.addSubState(this);
+    public void setParent(SubStructure subStructure, Block block) {
+        block.addSubState(this);
 
-        StutterState current = parents.get(subStructure);
-        if (current != null)
-            current.removeSubState(this);
-
-        parents.put(subStructure, stutterState);
+        parents.put(subStructure, block);
     }
 
     /**
@@ -58,7 +52,7 @@ public class MultiState extends KripkeState {
      * @param subStructure the SubStructure the returned parent belongs to.
      * @return the parent StutterState.
      */
-    public StutterState getParent(SubStructure subStructure) {
+    public Block getParent(SubStructure subStructure) {
         return parents.get(subStructure);
     }
 
@@ -70,13 +64,23 @@ public class MultiState extends KripkeState {
      * @param current      the currently assigned parent.
      * @param newparent    the parent to assign.
      */
-    public void updatePreviousParents(SubStructure subStructure, StutterState current, StutterState newparent) {
+    public void updatePreviousParents(SubStructure subStructure, Block current, Block newparent) {
         if (parents.get(subStructure) == current && getNextParents(subStructure).stream().allMatch(p -> p == newparent)) {
             setParent(subStructure, newparent);
+            current.removeSubState(this);
 
-            for (State previous : getPreviousStates())
-                ((MultiState) previous).updatePreviousParents(subStructure, current, newparent);
+            for (MultiState previous : getPreviousStates())
+                previous.updatePreviousParents(subStructure, current, newparent);
         }
+    }
+
+    /**
+     * Returns
+     *
+     * @return
+     */
+    public boolean isInLoop() {
+        return inLoop;
     }
 
     /**
@@ -85,23 +89,21 @@ public class MultiState extends KripkeState {
      * @param subStructure the given substructure.
      * @return true iff this state exists in a loop within the same stutter state of the given substructure.
      */
-    public boolean isInLoop(SubStructure subStructure) {
-        return isInLoop(subStructure, this);
+    public synchronized boolean isInLoop(SubStructure subStructure) {
+        return inLoop || isInLoop(subStructure, this);
     }
 
     /**
      * Recursive step for isInLoop(SubStructure subStructure)
      */
-    protected boolean isInLoop(SubStructure subStructure, MultiState state) {
-        boolean isLoop = false;
-
-        Iterator<State> nextStates = getNextStates().iterator();
-        while (!isLoop && nextStates.hasNext()) {
-            MultiState n = (MultiState) nextStates.next();
-            isLoop = n.getParent(subStructure) == state.getParent(subStructure) && (state == n || n.isInLoop(subStructure, state));
+    protected synchronized boolean isInLoop(SubStructure subStructure, MultiState state) {
+        Iterator<MultiState> nextStates = getNextStates().iterator();
+        while (!inLoop && nextStates.hasNext()) {
+            MultiState n = nextStates.next();
+            inLoop = n.getParent(subStructure) == state.getParent(subStructure) && (state == n || n.isInLoop(subStructure, state));
         }
 
-        return isLoop;
+        return inLoop;
     }
 
     /**
@@ -110,7 +112,7 @@ public class MultiState extends KripkeState {
      * @param subStructure the substructure the returned parents should belong to.
      * @return Set of StutterStates.
      */
-    public Set<StutterState> getNextParents(SubStructure subStructure) {
+    public synchronized Set<Block> getNextParents(SubStructure subStructure) {
         return nextStates.stream().filter(s -> s != this).map(s -> ((MultiState) s).getParent(subStructure)).collect(Collectors.toSet());
     }
 
@@ -121,13 +123,10 @@ public class MultiState extends KripkeState {
      * @return true iff this an exit state of its parent and its next parents are disjoint from the other exit states.
      */
     public boolean isSplitter(SubStructure subStructure) {
-        StutterState parent = getParent(subStructure);
-        Set<StutterState> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> ((MultiState) s).getNextParents(subStructure).stream()).collect(Collectors.toSet());
+        Block parent = getParent(subStructure);
+        Set<Block> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> ((MultiState) s).getNextParents(subStructure).stream()).collect(Collectors.toSet());
 
-        boolean splitter = parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
-        Logger.log("Is splitter " + this + " others: " + otherParents.stream().map(Objects::toString).collect(Collectors.joining(",")) + " is " + splitter, LogEvent.DEBUG);
-
-        return splitter;
+        return parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
     }
 
     @Override

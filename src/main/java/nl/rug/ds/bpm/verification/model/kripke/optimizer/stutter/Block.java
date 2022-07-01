@@ -1,6 +1,5 @@
 package nl.rug.ds.bpm.verification.model.kripke.optimizer.stutter;
 
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
 
 import java.util.*;
@@ -46,9 +45,9 @@ public class Block {
             KripkeState nb = iterator.previous();
             if (!nb.getFlag()) {
                 boolean isB2 = true;
-                Iterator<State> next = nb.getNextStates().iterator();
+                Iterator<KripkeState> next = nb.getNextStates().iterator();
                 while (next.hasNext() && isB2) {
-                    KripkeState n = (KripkeState) next.next();
+                    KripkeState n = next.next();
                     isB2 = otherBottom.contains(n) || otherNonBottom.contains(n);
                 }
 
@@ -70,18 +69,14 @@ public class Block {
         //keep only B1 entries
         entry.clear();
         for (KripkeState s : nonbottom) {
-            for (State state : s.getPreviousStates()) {
-                KripkeState previous = (KripkeState) state;
+            for (KripkeState previous : s.getPreviousStates())
                 if (previous.getBlock() != this)
                     entry.add(previous);
-            }
         }
         for (KripkeState s : bottom) {
-            for (State state : s.getPreviousStates()) {
-                KripkeState previous = (KripkeState) state;
+            for (KripkeState previous : s.getPreviousStates())
                 if (previous.getBlock() != this)
                     entry.add(previous);
-            }
         }
 
         //make B2
@@ -116,19 +111,17 @@ public class Block {
             KripkeState s = iterator.next();
             boolean isBottom = true;
 
-            Iterator<State> i = s.getNextStates().iterator();
+            Iterator<KripkeState> i = s.getNextStates().iterator();
             while (i.hasNext() && isBottom) {
-                KripkeState state = (KripkeState) i.next();
+                KripkeState state = i.next();
                 if (state != s && state.getBlock() == this)
                     //if(nonbottom.contains(state) || bottom.contains(state))
                     isBottom = false;
             }
 
-            for (State state : s.getPreviousStates()) {
-                KripkeState previous = (KripkeState) state;
+            for (KripkeState previous : s.getPreviousStates())
                 if (previous.getBlock() != this)
                     entry.add(previous);
-            }
 
             if (isBottom) {
                 bottom.add(s);
@@ -146,9 +139,9 @@ public class Block {
             KripkeState s = iterator.next();
             boolean isBottom = true;
 
-            Iterator<State> i = s.getNextStates().iterator();
+            Iterator<KripkeState> i = s.getNextStates().iterator();
             while (i.hasNext() && isBottom) {
-                KripkeState state = (KripkeState) i.next();
+                KripkeState state = i.next();
                 if (state != s && state.getBlock() == this)
                     //if(nonbottom.contains(state) || bottom.contains(state))
                     isBottom = false;
@@ -163,11 +156,9 @@ public class Block {
         bottom.addAll(newBottom);
 
         for (KripkeState s : bottom)
-            for (State state : s.getPreviousStates()) {
-                KripkeState previous = (KripkeState) state;
+            for (KripkeState previous : s.getPreviousStates())
                 if (previous.getBlock() != this)
                     entry.add(previous);
-            }
 
         //return true if new bottom states were found
         return !newBottom.isEmpty();

@@ -10,14 +10,14 @@ import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import java.util.Set;
 import java.util.TreeSet;
 
-public interface StructureFactory {
+public interface StructureFactory<S extends State<S>, K extends Structure<S>> {
 
     /**
      * Creates a new Structure.
      *
      * @return the new Structure.
      */
-    Structure createStructure();
+    K createStructure();
 
     /**
      * Creates a new State for a given set of atomic propositions.
@@ -25,7 +25,7 @@ public interface StructureFactory {
      * @param atomicPropositions the ordered set of atomic propositions that should hold in the created State.
      * @return the created State.
      */
-    State createState(Set<String> atomicPropositions);
+    S createState(Set<String> atomicPropositions);
 
     /**
      * Creates a new State for a given Marking of a Net and a set of atomic propositions.
@@ -34,7 +34,7 @@ public interface StructureFactory {
      * @param atomicPropositions the ordered set of atomic propositions that should hold in the created State.
      * @return the created State.
      */
-    State createState(String marking, Set<String> atomicPropositions);
+    S createState(String marking, Set<String> atomicPropositions);
 
     /**
      * Obtains, or creates, the atomic proposition that represents the given expression.
@@ -123,5 +123,5 @@ public interface StructureFactory {
      * @param structure the Structure to populate.
      * @return a new ConverterAction.
      */
-    AbstractConverterAction createConverter(VerifiableNet net, MarkingI marking, Structure structure);
+    AbstractConverterAction createConverter(VerifiableNet net, MarkingI marking, K structure);
 }

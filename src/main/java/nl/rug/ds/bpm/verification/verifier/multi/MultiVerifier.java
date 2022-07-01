@@ -13,10 +13,9 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.converter.ConverterAction;
+import nl.rug.ds.bpm.verification.converter.multi.MultiStructureConverterAction;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
-import nl.rug.ds.bpm.verification.model.Structure;
 import nl.rug.ds.bpm.verification.model.multi.MultiStructure;
 import nl.rug.ds.bpm.verification.model.multi.SubStructure;
 import nl.rug.ds.bpm.verification.model.multi.factory.MultiFactory;
@@ -28,7 +27,7 @@ import java.util.List;
 /**
  * Class implementing a Verifier that uses a MultiStructure.
  */
-public class MultiVerifier extends AbstractVerifier implements Verifier {
+public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Verifier {
 
     /**
      * Creates a MultiVerifier.
@@ -47,7 +46,7 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
     public void verify() throws VerifierException {
         Logger.log("Verifying specification", LogEvent.INFO);
 
-        MultiStructure structure = (MultiStructure) structureFactory.createStructure();
+        MultiStructure structure = structureFactory.createStructure();
 
         for (SpecificationSet specificationSet : specification.getSpecificationSets()) {
             AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = getSpecificationPropositions(specificationSet);
@@ -86,7 +85,7 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
      *
      * @param structure the Structure to populate.
      */
-    protected void compute(Structure structure) {
+    protected void compute(MultiStructure structure) {
         Logger.log("Calculating multi structure", LogEvent.INFO);
         double delta = compute(structureFactory.createConverter(net, net.getInitialMarking(), structure));
         Logger.log("Calculated multi structure with " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
@@ -98,7 +97,7 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
      * @param converter the initial conversion step to start the computation from.
      * @return the time it took to compute the Structure in nanoseconds.
      */
-    protected double compute(ConverterAction converter) {
+    protected double compute(MultiStructureConverterAction converter) {
         long t0 = System.nanoTime();
         converter.computeInitial();
         long t1 = System.nanoTime();
@@ -113,12 +112,12 @@ public class MultiVerifier extends AbstractVerifier implements Verifier {
      *
      * @param structure the Structure finalize.
      */
-    protected void finalize(Structure structure) {
-        ((MultiStructure) structure).finalizeStructure();
+    protected void finalize(MultiStructure structure) {
+        structure.finalizeStructure();
 
         if (Logger.getLogLevel() <= LogEvent.DEBUG) {
             Logger.log("\n" + structure, LogEvent.DEBUG);
-            for (SubStructure subStructure : ((MultiStructure) structure).getSubStructures())
+            for (SubStructure subStructure : structure.getSubStructures())
                 Logger.log("Substructure:\n" + subStructure, LogEvent.DEBUG);
         }
     }

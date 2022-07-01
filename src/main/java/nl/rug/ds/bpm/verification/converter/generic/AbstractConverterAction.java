@@ -4,7 +4,7 @@ import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.verification.converter.ConverterAction;
-import nl.rug.ds.bpm.verification.model.State;
+import nl.rug.ds.bpm.verification.model.generic.AbstractState;
 
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
@@ -12,7 +12,7 @@ import java.util.concurrent.RecursiveAction;
 /**
  * An abstract ConverterAction.
  */
-public abstract class AbstractConverterAction extends RecursiveAction implements ConverterAction {
+public abstract class AbstractConverterAction<S extends AbstractState<S>> extends RecursiveAction implements ConverterAction<S> {
     protected VerifiableNet net;
     protected MarkingI marking;
     protected TransitionI fired;
@@ -48,7 +48,7 @@ public abstract class AbstractConverterAction extends RecursiveAction implements
      * @return created == found.
      */
     @Override
-    public boolean isNew(State created, State found) {
+    public boolean isNew(S created, S found) {
         return created == found;
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractConverterAction extends RecursiveAction implements
      *
      * @param sink the State to turn into a sink.
      */
-    public void makeSink(State sink) {
+    public void makeSink(S sink) {
         sink.addNext(sink);
         sink.addPrevious(sink);
     }

@@ -6,23 +6,19 @@ import nl.rug.ds.bpm.expression.LogicalType;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.ConverterException;
-import nl.rug.ds.bpm.util.log.LogEvent;
-import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.util.pair.Pair;
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 /**
  * Class that implements a substructure of a multi-structure.
  */
-public class SubStructure extends AbstractStructure {
+public class SubStructure extends AbstractStructure<Block> {
+    private final Set<BlockRelation> relations;
+    private final Set<MultiState> initialSubStates;
     private final SpecificationSet specificationSet;
     private final CompositeExpression conditionExpression;
-    private final Set<Pair<MultiState, MultiState>> relations;
 
     /**
      * Creates a substructure.
@@ -35,8 +31,10 @@ public class SubStructure extends AbstractStructure {
         this.specificationSet = specificationSet;
         this.atomicPropositions.addAll(atomicPropositions);
 
+        initialSubStates = new TreeSet<>(new ComparableComparator<MultiState>());
+        relations = new TreeSet<>(new ComparableComparator<BlockRelation>());
+
         conditionExpression = new CompositeExpression(LogicalType.AND);
-        relations = new HashSet<>();
 
         for (String condition : conditions)
             conditionExpression.addArgument(ExpressionBuilder.parseExpression(condition));
@@ -48,23 +46,16 @@ public class SubStructure extends AbstractStructure {
      * @param s the state.
      * @return s if new, otherwise the equaling known state.
      */
-    @Override
-    public synchronized State addInitial(State s) throws ConverterException {
-        State known = addState(s);
-        addRelation(null, (MultiState) s);
+    public synchronized MultiState addInitial(MultiState s) throws ConverterException {
+        MultiState known = addState(s);
+        initialSubStates.add(s);
 
         return known;
     }
 
-    /**
-     * Add a state to this substructure.
-     *
-     * @param s the state to add. Must be known to the parent structure.
-     * @return s if new, otherwise the equaling known state.
-     */
-    public synchronized State addState(MultiState s) {
+    public synchronized MultiState addState(MultiState s) {
         if (s.getParent(this) == null) {
-            StutterState ss = createParent(createAtomicPropositions(s.getAtomicPropositions()));
+            Block ss = createParent(createAtomicPropositions(s.getAtomicPropositions()));
             s.setParent(this, ss);
             states.add(ss);
         }
@@ -72,77 +63,62 @@ public class SubStructure extends AbstractStructure {
         return s;
     }
 
-    @Override
-    public synchronized State addState(State s) {
-        return (s.getClass() == MultiState.class ? addState((MultiState) s) : null);
-    }
-
     /**
      * Add a relation from the given current state to the given next state.
-     * Assign stutter states accordingly, track relations between stutter states as pairs of Exit-Entry MultiStates.
-     * Merge but don't split. Split during finalize.
+     * Assign blocks accordingly, track relations between blocks.
      *
      * @param current a state current to this transition system.
      * @param next    the state that must become accessible from the given current state.
      * @return next if new, otherwise the known equaling state.
      */
-    public synchronized State addNext(MultiState current, MultiState next) {
-        Logger.log("AddNext StutterState: " + current + " to " + next, LogEvent.DEBUG);
-        StutterState cparent = current.getParent(this);
-        StutterState nparent = next.getParent(this);
+    public synchronized MultiState addNext(MultiState current, MultiState next) {
+        Block cparent = current.getParent(this);
+        Block nparent = next.getParent(this);
 
         Set<String> nextRelAP = createAtomicPropositions(next.getAtomicPropositions());
 
         boolean nextIsNew = nparent == null; // If true, next is not yet in this substructure.
         boolean nextEqualsCurrentParent = cparent.getAtomicPropositions().equals(nextRelAP); // If true, next belongs in cparent, else next is an entry state and current an exit state.
-        boolean arcCreatesSink = current == next; // The arc is a back arc from and to the same state.
-        boolean arcCreatesLoop = nparent != null && current.isInLoop(this); // The arc is a back arc.
-        boolean haveMergableParents = cparent != nparent && cparent.equals(nparent); // The arc connects mergable parents
+        boolean arcCreatesLoop = current == next || (nparent != null && current.isInLoop(this)); // The arc is a back arc.
 
         // Initialize nparent if needed
-        if (nextIsNew && nextEqualsCurrentParent) {
+        if (nextIsNew && nextEqualsCurrentParent)
             nparent = cparent;
-            Logger.log("Same parent " + next, LogEvent.DEBUG);
-        } else if (nextIsNew) {
+        else if (nextIsNew)
             nparent = createParent(nextRelAP);
-            Logger.log("New parent " + next, LogEvent.DEBUG);
-        } else
-            Logger.log("Existing new parent " + next, LogEvent.DEBUG);
+
+        if (cparent != nparent)
+            addRelation(current, next);
 
         // Add next to the nparent
-        if (nextIsNew) {
+        if (nextIsNew)
             next.setParent(this, nparent);
-        }
 
-        // Merge and split parents if needed
-        if (haveMergableParents) {
-            if (cparent.merge(nparent)) {
-                states.remove(nparent);
-                Logger.log("Merged " + cparent, LogEvent.DEBUG);
-            }
-        }
-
-        // Add current as an exit state and split if needed
-        if (arcCreatesLoop || arcCreatesSink || !nextEqualsCurrentParent) {
+        // Add current as an exit state
+        if (arcCreatesLoop || !nextEqualsCurrentParent)
             cparent.addExitState(current);
-            addRelation(current, next);
-            Logger.log("Creates exit " + next, LogEvent.DEBUG);
-        }
 
         return next;
     }
 
-    @Override
-    public synchronized State addNext(State current, State next) {
-        State r = null;
-        if (current.getClass() == MultiState.class && next.getClass() == MultiState.class)
-            r = addNext((MultiState) current, (MultiState) next);
-        return r;
+    /**
+     * Adds a relation from current to next.
+     *
+     * @param current the start of the relation.
+     * @param next    the end of the relation.
+     * @return true if the set of relations did not already contain the relation.
+     */
+    public synchronized boolean addRelation(MultiState current, MultiState next) {
+        return relations.add(new BlockRelation(current, next));
     }
 
-    public void addRelation(MultiState current, MultiState next) {
-        relations.add(new Pair<>(current, next));
-        Logger.log("Adding block relation from " + current + " to " + next, LogEvent.DEBUG);
+    /**
+     * Returns the set of block relations.
+     *
+     * @return the set of block relations
+     */
+    public Set<BlockRelation> getRelations() {
+        return relations;
     }
 
     /**
@@ -180,51 +156,69 @@ public class SubStructure extends AbstractStructure {
     }
 
     /**
-     * Creates and adds a new StutterState to this SubStructure.
+     * Creates and adds a new Block to this SubStructure.
      *
      * @param atomicPropositions the set of atomic propositions that hold in this state.
-     * @return the created StutterState.
+     * @return the created Block.
      */
-    public synchronized StutterState createParent(Set<String> atomicPropositions) {
+    public synchronized Block createParent(Set<String> atomicPropositions) {
         TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
         ap.addAll(atomicPropositions);
-        StutterState state = new StutterState(ap, this);
+        Block state = new Block(ap, this);
         states.add(state);
 
         return state;
     }
 
     /**
-     * Finalizes this SubStructure by adding relations between stutter states, adding sinks,
+     * Finalizes this SubStructure by adding relations between blocks, adding sinks,
      * adding a safety state, and clearing pointers to the full state space.
      */
     public void finalizeStructure() {
-        Set<StutterState> toAdd = new TreeSet<StutterState>(new ComparableComparator<State>());
+        Set<Block> merged = new TreeSet<Block>(new ComparableComparator<Block>());
+        Set<Block> split = new TreeSet<Block>(new ComparableComparator<Block>());
 
-        StutterState safety = new StutterState(atomicPropositions, this);
-        safety.addNext(safety);
-        safety.addPrevious(safety);
-        toAdd.add(safety);
+        for (BlockRelation relation : relations) {
+            Block sparent = relation.getStart().getParent(this);
+            Block eparent = relation.getEnd().getParent(this);
 
-        for (State state : states) {
-            StutterState block = (StutterState) state;
-            StutterState split = block.split();
-            while (split != null) {
-                toAdd.add(split);
-                Logger.log("Split while " + split, LogEvent.DEBUG);
-                split = block.split();
+            if (sparent.canMerge(eparent)) {
+                sparent.merge(eparent);
+                merged.add(eparent);
             }
         }
 
-        states.addAll(toAdd);
+        states.removeAll(merged);
 
-        for (Pair<MultiState, MultiState> relation : relations) {
-            if (relation.getFirst() == null)
-                initial.add(relation.getSecond().getParent(this));
-            else {
-                relation.getFirst().getParent(this).addNext(relation.getSecond().getParent(this));
-                relation.getSecond().getParent(this).addPrevious(relation.getFirst().getParent(this));
+        for (Block block : states) {
+            Block s = block.split();
+            while (s != block) {
+                split.add(s);
+                s = block.split();
             }
         }
+
+        states.addAll(split);
+
+        Block safety = new Block(atomicPropositions, this);
+        states.add(safety);
+
+        for (BlockRelation relation : relations) {
+            Block sparent = relation.getStart().getParent(this);
+            Block eparent = relation.getEnd().getParent(this);
+            if (sparent != eparent) {
+                sparent.addNext(eparent);
+                eparent.addPrevious(sparent);
+            }
+        }
+
+        for (Block block : states)
+            if (block.getNextStates().isEmpty()) {
+                block.addNext(block);
+                block.addPrevious(block);
+            }
+
+        for (MultiState init : initialSubStates)
+            initial.add(init.getParent(this));
     }
 }

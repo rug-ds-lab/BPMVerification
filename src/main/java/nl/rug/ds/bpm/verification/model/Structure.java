@@ -8,14 +8,14 @@ import java.util.Set;
  * Transition system interface for (Kripke) structures.
  */
 
-public interface Structure {
+public interface Structure<S extends State<S>> {
     /**
      * Add a state to the transition system, and add it to the set of initially accessible states.
      *
      * @param s the state.
      * @return s if new, otherwise the equaling known state.
      */
-    State addInitial(State s) throws ConverterException;
+    S addInitial(S s) throws ConverterException;
 
     /**
      * Add a state to the transition system.
@@ -23,7 +23,7 @@ public interface Structure {
      * @param s the state
      * @return s if new, otherwise the equaling known state.
      */
-    State addState(State s) throws ConverterException;
+    S addState(S s) throws ConverterException;
 
     /**
      * Add a relation from the given current state to the given next state, add the given next state to the transition system if it is not known.
@@ -39,7 +39,7 @@ public interface Structure {
      * @param next    the state that must become accessible from the given current state.
      * @return either the added next state or an already known state that equals the added state.
      */
-    State addNext(State current, State next) throws ConverterException;
+    S addNext(S current, S next) throws ConverterException;
 
     /**
      * Returns the set of atomic propositions that hold throughout the different states included in this transition system.
@@ -53,21 +53,21 @@ public interface Structure {
      *
      * @return the set of states included in this transition system.
      */
-    Set<State> getStates();
+    Set<S> getStates();
 
     /**
      * Returns the set of initially accessible states included in this transition system.
      *
      * @return the set of initially accessible states included in this transition system.
      */
-    Set<State> getInitial();
+    Set<S> getInitial();
 
     /**
      * Returns the set of sink states included in this transition system, i.e., states with itself as next state.
      *
      * @return the set of sink states included in this transition system, i.e., states with itself as next state.
      */
-    Set<State> getSinkStates();
+    Set<S> getSinkStates();
 
     /**
      * Returns the number of different atomic propositions that hold within the different states of this transition system.

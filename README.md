@@ -100,11 +100,11 @@ src/main/resources/specificationTypes.xml
 or defined custom. The list of inputElements target the inputs of the specificationType. In case of overloading a
 target, the inputElements form a dis/con-junction as defined by that target's type.
 
-The optional elementGroups stutterState defines sets of elements belonging to a group given an id. This id can then be
+The optional elementGroups block defines sets of elements belonging to a group given an id. This id can then be
 used as
 an input element throughout the specification. Elements within a group form a disjunction.
 
-The optional specificationTypes stutterState defines custom specificationTypes by a unique id, one or more formulas, and
+The optional specificationTypes block defines custom specificationTypes by a unique id, one or more formulas, and
 its
 inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTICE_ as defined by the
 [NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model modelcheck.

@@ -1,10 +1,12 @@
 package nl.rug.ds.bpm.verification.checker;
 
+import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.specification.jaxb.Formula;
 import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
+import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
 
 import java.io.File;
@@ -41,13 +43,13 @@ public abstract class Checker {
         return formulas;
     }
 
-    public abstract void addFormula(Formula formula, Specification specification, AtomicPropositionMap atomicPropositionMap);
+    public abstract void addFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap);
 
-    public abstract void createModel(Structure structure) throws CheckerException;
+    public abstract void createModel(Structure<? extends State<?>> structure) throws CheckerException;
 
     public abstract List<VerificationEvent> checkModel() throws CheckerException;
 
-    public void checkModel(Structure Structure) throws CheckerException {
+    public void checkModel(Structure<? extends State<?>> Structure) throws CheckerException {
         createModel(Structure);
         checkModel();
     }

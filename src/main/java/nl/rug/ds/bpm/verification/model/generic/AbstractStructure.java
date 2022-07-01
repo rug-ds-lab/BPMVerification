@@ -4,7 +4,6 @@ import nl.rug.ds.bpm.specification.jaxb.Condition;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.ConverterException;
 import nl.rug.ds.bpm.verification.model.ConditionalStructure;
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
 
 import java.util.HashSet;
@@ -16,12 +15,12 @@ import java.util.stream.Collectors;
 /**
  * An abstract transition system representing a (Kripke) structure.
  */
-public abstract class AbstractStructure implements Structure, ConditionalStructure {
+public abstract class AbstractStructure<S extends AbstractState<S>> implements Structure<S>, ConditionalStructure {
     protected static long maximum = Long.MAX_VALUE;
 
     protected TreeSet<String> atomicPropositions;
-    protected TreeSet<State> states;
-    protected TreeSet<State> initial;
+    protected TreeSet<S> states;
+    protected TreeSet<S> initial;
 
     protected HashSet<String> conditions;
 
@@ -30,8 +29,8 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      */
     public AbstractStructure() {
         atomicPropositions = new TreeSet<String>(new ComparableComparator<String>());
-        states = new TreeSet<State>(new ComparableComparator<State>());
-        initial = new TreeSet<State>(new ComparableComparator<State>());
+        states = new TreeSet<S>(new ComparableComparator<S>());
+        initial = new TreeSet<S>(new ComparableComparator<S>());
         conditions = new HashSet<>();
     }
 
@@ -79,11 +78,11 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      * @param s the state.
      * @return s if new, otherwise the equaling known state.
      */
-    public synchronized State addInitial(State s) throws ConverterException {
+    public synchronized S addInitial(S s) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
             throw new ConverterException("Maximum state space reached (at " + maximum + " states/propositions)");
 
-        State known = addState(s);
+        S known = addState(s);
         initial.add(known);
 
         return known;
@@ -95,11 +94,11 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      * @param s the state
      * @return s if new, otherwise the equaling known state.
      */
-    public synchronized State addState(State s) throws ConverterException {
+    public synchronized S addState(S s) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
             throw new ConverterException("Maximum state space reached (at " + maximum + " states/propositions)");
 
-        State known = states.ceiling(s);
+        S known = states.ceiling(s);
 
         if (!s.equals(known)) {
             known = s;
@@ -124,11 +123,11 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      * @param next    the state that must become accessible from the given current state.
      * @return either the added next state or an already known state that equals the added state.
      */
-    public synchronized State addNext(State current, State next) throws ConverterException {
+    public synchronized S addNext(S current, S next) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
             throw new ConverterException("Maximum state space reached (at " + maximum + " states/propositions)");
 
-        State known = addState(next);
+        S known = addState(next);
 
         current.addNext(known);
         known.addPrevious(current);
@@ -150,7 +149,7 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      *
      * @return the set of states included in this transition system.
      */
-    public Set<State> getStates() {
+    public Set<S> getStates() {
         return states;
     }
 
@@ -159,7 +158,7 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      *
      * @return the set of initially accessible states included in this transition system.
      */
-    public TreeSet<State> getInitial() {
+    public TreeSet<S> getInitial() {
         return initial;
     }
 
@@ -168,7 +167,7 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
      *
      * @return the set of sink states included in this transition system, i.e., states with itself as next state.
      */
-    public Set<State> getSinkStates() {
+    public Set<S> getSinkStates() {
         return states.stream().filter(s -> s.getNextStates().size() == 1).filter(s -> s.getNextStates().iterator().next() == s).collect(Collectors.toSet());
     }
 
@@ -205,14 +204,14 @@ public abstract class AbstractStructure implements Structure, ConditionalStructu
         String ap = "Atomic Propositions: {" + String.join(", ", atomicPropositions) + "}\n\n";
 
         StringBuilder st = new StringBuilder("States:\n");
-        for (State s : states)
+        for (S s : states)
             st.append(s).append("\n");
 
         StringBuilder rel = new StringBuilder("\nRelations:\n");
-        for (State s : states) {
+        for (S s : states) {
             if (!s.getNextStates().isEmpty()) {
                 rel.append(s).append(" -> ");
-                for (State t : s.getNextStates())
+                for (S t : s.getNextStates())
                     rel.append(t).append(" ");
                 rel.append("\n");
             }

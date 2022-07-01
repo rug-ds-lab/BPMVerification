@@ -12,8 +12,6 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
-import nl.rug.ds.bpm.verification.model.ConditionalStructure;
-import nl.rug.ds.bpm.verification.model.Structure;
 import nl.rug.ds.bpm.verification.model.generic.optimizer.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 import nl.rug.ds.bpm.verification.model.kripke.optimizer.stutter.StutterOptimizer;
@@ -54,8 +52,8 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
         structureFactory.getAtomicPropositionMap().merge(specificationPropositions);
 
         Checker checker = checkerFactory.getChecker();
-        Structure structure = structureFactory.createStructure();
-        addConditions((ConditionalStructure) structure, specificationSet.getConditions());
+        KripkeStructure structure = structureFactory.createStructure();
+        addConditions(structure, specificationSet.getConditions());
 
         try {
             compute(structure);
@@ -79,7 +77,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * @param structure the Structure to optimize.
      * @param ap        the AtomicPropositionMap that contains the relevant atomic propositions.
      */
-    protected void optimize(Structure structure, AtomicPropositionMap<CompositeExpression> ap) {
+    protected void optimize(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
         Logger.log("Reducing Kripke structure", LogEvent.INFO);
 
         optimizeAtomicPropositions(structure, ap);
@@ -92,7 +90,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * @param structure the Structure to optimize.
      * @param ap        the AtomicPropositionMap that contains the relevant atomic propositions.
      */
-    protected void optimizeAtomicPropositions(Structure structure, AtomicPropositionMap<CompositeExpression> ap) {
+    protected void optimizeAtomicPropositions(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
         Logger.log("Removing unused atomic propositions", LogEvent.VERBOSE);
 
         TreeSet<String> unusedAP = new TreeSet<>(new ComparableComparator<String>());
@@ -111,7 +109,8 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * @param ap        the AtomicPropositionMap that contains the unused atomic propositions.
      * @return the time it took to optimize in nanoseconds.
      */
-    protected double optimizeAtomicPropositions(Structure structure, TreeSet<String> ap) {
+    protected double optimizeAtomicPropositions(KripkeStructure
+                                                        structure, TreeSet<String> ap) {
         long t0 = System.nanoTime();
         PropositionOptimizer propositionOptimizer = new PropositionOptimizer(structure, ap);
         long t1 = System.nanoTime();
@@ -125,7 +124,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      *
      * @param structure the Structure to optimize.
      */
-    protected void optimizeStutterStates(Structure structure) {
+    protected void optimizeStutterStates(KripkeStructure structure) {
         Logger.log("Reducing state space of " + structure.stats(), LogEvent.VERBOSE);
 
         double delta = stutterOptimize(structure);
@@ -139,7 +138,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * @param structure the Structure to optimize.
      * @return the time it took to optimize in nanoseconds.
      */
-    protected double stutterOptimize(Structure structure) {
+    protected double stutterOptimize(KripkeStructure structure) {
         long t0 = System.nanoTime();
         StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
         stutterOptimizer.linearPreProcess();

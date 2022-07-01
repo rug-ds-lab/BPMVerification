@@ -17,7 +17,7 @@ public class NuSMVFileWriter {
 	private File file;
 	private String contents;
 
-	public NuSMVFileWriter(Structure structure, List<CheckerFormula> formulas, int id) throws CheckerException {
+	public NuSMVFileWriter(Structure<? extends State<?>> structure, List<CheckerFormula> formulas, int id) throws CheckerException {
 		try {
 			file = File.createTempFile("model" + id, ".smv");
 		} catch (IOException e) {
@@ -26,7 +26,7 @@ public class NuSMVFileWriter {
 		create(structure, formulas, id);
 	}
 
-	public NuSMVFileWriter(Structure structure, List<CheckerFormula> formulas, int id, File outputLocation) throws CheckerException {
+	public NuSMVFileWriter(Structure<? extends State<?>> structure, List<CheckerFormula> formulas, int id, File outputLocation) throws CheckerException {
 		file = new File(outputLocation, "model" + id + ".smv");
 		create(structure, formulas, id);
 	}
@@ -39,7 +39,7 @@ public class NuSMVFileWriter {
 		return contents;
 	}
 
-	private void create(Structure structure, List<CheckerFormula> formulas, int id) throws CheckerException {
+	private void create(Structure<? extends State<?>> structure, List<CheckerFormula> formulas, int id) throws CheckerException {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("MODULE main\n");
@@ -70,10 +70,10 @@ public class NuSMVFileWriter {
 		}
 	}
 
-	private String convertVAR(Structure structure) {
+	private String convertVAR(Structure<? extends State<?>> structure) {
 		StringBuilder v = new StringBuilder("\tVAR\n\t\t state:{");
 
-		Iterator<State> i = structure.getStates().iterator();
+		Iterator<? extends State<?>> i = structure.getStates().iterator();
 		while (i.hasNext()) {
 			v.append(i.next().getId());
 			if (i.hasNext()) v.append(",");
@@ -84,7 +84,7 @@ public class NuSMVFileWriter {
 		return v.toString();
 	}
 
-	private String convertDEFINE(Structure structure) {
+	private String convertDEFINE(Structure<? extends State<?>> structure) {
 		StringBuilder d = new StringBuilder("\tDEFINE\n");
 
 		Iterator<String> i = structure.getAtomicPropositions().iterator();
@@ -92,9 +92,9 @@ public class NuSMVFileWriter {
 			String ap = i.next();
 			d.append("\t\t " + ap + " := ");
 
-			Iterator<State> j = findStates(structure, ap).iterator();
+			Iterator<State<?>> j = findStates(structure, ap).iterator();
 			while (j.hasNext()) {
-				State s = j.next();
+				State<?> s = j.next();
 				d.append("( state = " + s.getId() + " )");
 				if (j.hasNext()) d.append(" | ");
 			}
@@ -104,16 +104,16 @@ public class NuSMVFileWriter {
 		return d.toString();
 	}
 
-	private String convertASSIGN(Structure structure) {
+	private String convertASSIGN(Structure<? extends State<?>> structure) throws CheckerException {
 		StringBuilder a = new StringBuilder("\tASSIGN\n\t\tinit(state) := {");
 
 		//Safety
-		for (State s : structure.getSinkStates()) {
-			s.addNext(s);
-			s.addPrevious(s);
+		for (State<?> s : structure.getSinkStates()) {
+			if (s.getNextStates().isEmpty())
+				throw new CheckerException("State without next");
 		}
 
-		Iterator<State> i = structure.getInitial().iterator();
+		Iterator<? extends State<?>> i = structure.getInitial().iterator();
 		while (i.hasNext()) {
 			a.append(i.next().getId());
 			if (i.hasNext()) a.append(",");
@@ -121,12 +121,10 @@ public class NuSMVFileWriter {
 		a.append("};\n");
 
 		a.append("\t\tnext(state) := \n\t\t\tcase\n");
-		Iterator<State> j = structure.getStates().iterator();
-		while (j.hasNext()) {
-			State s = j.next();
+		for (State<?> s : structure.getStates()) {
 			a.append("\t\t\t\tstate = " + s.getId() + " : {");
 
-			Iterator<State> k = s.getNextStates().iterator();
+			Iterator<? extends State<?>> k = s.getNextStates().iterator();
 			if (k.hasNext())
 				while (k.hasNext()) {
 					a.append(k.next().getId());
@@ -152,10 +150,10 @@ public class NuSMVFileWriter {
 		return f.toString();
 	}
 
-	private List<State> findStates(Structure structure, String ap) {
-		List<State> sub = new ArrayList<State>(structure.getStates().size() / structure.getAtomicPropositions().size());
+	private List<State<?>> findStates(Structure<? extends State<?>> structure, String ap) {
+		List<State<?>> sub = new ArrayList<>(structure.getStates().size() / structure.getAtomicPropositions().size());
 
-		for (State s : structure.getStates())
+		for (State<?> s : structure.getStates())
 			if (s.getAtomicPropositions().contains(ap))
 				sub.add(s);
 

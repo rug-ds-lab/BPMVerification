@@ -4,10 +4,7 @@ import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
-import nl.rug.ds.bpm.verification.converter.generic.AbstractConverterAction;
 import nl.rug.ds.bpm.verification.converter.kripke.KripkeStructureConverterAction;
-import nl.rug.ds.bpm.verification.model.State;
-import nl.rug.ds.bpm.verification.model.Structure;
 import nl.rug.ds.bpm.verification.model.StructureFactory;
 import nl.rug.ds.bpm.verification.model.generic.factory.AbstractStructureFactory;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
@@ -16,7 +13,7 @@ import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class KripkeFactory extends AbstractStructureFactory implements StructureFactory {
+public class KripkeFactory extends AbstractStructureFactory<KripkeState, KripkeStructure> implements StructureFactory<KripkeState, KripkeStructure> {
 
     /**
      * Creates a new Kripke structure.
@@ -24,7 +21,7 @@ public class KripkeFactory extends AbstractStructureFactory implements Structure
      * @return the new Kripke structure.
      */
     @Override
-    public Structure createStructure() {
+    public KripkeStructure createStructure() {
         return new KripkeStructure();
     }
 
@@ -35,7 +32,7 @@ public class KripkeFactory extends AbstractStructureFactory implements Structure
      * @return the created State.
      */
     @Override
-    public State createState(Set<String> atomicPropositions) {
+    public KripkeState createState(Set<String> atomicPropositions) {
         return new KripkeState(atomicPropositions);
     }
 
@@ -47,7 +44,7 @@ public class KripkeFactory extends AbstractStructureFactory implements Structure
      * @return the created State.
      */
     @Override
-    public State createState(String marking, Set<String> atomicPropositions) {
+    public KripkeState createState(String marking, Set<String> atomicPropositions) {
         return new KripkeState(marking, atomicPropositions);
     }
 
@@ -58,7 +55,7 @@ public class KripkeFactory extends AbstractStructureFactory implements Structure
      * @param transitions the set of (parallel) enabled Transitions.
      * @return the created State.
      */
-    public State createState(MarkingI marking, Set<? extends TransitionI> transitions) {
+    public KripkeState createState(MarkingI marking, Set<? extends TransitionI> transitions) {
         Set<CompositeExpression> expressions = getEnabledExpressions(transitions);
         expressions.addAll(getDataExpressions(marking));
 
@@ -77,7 +74,7 @@ public class KripkeFactory extends AbstractStructureFactory implements Structure
      * @return a new KripkeStructureConverterAction.
      */
     @Override
-    public AbstractConverterAction createConverter(VerifiableNet net, MarkingI marking, Structure structure) {
-        return new KripkeStructureConverterAction(net, marking, this, (KripkeStructure) structure);
+    public KripkeStructureConverterAction createConverter(VerifiableNet net, MarkingI marking, KripkeStructure structure) {
+        return new KripkeStructureConverterAction(net, marking, this, structure);
     }
 }
