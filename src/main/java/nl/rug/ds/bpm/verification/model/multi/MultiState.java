@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
 
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.verification.model.generic.MarkedState;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
  */
 public class MultiState extends MarkedState<MultiState> {
     private final Map<SubStructure, Block> parents;
+    private final Map<SubStructure, Set<MultiState>> nextSubStates;
     private boolean inLoop = false;
 
     /**
@@ -21,6 +23,7 @@ public class MultiState extends MarkedState<MultiState> {
     public MultiState(Set<String> atomicPropositions) {
         super(atomicPropositions);
         parents = new HashMap<>();
+        nextSubStates = new HashMap<>();
     }
 
     /**
@@ -32,6 +35,7 @@ public class MultiState extends MarkedState<MultiState> {
     public MultiState(String marking, Set<String> atomicPropositions) {
         super(marking, atomicPropositions);
         parents = new HashMap<>();
+        nextSubStates = new HashMap<>();
     }
 
     /**
@@ -44,10 +48,13 @@ public class MultiState extends MarkedState<MultiState> {
         block.addSubState(this);
 
         parents.put(subStructure, block);
+
+        if (!nextSubStates.containsKey(subStructure))
+            nextSubStates.put(subStructure, new TreeSet<MultiState>(new ComparableComparator<MultiState>()));
     }
 
     /**
-     * Returns the parentof this state within the given substructure.
+     * Returns the parent of this state within the given substructure.
      *
      * @param subStructure the SubStructure the returned parent belongs to.
      * @return the parent StutterState.
@@ -74,36 +81,37 @@ public class MultiState extends MarkedState<MultiState> {
         }
     }
 
+
     /**
-     * Returns
+     * Add a state as a next state that is accessible from this state within the given substructure.
      *
-     * @return
+     * @param subStructure the given substructure for which to add the next state.
+     * @param s            the next state.
+     * @return true if the set of next states did not already contain the given state.
      */
-    public boolean isInLoop() {
-        return inLoop;
+    public boolean addNext(SubStructure subStructure, MultiState s) {
+        return nextSubStates.get(subStructure).add(s);
     }
 
     /**
-     * Returns whether this state exists in a loop within the same stutter state of the given substructure.
+     * Add a state as a next state that is accessible from this state within the given substructure.
      *
-     * @param subStructure the given substructure.
-     * @return true iff this state exists in a loop within the same stutter state of the given substructure.
+     * @param subStructure the given substructure for which to add the next state.
+     * @param s            the set of  next state.
+     * @return true if the set of next states did not already contain the given state.
      */
-    public synchronized boolean isInLoop(SubStructure subStructure) {
-        return inLoop || isInLoop(subStructure, this);
+    public boolean addNext(SubStructure subStructure, Set<MultiState> s) {
+        return nextSubStates.get(subStructure).addAll(s);
     }
 
     /**
-     * Recursive step for isInLoop(SubStructure subStructure)
+     * Returns the set of next states that are accessible from this state within the given substructure.
+     *
+     * @param subStructure the given substructure for which to obtain the next states.
+     * @return the set of next states that are accessible from this state.
      */
-    protected synchronized boolean isInLoop(SubStructure subStructure, MultiState state) {
-        Iterator<MultiState> nextStates = getNextStates().iterator();
-        while (!inLoop && nextStates.hasNext()) {
-            MultiState n = nextStates.next();
-            inLoop = n.getParent(subStructure) == state.getParent(subStructure) && (state == n || n.isInLoop(subStructure, state));
-        }
-
-        return inLoop;
+    public Set<MultiState> getNextStates(SubStructure subStructure) {
+        return (nextSubStates.containsKey(subStructure) ? nextSubStates.get(subStructure) : new HashSet<MultiState>());
     }
 
     /**
@@ -113,7 +121,7 @@ public class MultiState extends MarkedState<MultiState> {
      * @return Set of StutterStates.
      */
     public synchronized Set<Block> getNextParents(SubStructure subStructure) {
-        return nextStates.stream().filter(s -> s != this).map(s -> ((MultiState) s).getParent(subStructure)).collect(Collectors.toSet());
+        return nextSubStates.get(subStructure).stream().filter(s -> s != this).map(s -> s.getParent(subStructure)).collect(Collectors.toSet());
     }
 
     /**
@@ -124,7 +132,7 @@ public class MultiState extends MarkedState<MultiState> {
      */
     public boolean isSplitter(SubStructure subStructure) {
         Block parent = getParent(subStructure);
-        Set<Block> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> ((MultiState) s).getNextParents(subStructure).stream()).collect(Collectors.toSet());
+        Set<Block> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> s.getNextParents(subStructure).stream()).collect(Collectors.toSet());
 
         return parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
     }

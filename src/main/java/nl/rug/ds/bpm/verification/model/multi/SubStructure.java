@@ -15,7 +15,6 @@ import java.util.TreeSet;
  * Class that implements a substructure of a multi-structure.
  */
 public class SubStructure extends AbstractStructure<Block> {
-    private final Set<BlockRelation> relations;
     private final Set<MultiState> initialSubStates;
     private final SpecificationSet specificationSet;
     private final CompositeExpression conditionExpression;
@@ -32,7 +31,6 @@ public class SubStructure extends AbstractStructure<Block> {
         this.atomicPropositions.addAll(atomicPropositions);
 
         initialSubStates = new TreeSet<>(new ComparableComparator<MultiState>());
-        relations = new TreeSet<>(new ComparableComparator<BlockRelation>());
 
         conditionExpression = new CompositeExpression(LogicalType.AND);
 
@@ -79,7 +77,7 @@ public class SubStructure extends AbstractStructure<Block> {
 
         boolean nextIsNew = nparent == null; // If true, next is not yet in this substructure.
         boolean nextEqualsCurrentParent = cparent.getAtomicPropositions().equals(nextRelAP); // If true, next belongs in cparent, else next is an entry state and current an exit state.
-        boolean arcCreatesLoop = current == next || (nparent != null && current.isInLoop(this)); // The arc is a back arc.
+        boolean arcCreatesLoop = current == next; //|| (nparent != null && current.isInLoop(this)); // The arc is a back arc.
 
         // Initialize nparent if needed
         if (nextIsNew && nextEqualsCurrentParent)
@@ -87,38 +85,17 @@ public class SubStructure extends AbstractStructure<Block> {
         else if (nextIsNew)
             nparent = createParent(nextRelAP);
 
-        if (cparent != nparent)
-            addRelation(current, next);
-
         // Add next to the nparent
         if (nextIsNew)
             next.setParent(this, nparent);
+
+        current.addNext(this, next);
 
         // Add current as an exit state
         if (arcCreatesLoop || !nextEqualsCurrentParent)
             cparent.addExitState(current);
 
         return next;
-    }
-
-    /**
-     * Adds a relation from current to next.
-     *
-     * @param current the start of the relation.
-     * @param next    the end of the relation.
-     * @return true if the set of relations did not already contain the relation.
-     */
-    public synchronized boolean addRelation(MultiState current, MultiState next) {
-        return relations.add(new BlockRelation(current, next));
-    }
-
-    /**
-     * Returns the set of block relations.
-     *
-     * @return the set of block relations
-     */
-    public Set<BlockRelation> getRelations() {
-        return relations;
     }
 
     /**
@@ -178,13 +155,14 @@ public class SubStructure extends AbstractStructure<Block> {
         Set<Block> merged = new TreeSet<Block>(new ComparableComparator<Block>());
         Set<Block> split = new TreeSet<Block>(new ComparableComparator<Block>());
 
-        for (BlockRelation relation : relations) {
-            Block sparent = relation.getStart().getParent(this);
-            Block eparent = relation.getEnd().getParent(this);
-
-            if (sparent.canMerge(eparent)) {
-                sparent.merge(eparent);
-                merged.add(eparent);
+        for (Block block : states) {
+            for (MultiState state : block.getExitStates()) {
+                for (Block nextparent : state.getNextParents(this)) {
+                    if (block.canMerge(nextparent)) {
+                        block.merge(nextparent);
+                        merged.add(nextparent);
+                    }
+                }
             }
         }
 
@@ -203,12 +181,16 @@ public class SubStructure extends AbstractStructure<Block> {
         Block safety = new Block(atomicPropositions, this);
         states.add(safety);
 
-        for (BlockRelation relation : relations) {
-            Block sparent = relation.getStart().getParent(this);
-            Block eparent = relation.getEnd().getParent(this);
-            if (sparent != eparent) {
-                sparent.addNext(eparent);
-                eparent.addPrevious(sparent);
+        for (Block block : states) {
+            for (MultiState state : block.getSubStates()) {
+                for (MultiState next : state.getNextStates(this)) {
+                    Block nextparent = next.getParent(this);
+
+                    if (block != nextparent) {
+                        block.addNext(nextparent);
+                        nextparent.addPrevious(block);
+                    }
+                }
             }
         }
 

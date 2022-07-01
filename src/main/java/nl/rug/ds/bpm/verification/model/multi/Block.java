@@ -61,7 +61,7 @@ public class Block extends AbstractState<Block> {
      * @param s the set of states to add.
      * @return true if the set of sub-states changed as a result of this call.
      */
-    public boolean addSubStates(Set<MultiState> s) {
+    public boolean addSubState(Set<MultiState> s) {
         return states.addAll(s);
     }
 
@@ -81,7 +81,7 @@ public class Block extends AbstractState<Block> {
      * @param s the set of states to remove.
      * @return true if the set of sub-states changed as a result of this call.
      */
-    public boolean removeSubStates(Set<MultiState> s) {
+    public boolean removeSubState(Set<MultiState> s) {
         return states.removeAll(s) || exitStates.removeAll(s);
     }
 
@@ -143,6 +143,7 @@ public class Block extends AbstractState<Block> {
             ms.setParent(this.subStructure, this);
 
         other.getSubStates().clear();
+        other.getExitStates().clear();
     }
 
     public Block split() {
@@ -159,14 +160,12 @@ public class Block extends AbstractState<Block> {
                 for (MultiState next : s.getNextStates())
                     if (next.getParent(this.subStructure) == newparent) {
                         addExitState(s);
-                        this.subStructure.addRelation(s, next);
                     }
 
             for (MultiState s : newparent.getSubStates())
                 for (MultiState next : s.getNextStates())
                     if (next.getParent(this.subStructure) == this) {
                         newparent.addExitState(s);
-                        this.subStructure.addRelation(s, next);
                     }
         }
 
