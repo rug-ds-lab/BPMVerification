@@ -51,10 +51,20 @@ public class SubStructure extends AbstractStructure<Block> {
         return known;
     }
 
+    /**
+     * Returns the set of substates that are initial states.
+     *
+     * @return set of states.
+     */
+    public Set<MultiState> getInitialSubStates() {
+        return initialSubStates;
+    }
+
     public synchronized MultiState addState(MultiState s) {
         if (s.getParent(this) == null) {
             Block ss = createParent(createAtomicPropositions(s.getAtomicPropositions()));
             s.setParent(this, ss);
+            ss.addSubState(s);
             states.add(ss);
         }
 
@@ -86,14 +96,18 @@ public class SubStructure extends AbstractStructure<Block> {
             nparent = createParent(nextRelAP);
 
         // Add next to the nparent
-        if (nextIsNew)
+        if (nextIsNew) {
             next.setParent(this, nparent);
+            nparent.addSubState(next);
+        }
 
         current.addNext(this, next);
 
         // Add current as an exit state
-        if (arcCreatesLoop || !nextEqualsCurrentParent)
-            cparent.addExitState(current);
+//        if (arcCreatesLoop || !nextEqualsCurrentParent) {
+//            cparent.addExitState(current);
+//            cparent.removeSubState(current);
+//        }
 
         return next;
     }
@@ -145,62 +159,5 @@ public class SubStructure extends AbstractStructure<Block> {
         states.add(state);
 
         return state;
-    }
-
-    /**
-     * Finalizes this SubStructure by adding relations between blocks, adding sinks,
-     * adding a safety state, and clearing pointers to the full state space.
-     */
-    public void finalizeStructure() {
-        Set<Block> merged = new TreeSet<Block>(new ComparableComparator<Block>());
-        Set<Block> split = new TreeSet<Block>(new ComparableComparator<Block>());
-
-        for (Block block : states) {
-            for (MultiState state : block.getExitStates()) {
-                for (Block nextparent : state.getNextParents(this)) {
-                    if (block.canMerge(nextparent)) {
-                        block.merge(nextparent);
-                        merged.add(nextparent);
-                    }
-                }
-            }
-        }
-
-        states.removeAll(merged);
-
-        for (Block block : states) {
-            Block s = block.split();
-            while (s != block) {
-                split.add(s);
-                s = block.split();
-            }
-        }
-
-        states.addAll(split);
-
-        Block safety = new Block(atomicPropositions, this);
-        states.add(safety);
-
-        for (Block block : states) {
-            for (MultiState state : block.getSubStates()) {
-                for (MultiState next : state.getNextStates(this)) {
-                    Block nextparent = next.getParent(this);
-
-                    if (block != nextparent) {
-                        block.addNext(nextparent);
-                        nextparent.addPrevious(block);
-                    }
-                }
-            }
-        }
-
-        for (Block block : states)
-            if (block.getNextStates().isEmpty()) {
-                block.addNext(block);
-                block.addPrevious(block);
-            }
-
-        for (MultiState init : initialSubStates)
-            initial.add(init.getParent(this));
     }
 }

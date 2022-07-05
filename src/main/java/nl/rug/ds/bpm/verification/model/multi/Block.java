@@ -1,33 +1,36 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
-import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.generic.AbstractState;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Class that implements a stutter state that contains multiple similar states.
+ * Class that implements a block that contains multiple similar states.
  */
 public class Block extends AbstractState<Block> {
-    protected TreeSet<MultiState> states, exitStates;
+    protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states
     protected SubStructure subStructure;
+    protected boolean flag;
+
 
     /**
-     * Creates a stutter state.
+     * Creates a block.
      *
      * @param atomicPropositions the atomic propositions that hold in this state.
-     * @param subStructure       the substructure this stutter state belongs to.
+     * @param subStructure       the substructure this block belongs to.
      */
     public Block(Set<String> atomicPropositions, SubStructure subStructure) {
         super(atomicPropositions);
 
-        states = new TreeSet<>(new ComparableComparator<MultiState>());
-        exitStates = new TreeSet<>(new ComparableComparator<MultiState>());
+        flag = false;
+
+        states = new ArrayList<>();
+        entryStates = new ArrayList<>();
+        exitStates = new ArrayList<>();
 
         this.subStructure = subStructure;
     }
@@ -45,10 +48,10 @@ public class Block extends AbstractState<Block> {
     }
 
     /**
-     * Add a state to this stutter state.
+     * Add a state to this block.
      *
      * @param s the state to add.
-     * @return true if this stutter state did not already contain the given state.
+     * @return true if this block did not already contain the given state.
      */
     public boolean addSubState(MultiState s) {
         return states.add(s);
@@ -56,7 +59,7 @@ public class Block extends AbstractState<Block> {
 
 
     /**
-     * Add a set of states to this stutter state.
+     * Add a set of states to this block.
      *
      * @param s the set of states to add.
      * @return true if the set of sub-states changed as a result of this call.
@@ -66,62 +69,145 @@ public class Block extends AbstractState<Block> {
     }
 
     /**
-     * Remove a state from this stutter state.
+     * Remove a state from this block.
      *
      * @param s the state to remove.
      * @return true if the set of sub-states changed as a result of this call.
      */
     public boolean removeSubState(MultiState s) {
-        return states.remove(s) || exitStates.remove(s);
+        return states.remove(s);
     }
 
     /**
-     * Remove a set of states from this stutter state.
+     * Remove a set of states from this block.
      *
      * @param s the set of states to remove.
      * @return true if the set of sub-states changed as a result of this call.
      */
     public boolean removeSubState(Set<MultiState> s) {
-        return states.removeAll(s) || exitStates.removeAll(s);
+        return states.removeAll(s);
     }
 
     /**
-     * Returns the set of states that are part of this stutter state.
+     * Returns the set of states that are part of this block.
      *
-     * @return the set of states that are part of this stutter state.
+     * @return the set of states that are part of this block.
      */
-    public Set<MultiState> getSubStates() {
+    public List<MultiState> getSubStates() {
         return states;
     }
 
     /**
-     * Add an exit state to this stutter state.
+     * Add an exit state to this block.
      *
      * @param s the state to add.
-     * @return true if this stutter state did not already contain the given state as an exit state.
+     * @return true if this block did not already contain the given state as an exit state.
      */
     public boolean addExitState(MultiState s) {
         return exitStates.add(s);
     }
 
     /**
-     * Remove a state from the exit states of this stutter state.
+     * Remove a state from the exit states of this block.
      *
      * @param s the state to remove.
-     * @return true if the state was removed from the exit states of this stutter state.
+     * @return true if the state was removed from the exit states of this block.
      */
     public boolean removeExitState(MultiState s) {
         return exitStates.remove(s);
     }
 
     /**
-     * Returns the set of exit states that are part of this stutter state.
+     * Returns the set of exit states that are part of this block.
      *
-     * @return the set of exit states that are part of this stutter state.
+     * @return the set of exit states that are part of this block.
      */
-    public TreeSet<MultiState> getExitStates() {
+    public List<MultiState> getExitStates() {
         return exitStates;
     }
+
+    /**
+     * Add an entry state to this block.
+     *
+     * @param s the state to add.
+     * @return true if this block did not already contain the given state as an entry state.
+     */
+    public boolean addEntryState(MultiState s) {
+        return entryStates.add(s);
+    }
+
+    /**
+     * Remove a state from the entry states of this block.
+     *
+     * @param s the state to remove.
+     * @return true if the state was removed from the entry states of this block.
+     */
+    public boolean removeEntryState(MultiState s) {
+        return entryStates.remove(s);
+    }
+
+    /**
+     * Returns the set of entry states that are part of this block.
+     *
+     * @return the set of entry states that are part of this block.
+     */
+    public List<MultiState> getEntryStates() {
+        return entryStates;
+    }
+
+    /**
+     * Returns whether the flag of the stutter algorithm was raised or not.
+     *
+     * @return true iff the flag of the stutter algorithm was raised.
+     */
+    public boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * Sets the flag of the stutter algorithm.
+     *
+     * @param flag true to raise the flag, false to lower the flag.
+     */
+    public void setFlag(boolean flag) {
+        this.flag = flag;
+    }
+
+    /**
+     * Initializes the lists of entry and exit states for this block.
+     *
+     * @return true iff exit states were found.
+     */
+    public boolean initialize() {
+        boolean foundNew = false;
+        entryStates.clear();
+
+        Iterator<MultiState> iterator = states.iterator();
+        while (iterator.hasNext()) {
+            MultiState s = iterator.next();
+            boolean isBottom = true;
+
+            Iterator<MultiState> nexts = s.getNextStates(subStructure).iterator();
+            while (nexts.hasNext() && isBottom) {
+                MultiState next = nexts.next();
+                if (s != next && next.getParent(subStructure) == this)
+                    isBottom = false;
+            }
+
+            for (MultiState previous : s.getPreviousStates(subStructure))
+                if (previous.getParent(subStructure) != this)
+                    entryStates.add(previous);
+
+            if (isBottom && !exitStates.contains(s)) {
+                foundNew = true;
+                exitStates.add(s);
+                iterator.remove();
+            }
+        }
+
+        return foundNew;
+    }
+
 
     /**
      * Returns whether this block can merge with another block.
@@ -134,42 +220,97 @@ public class Block extends AbstractState<Block> {
     }
 
     /**
-     * Merge this stutter state with a given other stutter state that equals this stutter state.
+     * Merge this block with a given other block.
      *
-     * @param other the given stutter state.
+     * @param other the given block.
      */
     public void merge(Block other) {
-        for (MultiState ms : other.getSubStates())
-            ms.setParent(this.subStructure, this);
+        if (canMerge(other)) {
+            for (MultiState ms : other.getSubStates())
+                ms.setParent(this.subStructure, this);
+            for (MultiState ms : other.getExitStates())
+                ms.setParent(this.subStructure, this);
 
-        other.getSubStates().clear();
-        other.getExitStates().clear();
+            states.addAll(other.getSubStates());
+            states.addAll(other.getExitStates());
+        }
     }
 
+    /**
+     * Splits off the states without raised flags and forms them into a new block.
+     *
+     * @return the new block with split off states.
+     */
     public Block split() {
-        MultiState splitter = exitStates.stream().filter(s -> (s).isSplitter(this.subStructure)).findFirst().orElse(null);
+        List<MultiState> thisBottom = new ArrayList<>();
+        List<MultiState> thisNonBottom = new ArrayList<>();
+        List<MultiState> otherBottom = new ArrayList<>();
+        List<MultiState> otherNonBottom = new ArrayList<>();
 
-        if (splitter != null) {
-            Block newparent = new Block(this.subStructure.createAtomicPropositions(this.atomicPropositions), this.subStructure);
-
-            splitter.setParent(subStructure, newparent);
-            for (MultiState prev : splitter.getPreviousStates())
-                prev.updatePreviousParents(this.subStructure, this, newparent);
-
-            for (MultiState s : getSubStates())
-                for (MultiState next : s.getNextStates())
-                    if (next.getParent(this.subStructure) == newparent) {
-                        addExitState(s);
-                    }
-
-            for (MultiState s : newparent.getSubStates())
-                for (MultiState next : s.getNextStates())
-                    if (next.getParent(this.subStructure) == this) {
-                        newparent.addExitState(s);
-                    }
+        for (MultiState b : exitStates) {
+            if (b.getFlag(subStructure))
+                thisBottom.add(b);
+            else
+                otherBottom.add(b);
         }
 
-        return (splitter == null ? this : splitter.getParent(this.subStructure));
+        //if flag down and next in bot or nonbot, add to nonbot
+        //BSF added, so iterate back to front
+        ListIterator<MultiState> iterator = states.listIterator(states.size());
+        while (iterator.hasPrevious()) {
+            MultiState nb = iterator.previous();
+            if (!nb.getFlag(subStructure)) {
+                boolean isB2 = true;
+                Iterator<MultiState> next = nb.getNextStates(subStructure).iterator();
+                while (next.hasNext() && isB2) {
+                    MultiState n = next.next();
+                    isB2 = otherBottom.contains(n) || otherNonBottom.contains(n);
+                }
+
+                if (isB2)
+                    otherNonBottom.add(nb);
+                else
+                    thisNonBottom.add(nb);
+            } else
+                thisNonBottom.add(nb);
+        }
+
+        //nonbot was filled in reverse
+        //thisNonBottom.sort(Collections.reverseOrder());
+        //otherNonBottom.sort(Collections.reverseOrder());
+
+        //split lists
+        exitStates.retainAll(thisBottom);
+        states.retainAll(thisNonBottom);
+
+        //make the new block
+        Block other = subStructure.createParent(atomicPropositions);
+
+        for (MultiState state : otherBottom) {
+            state.setParent(subStructure, other);
+            other.addExitState(state);
+        }
+
+        ListIterator<MultiState> nbiterator = otherNonBottom.listIterator(otherNonBottom.size());
+        while (nbiterator.hasPrevious()) {
+            MultiState previous = nbiterator.previous();
+            previous.setParent(subStructure, other);
+            other.addSubState(previous);
+        }
+
+        this.setFlag(false);
+        other.setFlag(false);
+
+        return other;
+    }
+
+    /**
+     * Returns the set of blocks that are reachable from the exit states of this block, excluding this.
+     *
+     * @return a set of blocks.
+     */
+    public Set<Block> getNextParents() {
+        return exitStates.stream().flatMap(state -> state.getNextStates(subStructure).stream()).map(state -> state.getParent(subStructure)).filter(block -> block != this).collect(Collectors.toSet());
     }
 
     @Override
@@ -185,6 +326,6 @@ public class Block extends AbstractState<Block> {
 
     @Override
     public String toString() {
-        return id + ": {" + hash + " | " + states.stream().map(State::getId).collect(Collectors.joining(",")) + " }";
+        return id + ": {" + hash + " | " + states.stream().map(State::getId).collect(Collectors.joining(",")) + " + " + exitStates.stream().map(State::getId).collect(Collectors.joining(",")) + " }";
     }
 }

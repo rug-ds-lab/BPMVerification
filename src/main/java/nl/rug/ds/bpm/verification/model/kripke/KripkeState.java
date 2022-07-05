@@ -1,7 +1,7 @@
 package nl.rug.ds.bpm.verification.model.kripke;
 
 import nl.rug.ds.bpm.verification.model.generic.MarkedState;
-import nl.rug.ds.bpm.verification.model.kripke.optimizer.stutter.Block;
+import nl.rug.ds.bpm.verification.model.kripke.postprocess.stutter.Block;
 
 import java.util.Set;
 

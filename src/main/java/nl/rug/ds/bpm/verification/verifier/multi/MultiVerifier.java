@@ -19,6 +19,7 @@ import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.multi.MultiStructure;
 import nl.rug.ds.bpm.verification.model.multi.SubStructure;
 import nl.rug.ds.bpm.verification.model.multi.factory.MultiFactory;
+import nl.rug.ds.bpm.verification.model.multi.postprocess.stutter.MultiStutterMergeSplitAction;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 import nl.rug.ds.bpm.verification.verifier.generic.AbstractVerifier;
 
@@ -57,7 +58,7 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
 
         try {
             compute(structure);
-            finalize(structure);
+            optimize(structure);
         } catch (Exception e) {
             Logger.log("Failed to compute multi structure.", LogEvent.CRITICAL);
             e.printStackTrace();
@@ -106,20 +107,31 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
     }
 
     /**
-     * Finalizes the given structure by adding a safety, 'ghost', state to each substructure for model
-     * check safety. Prevents model checker from complaining about atomic propositions used in specifications
-     * that are not in the model (i.e., Structure). In addition clears the state space of the full model.
+     * Calculates mergers and splits to obtain stutter equivalent substructures of the given Structure.
      *
-     * @param structure the Structure finalize.
+     * @param structure the given Structure.
      */
-    protected void finalize(MultiStructure structure) {
-        structure.finalizeStructure();
+    protected void optimize(MultiStructure structure) {
+        Logger.log("Calculating stutter equivalent substructure(s)", LogEvent.INFO);
+        double delta = stutterCalculate(structure);
+        Logger.log("Calculated stutter equivalent substructure(s) in " + formatComputationTime(delta), LogEvent.INFO);
+    }
 
-        if (Logger.getLogLevel() <= LogEvent.DEBUG) {
+    /**
+     * Calculates mergers and splits to obtain stutter equivalent substructures of the given Structure.
+     *
+     * @param structure the given Structure.
+     * @return the time it took to calculate in nanoseconds.
+     */
+    protected double stutterCalculate(MultiStructure structure) {
+        long t0 = System.nanoTime();
+        MultiStutterMergeSplitAction splitter = new MultiStutterMergeSplitAction(structure.getSubStructures());
+        long t1 = System.nanoTime();
+
+        if (Logger.getLogLevel() <= LogEvent.DEBUG)
             Logger.log("\n" + structure, LogEvent.DEBUG);
-            for (SubStructure subStructure : structure.getSubStructures())
-                Logger.log("Substructure:\n" + subStructure, LogEvent.DEBUG);
-        }
+
+        return t1 - t0;
     }
 
     /**

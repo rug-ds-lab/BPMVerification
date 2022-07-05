@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class MultiState extends MarkedState<MultiState> {
     private final Map<SubStructure, Block> parents;
     private final Map<SubStructure, Set<MultiState>> nextSubStates;
-    private boolean inLoop = false;
+    private final Map<SubStructure, Boolean> flags;
 
     /**
      * Creates a multi state.
@@ -24,6 +24,7 @@ public class MultiState extends MarkedState<MultiState> {
         super(atomicPropositions);
         parents = new HashMap<>();
         nextSubStates = new HashMap<>();
+        flags = new HashMap<>();
     }
 
     /**
@@ -36,6 +37,7 @@ public class MultiState extends MarkedState<MultiState> {
         super(marking, atomicPropositions);
         parents = new HashMap<>();
         nextSubStates = new HashMap<>();
+        flags = new HashMap<>();
     }
 
     /**
@@ -45,8 +47,6 @@ public class MultiState extends MarkedState<MultiState> {
      * @param block        the parent to assign.
      */
     public void setParent(SubStructure subStructure, Block block) {
-        block.addSubState(this);
-
         parents.put(subStructure, block);
 
         if (!nextSubStates.containsKey(subStructure))
@@ -62,25 +62,6 @@ public class MultiState extends MarkedState<MultiState> {
     public Block getParent(SubStructure subStructure) {
         return parents.get(subStructure);
     }
-
-    /**
-     * Updates the parent of this and all previous states within the given substructure while
-     * they belong to current and have no other reachable parents.
-     *
-     * @param subStructure the SubStructure the given parent belongs to.
-     * @param current      the currently assigned parent.
-     * @param newparent    the parent to assign.
-     */
-    public void updatePreviousParents(SubStructure subStructure, Block current, Block newparent) {
-        if (parents.get(subStructure) == current && getNextParents(subStructure).stream().allMatch(p -> p == newparent)) {
-            setParent(subStructure, newparent);
-            current.removeSubState(this);
-
-            for (MultiState previous : getPreviousStates())
-                previous.updatePreviousParents(subStructure, current, newparent);
-        }
-    }
-
 
     /**
      * Add a state as a next state that is accessible from this state within the given substructure.
@@ -115,26 +96,34 @@ public class MultiState extends MarkedState<MultiState> {
     }
 
     /**
-     * Returns the set of parents of the next states for the given substructure.
+     * Returns the set of previous states that are accessible from this state within the given substructure.
+     * We're not tracking previous states for each substructure in order to save memory, but we can obtain the set by filtering.
      *
-     * @param subStructure the substructure the returned parents should belong to.
-     * @return Set of StutterStates.
+     * @param subStructure the given substructure for which to obtain the next states.
+     * @return the set of previous states that are accessible from this state.
      */
-    public synchronized Set<Block> getNextParents(SubStructure subStructure) {
-        return nextSubStates.get(subStructure).stream().filter(s -> s != this).map(s -> s.getParent(subStructure)).collect(Collectors.toSet());
+    public Set<MultiState> getPreviousStates(SubStructure subStructure) {
+        return getPreviousStates().stream().filter(s -> s.getNextStates(subStructure).contains(this)).collect(Collectors.toSet());
     }
 
     /**
-     * Returns whether this state is a splitter of its parent within the given substructure.
+     * Returns whether the flag of the stutter algorithm was raised or not for the given substructure.
      *
      * @param subStructure the given substructure.
-     * @return true iff this an exit state of its parent and its next parents are disjoint from the other exit states.
+     * @return true iff the flag of the stutter algorithm was raised for the given substructure.
      */
-    public boolean isSplitter(SubStructure subStructure) {
-        Block parent = getParent(subStructure);
-        Set<Block> otherParents = parent.getExitStates().stream().filter(s -> s != this).flatMap(s -> s.getNextParents(subStructure).stream()).collect(Collectors.toSet());
+    public boolean getFlag(SubStructure subStructure) {
+        return flags.containsKey(subStructure) && flags.get(subStructure);
+    }
 
-        return parent.getExitStates().contains(this) && !otherParents.isEmpty() && Collections.disjoint(this.getNextParents(subStructure), otherParents);
+    /**
+     * Sets the flag of the stutter algorithm for the given substructure.
+     *
+     * @param subStructure the given substructure.
+     * @param flag         true to raise the flag, false to lower the flag.
+     */
+    public void setFlag(SubStructure subStructure, boolean flag) {
+        flags.put(subStructure, flag);
     }
 
     @Override

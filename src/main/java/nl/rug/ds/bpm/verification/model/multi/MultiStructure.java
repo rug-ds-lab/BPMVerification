@@ -79,15 +79,4 @@ public class MultiStructure extends AbstractStructure<MultiState> {
 
         return found;
     }
-
-    /**
-     * Finalizes the MultiStructure by clearing the states and partitioning the Blocks of the SubStructures.
-     */
-    public void finalizeStructure() {
-        states.clear();
-        initial.clear();
-
-        for (SubStructure subStructure : subStructures)
-            subStructure.finalizeStructure();
-    }
 }

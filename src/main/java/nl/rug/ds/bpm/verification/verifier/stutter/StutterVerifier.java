@@ -14,7 +14,7 @@ import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.generic.optimizer.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
-import nl.rug.ds.bpm.verification.model.kripke.optimizer.stutter.StutterOptimizer;
+import nl.rug.ds.bpm.verification.model.kripke.postprocess.stutter.StutterOptimizer;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 import nl.rug.ds.bpm.verification.verifier.kripke.KripkeVerifier;
 

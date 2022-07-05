@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.verification.model.kripke.optimizer.stutter;
+package nl.rug.ds.bpm.verification.model.kripke.postprocess.stutter;
 
 import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
