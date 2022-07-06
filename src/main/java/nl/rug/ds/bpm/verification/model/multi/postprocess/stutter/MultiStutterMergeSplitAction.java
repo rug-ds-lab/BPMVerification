@@ -46,18 +46,27 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
 
     @Override
     protected void compute() {
+        initialize();
         merge();
         split();
         connect();
     }
 
-    private void merge() {
-        Set<Block> remove = new TreeSet<>(new ComparableComparator<>());
-
+    /**
+     * Initializes the blocks as per Groote's stutter equivalence algorithm.
+     */
+    private void initialize() {
         for (Block block : subStructure.getStates()) {
             block.initialize();
             Logger.log("Block " + block, LogEvent.DEBUG);
         }
+    }
+
+    /**
+     * Merges and re-initializes any connected blocks that are equal.
+     */
+    private void merge() {
+        Set<Block> remove = new TreeSet<>(new ComparableComparator<>());
 
         for (Block block : subStructure.getStates()) {
             if (block != null && !remove.contains(block)) {
@@ -81,6 +90,9 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
         subStructure.getStates().removeAll(remove);
     }
 
+    /**
+     * Splits blocks according to Groote's stutter equivalence algorithm.
+     */
     private void split() {
         List<Block> toBeProcessed = new LinkedList<>(subStructure.getStates());
         List<Block> stable = new LinkedList<>();
@@ -110,8 +122,6 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                     isSplitter = !i.next().getFlag(subStructure);
 
                 if (isSplitter) {
-                    Logger.log("Splitting stutter block " + b, LogEvent.DEBUG);
-
                     if (!toBeProcessed.remove(b))
                         stable.remove(b);
 
@@ -144,13 +154,16 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
         }
     }
 
+    /**
+     * Connects blocks using the connectivity of its substates as well as strongly connected components.
+     */
     private void connect() {
         for (Block current : subStructure.getStates()) {
             for (Block next : current.getNextParents()) {
                 current.addNext(next);
                 next.addPrevious(current);
             }
-            if (current.getNextStates().isEmpty()) {
+            if (current.containsCycle()) {
                 current.addNext(current);
                 current.addPrevious(current);
             }

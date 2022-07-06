@@ -15,6 +15,8 @@ public class Block extends AbstractState<Block> {
     protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states
     protected SubStructure subStructure;
     protected boolean flag;
+    protected int scc = -1;
+    protected int sccid = 0;
 
 
     /**
@@ -179,12 +181,14 @@ public class Block extends AbstractState<Block> {
      * @return true iff exit states were found.
      */
     public boolean initialize() {
-        boolean foundNew = false;
+        flag = false;
         entryStates.clear();
+        boolean foundNew = false;
 
         Iterator<MultiState> iterator = states.iterator();
         while (iterator.hasNext()) {
             MultiState s = iterator.next();
+            s.setFlag(subStructure, false);
             boolean isBottom = true;
 
             Iterator<MultiState> nexts = s.getNextStates(subStructure).iterator();
@@ -233,11 +237,13 @@ public class Block extends AbstractState<Block> {
 
             states.addAll(other.getSubStates());
             states.addAll(other.getExitStates());
+            states.addAll(exitStates);
+            exitStates.clear();
         }
     }
 
     /**
-     * Splits off the states without raised flags and forms them into a new block.
+     * Splits off the states without raised flags and forms them into a new block, using Groote's algorithm.
      *
      * @return the new block with split off states.
      */
@@ -275,10 +281,6 @@ public class Block extends AbstractState<Block> {
                 thisNonBottom.add(nb);
         }
 
-        //nonbot was filled in reverse
-        //thisNonBottom.sort(Collections.reverseOrder());
-        //otherNonBottom.sort(Collections.reverseOrder());
-
         //split lists
         exitStates.retainAll(thisBottom);
         states.retainAll(thisNonBottom);
@@ -291,6 +293,7 @@ public class Block extends AbstractState<Block> {
             other.addExitState(state);
         }
 
+        //nonbot was filled in reverse
         ListIterator<MultiState> nbiterator = otherNonBottom.listIterator(otherNonBottom.size());
         while (nbiterator.hasPrevious()) {
             MultiState previous = nbiterator.previous();
@@ -302,6 +305,89 @@ public class Block extends AbstractState<Block> {
         other.setFlag(false);
 
         return other;
+    }
+
+    /**
+     * Returns whether the number of strongly connected components is smaller than the number of states,
+     * indicating a loop, or whether any state is a sink.
+     *
+     * @return true iff this block contains a loop.
+     */
+    public boolean containsCycle() {
+        return getScc() < (states.size() + exitStates.size()) ||
+                states.stream().anyMatch(state -> state.getNextStates(subStructure).contains(state)) ||
+                exitStates.stream().anyMatch(state -> state.getNextStates(subStructure).contains(state));
+    }
+
+    /**
+     * Gets the number of strongly connected components within this block.
+     *
+     * @return the number of strongly connected components within this block
+     */
+    public int getScc() {
+        if (scc == -1)
+            tarjanSCC();
+        return scc;
+    }
+
+    /**
+     * Finds strongly connected components within this block using Tarjan's algorithm.
+     */
+    private void tarjanSCC() {
+        Stack<MultiState> stack = new Stack<>();
+
+        List<MultiState> list = new ArrayList<>();
+        list.addAll(states);
+        list.addAll(exitStates);
+
+        int[] ids = new int[list.size()];
+        int[] low = new int[list.size()];
+
+        sccid = 0;
+        scc = 0;
+
+        for (int i = 0; i < list.size(); i++)
+            ids[i] = -1; //-1 equals unvisited
+
+        for (int i = 0; i < list.size(); i++)
+            if (ids[i] == -1)
+                dfsSCC(i, ids, low, list, stack);
+
+        //reset flags
+        for (MultiState state : list)
+            state.setFlag(subStructure, false);
+
+        Logger.log("Block " + this.getId() + " SCC ids = " + Arrays.toString(ids) + " low = " + Arrays.toString(low), LogEvent.DEBUG);
+    }
+
+    private void dfsSCC(int at, int[] ids, int[] low, List<MultiState> list, Stack<MultiState> stack) {
+        MultiState state = list.get(at);
+
+        ids[at] = sccid;
+        low[at] = sccid;
+        sccid++;
+
+        stack.push(state);
+        state.setFlag(subStructure, true); //re-use the stutter flag to track whether states are on the stack
+
+        for (MultiState next : state.getNextStates(subStructure)) {
+            if (next.getParent(subStructure) == this) { //only include states within this block
+                int to = list.indexOf(next);
+                if (ids[to] == -1)
+                    dfsSCC(to, ids, low, list, stack);
+                else if (next.getFlag(subStructure))
+                    low[at] = Math.min(low[at], low[to]);
+            }
+        }
+
+        if (ids[at] == low[at]) {
+            MultiState p = null;
+            while (!stack.isEmpty() && p != state) {
+                p = stack.pop();
+                p.setFlag(subStructure, false);
+            }
+            scc++;
+        }
     }
 
     /**
