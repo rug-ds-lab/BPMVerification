@@ -3,39 +3,42 @@ package nl.rug.ds.bpm.verification.model.multi;
 import nl.rug.ds.bpm.expression.CompositeExpression;
 import nl.rug.ds.bpm.specification.jaxb.SpecificationSet;
 import nl.rug.ds.bpm.util.exception.ConverterException;
+import nl.rug.ds.bpm.util.log.LogEvent;
+import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.generic.AbstractStructure;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class MultiStructure extends AbstractStructure<MultiState> {
-    private final Set<SubStructure> subStructures;
+    private final Set<Partition> partitions;
 
     /**
      * Creates a MultiStructure
      */
     public MultiStructure() {
         super();
-        subStructures = new HashSet<>();
+        partitions = new HashSet<>();
     }
 
     /**
-     * Adds a SubStructure to this MultiStructure.
+     * Adds a Partition to this MultiStructure.
      *
-     * @param specificationSet   the SpecificationSet applicable to the SubStructure.
-     * @param atomicPropositions the Set of atomic proportions relevant to the SubStructure.
+     * @param specificationSet   the SpecificationSet applicable to the Partition.
+     * @param atomicPropositions the Set of atomic proportions relevant to the Partition.
      */
-    public void addSubStructure(SpecificationSet specificationSet, Set<String> atomicPropositions) {
-        subStructures.add(new SubStructure(specificationSet, atomicPropositions));
+    public void addPartition(SpecificationSet specificationSet, Set<String> atomicPropositions) {
+        partitions.add(new Partition(specificationSet, atomicPropositions));
+        Logger.log("Adding partition for " + String.join(", ", atomicPropositions), LogEvent.VERBOSE);
     }
 
     /**
-     * Returns the set of SubStructures of this MultiStructure.
+     * Returns the set of Partitions of this MultiStructure.
      *
-     * @return the set of SubStructures.
+     * @return the set of Partitions.
      */
-    public Set<SubStructure> getSubStructures() {
-        return subStructures;
+    public Set<Partition> getPartitions() {
+        return partitions;
     }
 
     /**
@@ -48,11 +51,11 @@ public class MultiStructure extends AbstractStructure<MultiState> {
     public synchronized MultiState addInitial(MultiState state, CompositeExpression stateExpression, CompositeExpression guardExpression) throws ConverterException {
         MultiState found = this.addInitial(state);
 
-        for (SubStructure subStructure : subStructures) {
-            if (subStructure.contradicts(stateExpression) || subStructure.contradicts(guardExpression))
-                subStructure.addState(found);
+        for (Partition partition : partitions) {
+            if (partition.contradicts(stateExpression) || partition.contradicts(guardExpression))
+                partition.addState(found);
             else
-                subStructure.addInitial(state);
+                partition.addInitial(state);
         }
 
         return super.addInitial(state);
@@ -70,11 +73,11 @@ public class MultiStructure extends AbstractStructure<MultiState> {
     public synchronized MultiState addNext(MultiState previous, MultiState created, CompositeExpression stateExpression, CompositeExpression guardExpression) throws ConverterException {
         MultiState found = this.addNext(previous, created);
 
-        for (SubStructure subStructure : subStructures) {
-            if (subStructure.contradicts(stateExpression) || subStructure.contradicts(guardExpression))
-                subStructure.addState(found);
+        for (Partition partition : partitions) {
+            if (partition.contradicts(stateExpression) || partition.contradicts(guardExpression))
+                partition.addState(found);
             else
-                subStructure.addNext(previous, found);
+                partition.addNext(previous, found);
         }
 
         return found;

@@ -85,9 +85,9 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 
 				//Make a verifier
 				Verifier verifier;
-				verifier = VerificationFactory.createMultiVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+//				verifier = VerificationFactory.createMultiVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
 //				if (reduce)
-//					verifier = VerificationFactory.createStutterVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
+				verifier = VerificationFactory.createStutterVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
 //				else
 //					verifier = VerificationFactory.createKripkeVerifier(pn, VerificationFactory.loadSpecification(spec), factory);
 

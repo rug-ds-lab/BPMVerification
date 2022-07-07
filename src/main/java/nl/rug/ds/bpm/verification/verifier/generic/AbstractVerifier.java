@@ -6,6 +6,7 @@ import nl.rug.ds.bpm.expression.LogicalType;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.specification.jaxb.*;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.ConfigurationException;
 import nl.rug.ds.bpm.util.exception.VerifierException;
 import nl.rug.ds.bpm.util.log.LogEvent;
@@ -23,6 +24,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Abstract class representing a verifier.
@@ -111,19 +114,38 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 	}
 
 	/**
-	 * Obtain an AtomicPropositionMap of the atomic propositions used by the given subset of specifications.
+	 * Add the atomic propositions contained in a specification set to an AtomicPropositionMap.
+	 *
+	 * @param atomicPropositionMap the AtomicPropositionMap to fill.
+	 * @param specificationSet     the subset of specifications to use.
+	 */
+	protected void getSpecificationSetPropositions(AtomicPropositionMap<CompositeExpression> atomicPropositionMap, SpecificationSet specificationSet) {
+		for (CompositeExpression expression : getSpecificationSetExpressions(specificationSet))
+			atomicPropositionMap.addID(expression);
+	}
+
+	/**
+	 * Obtain a set of CompositeExpressions of the atomic propositions used by the given subset of specifications.
 	 *
 	 * @param specificationSet the subset of specifications to use.
-	 * @return an AtomicPropositionMap populated with the atomic propositions, labeled with 'p', that are used within
-	 * the given subset of the specifications.
+	 * @return a set of CompositeExpression
 	 */
-	protected AtomicPropositionMap<CompositeExpression> getSpecificationPropositions(SpecificationSet specificationSet) {
-		AtomicPropositionMap<CompositeExpression> atomicPropositionMap = new AtomicPropositionMap<CompositeExpression>("p");
+	protected Set<CompositeExpression> getSpecificationSetExpressions(SpecificationSet specificationSet) {
+		Set<CompositeExpression> ap = new TreeSet<>(new ComparableComparator<>());
 
 		for (Specification s : specificationSet.getSpecifications())
 			for (InputElement inputElement : s.getInputElements())
-				atomicPropositionMap.addID(ExpressionBuilder.parseExpression(inputElement.getElement()));
+				ap.add(ExpressionBuilder.parseExpression(inputElement.getElement()));
 
+		return ap;
+	}
+
+	/**
+	 * Addthe atomic propositions defined by groups to an AtomicPropositionMap.
+	 *
+	 * @param atomicPropositionMap the AtomicPropositionMap to fill.
+	 */
+	protected void getGroupPropositions(AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
 		for (Group group : specification.getGroups()) {
 			CompositeExpression groupExpression = new CompositeExpression(LogicalType.OR);
 			for (Element element : group.getElements())
@@ -131,8 +153,6 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 			String ap = atomicPropositionMap.addID(groupExpression);
 			atomicPropositionMap.addID(ExpressionBuilder.parseExpression(group.getId()), ap);
 		}
-
-		return atomicPropositionMap;
 	}
 
 	private BPMSpecification loadConfiguration() throws ConfigurationException {

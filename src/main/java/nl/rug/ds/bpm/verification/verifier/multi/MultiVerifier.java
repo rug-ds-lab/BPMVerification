@@ -17,13 +17,15 @@ import nl.rug.ds.bpm.verification.converter.multi.MultiStructureConverterAction;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.multi.MultiStructure;
-import nl.rug.ds.bpm.verification.model.multi.SubStructure;
+import nl.rug.ds.bpm.verification.model.multi.Partition;
 import nl.rug.ds.bpm.verification.model.multi.factory.MultiFactory;
 import nl.rug.ds.bpm.verification.model.multi.postprocess.stutter.MultiStutterMergeSplitAction;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 import nl.rug.ds.bpm.verification.verifier.generic.AbstractVerifier;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Class implementing a Verifier that uses a MultiStructure.
@@ -48,13 +50,17 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
         Logger.log("Verifying specification", LogEvent.INFO);
 
         MultiStructure structure = structureFactory.createStructure();
+        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
+        getGroupPropositions(specificationSetPropositionMap);
 
         for (SpecificationSet specificationSet : specification.getSpecificationSets()) {
-            AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = getSpecificationPropositions(specificationSet);
-            structureFactory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
+            getSpecificationSetPropositions(specificationSetPropositionMap, specificationSet);
 
-            structure.addSubStructure(specificationSet, specificationSetPropositionMap.getAPKeys());
+            Set<String> ap = getSpecificationSetExpressions(specificationSet).stream().map(specificationSetPropositionMap::getAP).collect(Collectors.toSet());
+            structure.addPartition(specificationSet, ap);
         }
+
+        structureFactory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
 
         try {
             compute(structure);
@@ -65,11 +71,11 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
             throw new VerifierException("Failed to compute structure.");
         }
 
-        for (SubStructure subStructure : structure.getSubStructures()) {
+        for (Partition partition : structure.getPartitions()) {
             Checker checker = checkerFactory.getChecker();
 
             try {
-                convert(checker, subStructure);
+                convert(checker, partition);
                 check(checker);
             } catch (Exception e) {
                 Logger.log("Failed to verify set.", LogEvent.ERROR);
@@ -125,7 +131,7 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
      */
     protected double stutterCalculate(MultiStructure structure) {
         long t0 = System.nanoTime();
-        MultiStutterMergeSplitAction splitter = new MultiStutterMergeSplitAction(structure.getSubStructures());
+        MultiStutterMergeSplitAction splitter = new MultiStutterMergeSplitAction(structure.getPartitions());
         long t1 = System.nanoTime();
 
         if (Logger.getLogLevel() <= LogEvent.DEBUG)
@@ -137,18 +143,18 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
     /**
      * Converts the Structure into the internal representation used by the given Checker.
      *
-     * @param checker      the Checker to use for the conversion.
-     * @param subStructure the SubStructure to convert.
+     * @param checker   the Checker to use for the conversion.
+     * @param partition the SubStructure to convert.
      * @throws CheckerException when the conversion fails.
      */
-    protected void convert(Checker checker, SubStructure subStructure) throws CheckerException {
+    protected void convert(Checker checker, Partition partition) throws CheckerException {
         Logger.log("Collecting specifications", LogEvent.INFO);
-        for (Specification specification : subStructure.getSpecificationSet().getSpecifications())
+        for (Specification specification : partition.getSpecificationSet().getSpecifications())
             for (Formula formula : specification.getSpecificationType().getFormulas())
                 checker.addFormula(formula, specification, structureFactory.getAtomicPropositionMap());
 
         Logger.log("Generating model check input", LogEvent.VERBOSE);
-        checker.createModel(subStructure);
+        checker.createModel(partition);
 
         if (Logger.getLogLevel() <= LogEvent.DEBUG)
             Logger.log("\n" + checker.getInputChecker(), LogEvent.DEBUG);

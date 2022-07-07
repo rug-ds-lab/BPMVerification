@@ -6,7 +6,7 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.multi.Block;
 import nl.rug.ds.bpm.verification.model.multi.MultiState;
-import nl.rug.ds.bpm.verification.model.multi.SubStructure;
+import nl.rug.ds.bpm.verification.model.multi.Partition;
 
 import java.util.*;
 import java.util.concurrent.RecursiveAction;
@@ -15,31 +15,31 @@ import java.util.concurrent.RecursiveAction;
  * Class that creates and initiates stutter equivalence actions for a set of substructures in parallel.
  */
 public class MultiStutterMergeSplitAction extends RecursiveAction {
-    private SubStructure subStructure;
+    private Partition partition;
 
     /**
      * Creates a RecursiveAction that initiates stutter equivalence actions for a given set of substructures.
      *
-     * @param subStructures the given set of substructures.
+     * @param partitions the given set of substructures.
      */
-    public MultiStutterMergeSplitAction(Set<SubStructure> subStructures) {
-        computeInitial(subStructures);
+    public MultiStutterMergeSplitAction(Set<Partition> partitions) {
+        computeInitial(partitions);
     }
 
     /**
      * Creates a RecursiveAction that to calculate stutter equivalence for a given substructure.
      *
-     * @param subStructure the given set of substructure.
+     * @param partition the given set of substructure.
      */
-    public MultiStutterMergeSplitAction(SubStructure subStructure) {
-        this.subStructure = subStructure;
+    public MultiStutterMergeSplitAction(Partition partition) {
+        this.partition = partition;
     }
 
-    private void computeInitial(Set<SubStructure> subStructures) {
+    private void computeInitial(Set<Partition> partitions) {
         Set<MultiStutterMergeSplitAction> actions = new HashSet<>();
 
-        for (SubStructure subStructure : subStructures)
-            actions.add(new MultiStutterMergeSplitAction(subStructure));
+        for (Partition partition : partitions)
+            actions.add(new MultiStutterMergeSplitAction(partition));
 
         invokeAll(actions);
     }
@@ -56,7 +56,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Initializes the blocks as per Groote's stutter equivalence algorithm.
      */
     private void initialize() {
-        for (Block block : subStructure.getStates()) {
+        for (Block block : partition.getStates()) {
             block.initialize();
             Logger.log("Block " + block, LogEvent.DEBUG);
         }
@@ -68,7 +68,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
     private void merge() {
         Set<Block> remove = new TreeSet<>(new ComparableComparator<>());
 
-        for (Block block : subStructure.getStates()) {
+        for (Block block : partition.getStates()) {
             if (block != null && !remove.contains(block)) {
                 boolean merged = false;
                 for (Block next : block.getNextParents()) {
@@ -82,19 +82,21 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                         remove.add(next);
                     }
                 }
-                if (merged)
+                if (merged) {
                     block.initialize();
+                    Logger.log("Merger result " + block, LogEvent.DEBUG);
+                }
             }
         }
 
-        subStructure.getStates().removeAll(remove);
+        partition.getStates().removeAll(remove);
     }
 
     /**
      * Splits blocks according to Groote's stutter equivalence algorithm.
      */
     private void split() {
-        List<Block> toBeProcessed = new LinkedList<>(subStructure.getStates());
+        List<Block> toBeProcessed = new LinkedList<>(partition.getStates());
         List<Block> stable = new LinkedList<>();
         List<Block> BL = new LinkedList<>();
 
@@ -105,9 +107,9 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
             // Scan incoming relations
             for (MultiState entryState : bAccent.getEntryStates()) {
                 // Take start state and raise its flag
-                entryState.setFlag(subStructure, true);
+                entryState.setFlag(partition, true);
                 // Test state's block flag, raise and add to BL if not raised
-                Block parent = entryState.getParent(subStructure);
+                Block parent = entryState.getParent(partition);
                 if (!parent.getFlag()) {
                     parent.setFlag(true);
                     BL.add(parent);
@@ -119,7 +121,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                 boolean isSplitter = false;
                 Iterator<MultiState> i = b.getExitStates().iterator();
                 while (i.hasNext() && !isSplitter)
-                    isSplitter = !i.next().getFlag(subStructure);
+                    isSplitter = !i.next().getFlag(partition);
 
                 if (isSplitter) {
                     if (!toBeProcessed.remove(b))
@@ -144,8 +146,8 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
 
             //reset flags
             for (MultiState entryState : bAccent.getEntryStates()) {
-                entryState.setFlag(subStructure, false);
-                entryState.getParent(subStructure).setFlag(false);
+                entryState.setFlag(partition, false);
+                entryState.getParent(partition).setFlag(false);
             }
 
             //move to stable
@@ -158,7 +160,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Connects blocks using the connectivity of its substates as well as strongly connected components.
      */
     private void connect() {
-        for (Block current : subStructure.getStates()) {
+        for (Block current : partition.getStates()) {
             for (Block next : current.getNextParents()) {
                 current.addNext(next);
                 next.addPrevious(current);
@@ -169,15 +171,15 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
             }
         }
 
-        for (MultiState init : subStructure.getInitialSubStates()) {
+        for (MultiState init : partition.getInitialSubStates()) {
             try {
-                subStructure.addInitial(init.getParent(subStructure));
+                partition.addInitial(init.getParent(partition));
             } catch (ConverterException e) {
                 Logger.log("Failed to add block as initial state.", LogEvent.ERROR);
             }
         }
 
-        Block safety = subStructure.createParent(subStructure.getAtomicPropositions());
+        Block safety = partition.createParent(partition.getAtomicPropositions());
         safety.addNext(safety);
         safety.addPrevious(safety);
     }

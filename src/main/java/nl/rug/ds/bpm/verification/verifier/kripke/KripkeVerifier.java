@@ -58,7 +58,9 @@ public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements V
 	protected void verifySet(SpecificationSet specificationSet) throws VerifierException {
 		Logger.log("Verifying set.", LogEvent.INFO);
 
-		AtomicPropositionMap<CompositeExpression> specificationPropositions = getSpecificationPropositions(specificationSet);
+		AtomicPropositionMap<CompositeExpression> specificationPropositions = new AtomicPropositionMap<>("p");
+		getGroupPropositions(specificationPropositions);
+		getSpecificationSetPropositions(specificationPropositions, specificationSet);
 		structureFactory.getAtomicPropositionMap().merge(specificationPropositions);
 
 		Checker checker = checkerFactory.getChecker();

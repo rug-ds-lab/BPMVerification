@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.State;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class Block extends AbstractState<Block> {
     protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states
-    protected SubStructure subStructure;
+    protected Partition partition;
     protected boolean flag;
     protected int scc = -1;
     protected int sccid = 0;
@@ -23,9 +24,9 @@ public class Block extends AbstractState<Block> {
      * Creates a block.
      *
      * @param atomicPropositions the atomic propositions that hold in this state.
-     * @param subStructure       the substructure this block belongs to.
+     * @param partition          the substructure this block belongs to.
      */
-    public Block(Set<String> atomicPropositions, SubStructure subStructure) {
+    public Block(Set<String> atomicPropositions, Partition partition) {
         super(atomicPropositions);
 
         flag = false;
@@ -34,7 +35,7 @@ public class Block extends AbstractState<Block> {
         entryStates = new ArrayList<>();
         exitStates = new ArrayList<>();
 
-        this.subStructure = subStructure;
+        this.partition = partition;
     }
 
     @Override
@@ -182,24 +183,25 @@ public class Block extends AbstractState<Block> {
      */
     public boolean initialize() {
         flag = false;
+        scc = -1;
         entryStates.clear();
         boolean foundNew = false;
 
         Iterator<MultiState> iterator = states.iterator();
         while (iterator.hasNext()) {
             MultiState s = iterator.next();
-            s.setFlag(subStructure, false);
+            s.setFlag(partition, false);
             boolean isBottom = true;
 
-            Iterator<MultiState> nexts = s.getNextStates(subStructure).iterator();
+            Iterator<MultiState> nexts = s.getNextStates(partition).iterator();
             while (nexts.hasNext() && isBottom) {
                 MultiState next = nexts.next();
-                if (s != next && next.getParent(subStructure) == this)
+                if (s != next && next.getParent(partition) == this)
                     isBottom = false;
             }
 
-            for (MultiState previous : s.getPreviousStates(subStructure))
-                if (previous.getParent(subStructure) != this)
+            for (MultiState previous : s.getPreviousStates(partition))
+                if (previous.getParent(partition) != this)
                     entryStates.add(previous);
 
             if (isBottom && !exitStates.contains(s)) {
@@ -231,14 +233,21 @@ public class Block extends AbstractState<Block> {
     public void merge(Block other) {
         if (canMerge(other)) {
             for (MultiState ms : other.getSubStates())
-                ms.setParent(this.subStructure, this);
+                ms.setParent(this.partition, this);
             for (MultiState ms : other.getExitStates())
-                ms.setParent(this.subStructure, this);
+                ms.setParent(this.partition, this);
 
             states.addAll(other.getSubStates());
             states.addAll(other.getExitStates());
             states.addAll(exitStates);
             exitStates.clear();
+            entryStates.clear();
+
+            // sort states to prevent non-deterministic results when splitting
+            states.sort(new ComparableComparator<MultiState>());
+
+            // reset the scc count
+            scc = -1;
         }
     }
 
@@ -254,7 +263,7 @@ public class Block extends AbstractState<Block> {
         List<MultiState> otherNonBottom = new ArrayList<>();
 
         for (MultiState b : exitStates) {
-            if (b.getFlag(subStructure))
+            if (b.getFlag(partition))
                 thisBottom.add(b);
             else
                 otherBottom.add(b);
@@ -265,9 +274,9 @@ public class Block extends AbstractState<Block> {
         ListIterator<MultiState> iterator = states.listIterator(states.size());
         while (iterator.hasPrevious()) {
             MultiState nb = iterator.previous();
-            if (!nb.getFlag(subStructure)) {
+            if (!nb.getFlag(partition)) {
                 boolean isB2 = true;
-                Iterator<MultiState> next = nb.getNextStates(subStructure).iterator();
+                Iterator<MultiState> next = nb.getNextStates(partition).iterator();
                 while (next.hasNext() && isB2) {
                     MultiState n = next.next();
                     isB2 = otherBottom.contains(n) || otherNonBottom.contains(n);
@@ -286,10 +295,10 @@ public class Block extends AbstractState<Block> {
         states.retainAll(thisNonBottom);
 
         //make the new block
-        Block other = subStructure.createParent(atomicPropositions);
+        Block other = partition.createParent(atomicPropositions);
 
         for (MultiState state : otherBottom) {
-            state.setParent(subStructure, other);
+            state.setParent(partition, other);
             other.addExitState(state);
         }
 
@@ -297,7 +306,7 @@ public class Block extends AbstractState<Block> {
         ListIterator<MultiState> nbiterator = otherNonBottom.listIterator(otherNonBottom.size());
         while (nbiterator.hasPrevious()) {
             MultiState previous = nbiterator.previous();
-            previous.setParent(subStructure, other);
+            previous.setParent(partition, other);
             other.addSubState(previous);
         }
 
@@ -315,8 +324,8 @@ public class Block extends AbstractState<Block> {
      */
     public boolean containsCycle() {
         return getScc() < (states.size() + exitStates.size()) ||
-                states.stream().anyMatch(state -> state.getNextStates(subStructure).contains(state)) ||
-                exitStates.stream().anyMatch(state -> state.getNextStates(subStructure).contains(state));
+                states.stream().anyMatch(state -> state.getNextStates(partition).contains(state)) ||
+                exitStates.stream().anyMatch(state -> state.getNextStates(partition).contains(state));
     }
 
     /**
@@ -336,46 +345,44 @@ public class Block extends AbstractState<Block> {
     private void tarjanSCC() {
         Stack<MultiState> stack = new Stack<>();
 
-        List<MultiState> list = new ArrayList<>();
-        list.addAll(states);
-        list.addAll(exitStates);
-
-        int[] ids = new int[list.size()];
-        int[] low = new int[list.size()];
+        int[] ids = new int[states.size() + exitStates.size()];
+        int[] low = new int[states.size() + exitStates.size()];
 
         sccid = 0;
         scc = 0;
 
-        for (int i = 0; i < list.size(); i++)
+        for (int i = 0; i < states.size() + exitStates.size(); i++)
             ids[i] = -1; //-1 equals unvisited
 
-        for (int i = 0; i < list.size(); i++)
+        for (int i = 0; i < states.size() + exitStates.size(); i++)
             if (ids[i] == -1)
-                dfsSCC(i, ids, low, list, stack);
+                dfsSCC(i, ids, low, stack);
 
         //reset flags
-        for (MultiState state : list)
-            state.setFlag(subStructure, false);
+        for (MultiState state : states)
+            state.setFlag(partition, false);
+        for (MultiState state : exitStates)
+            state.setFlag(partition, false);
 
         Logger.log("Block " + this.getId() + " SCC ids = " + Arrays.toString(ids) + " low = " + Arrays.toString(low), LogEvent.DEBUG);
     }
 
-    private void dfsSCC(int at, int[] ids, int[] low, List<MultiState> list, Stack<MultiState> stack) {
-        MultiState state = list.get(at);
+    private void dfsSCC(int at, int[] ids, int[] low, Stack<MultiState> stack) {
+        MultiState state = getSubState(at);
 
         ids[at] = sccid;
         low[at] = sccid;
         sccid++;
 
         stack.push(state);
-        state.setFlag(subStructure, true); //re-use the stutter flag to track whether states are on the stack
+        state.setFlag(partition, true); //re-use the stutter flag to track whether states are on the stack
 
-        for (MultiState next : state.getNextStates(subStructure)) {
-            if (next.getParent(subStructure) == this) { //only include states within this block
-                int to = list.indexOf(next);
+        for (MultiState next : state.getNextStates(partition)) {
+            if (next.getParent(partition) == this) { //only include states within this block
+                int to = indexOf(next);
                 if (ids[to] == -1)
-                    dfsSCC(to, ids, low, list, stack);
-                else if (next.getFlag(subStructure))
+                    dfsSCC(to, ids, low, stack);
+                else if (next.getFlag(partition))
                     low[at] = Math.min(low[at], low[to]);
             }
         }
@@ -384,10 +391,34 @@ public class Block extends AbstractState<Block> {
             MultiState p = null;
             while (!stack.isEmpty() && p != state) {
                 p = stack.pop();
-                p.setFlag(subStructure, false);
+                p.setFlag(partition, false);
             }
             scc++;
         }
+    }
+
+    /**
+     * Obtains a substate from the concatenation of the lists of substates and exit states for a given index.
+     *
+     * @param index the index of the substate.
+     * @return the substate.
+     */
+    public MultiState getSubState(int index) {
+        if (index < 0 || index >= states.size() + exitStates.size())
+            throw new IndexOutOfBoundsException("Index out of bounds: " + index);
+        return (index < states.size() ? states.get(index) : exitStates.get(index - states.size()));
+    }
+
+    /**
+     * Obtains the index of a given substate from the concatenation of the lists of substates and exit states.
+     *
+     * @param state the given substate.
+     * @return the index of the given substate, or -1 if the given substate is not contained in either list.
+     */
+    public int indexOf(MultiState state) {
+        int statesIndex = states.indexOf(state);
+        int exitIndex = exitStates.indexOf(state);
+        return (statesIndex == -1 && exitIndex == -1 ? -1 : (statesIndex != -1 ? statesIndex : states.size() + exitIndex));
     }
 
     /**
@@ -396,7 +427,7 @@ public class Block extends AbstractState<Block> {
      * @return a set of blocks.
      */
     public Set<Block> getNextParents() {
-        return exitStates.stream().flatMap(state -> state.getNextStates(subStructure).stream()).map(state -> state.getParent(subStructure)).filter(block -> block != this).collect(Collectors.toSet());
+        return exitStates.stream().flatMap(state -> state.getNextStates(partition).stream()).map(state -> state.getParent(partition)).filter(block -> block != this).collect(Collectors.toSet());
     }
 
     @Override
@@ -412,6 +443,6 @@ public class Block extends AbstractState<Block> {
 
     @Override
     public String toString() {
-        return id + ": {" + hash + " | " + states.stream().map(State::getId).collect(Collectors.joining(",")) + " + " + exitStates.stream().map(State::getId).collect(Collectors.joining(",")) + " }";
+        return partition.getId() + " " + id + ": {" + hash + " | " + states.stream().map(State::getId).collect(Collectors.joining(",")) + " + " + exitStates.stream().map(State::getId).collect(Collectors.joining(",")) + " }";
     }
 }

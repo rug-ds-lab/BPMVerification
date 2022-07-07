@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bpmSpecification>
+    <elementGroups>
+        <group id="group1">
+            <elements>
+                <element>t5</element>
+                <element>t3</element>
+            </elements>
+        </group>
+    </elementGroups>
+    <specificationSets>
+        <specificationSet>
+            <conditions/>
+            <specifications>
+                <specification id="parsed0" type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">group1</inputElement>
+                        <inputElement target="q">t11</inputElement>
+                    </inputElements>
+                </specification>
+            </specifications>
+        </specificationSet>
+        <specificationSet>
+            <conditions/>
+            <specifications>
+                <specification id="parsed1" type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">t4</inputElement>
+                        <inputElement target="q">t7</inputElement>
+                    </inputElements>
+                </specification>
+            </specifications>
+        </specificationSet>
+        <specificationSet>
+            <conditions/>
+            <specifications>
+                <specification id="parsed2" type="AlwaysResponse">
+                    <inputElements>
+                        <inputElement target="p">t9</inputElement>
+                        <inputElement target="q">t12</inputElement>
+                    </inputElements>
+                </specification>
+            </specifications>
+        </specificationSet>
+    </specificationSets>
+    <specificationTypes/>
+</bpmSpecification>

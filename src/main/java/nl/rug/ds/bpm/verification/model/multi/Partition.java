@@ -14,7 +14,9 @@ import java.util.TreeSet;
 /**
  * Class that implements a substructure of a multi-structure.
  */
-public class SubStructure extends AbstractStructure<Block> {
+public class Partition extends AbstractStructure<Block> {
+    private static int i = 0;
+    private final String id;
     private final Set<MultiState> initialSubStates;
     private final SpecificationSet specificationSet;
     private final CompositeExpression conditionExpression;
@@ -25,7 +27,7 @@ public class SubStructure extends AbstractStructure<Block> {
      * @param specificationSet   the SpecificationSet applicable to the SubStructure.
      * @param atomicPropositions the set of atomic propositions relevant to this substructure.
      */
-    public SubStructure(SpecificationSet specificationSet, Set<String> atomicPropositions) {
+    public Partition(SpecificationSet specificationSet, Set<String> atomicPropositions) {
         super(specificationSet.getConditions());
         this.specificationSet = specificationSet;
         this.atomicPropositions.addAll(atomicPropositions);
@@ -36,6 +38,17 @@ public class SubStructure extends AbstractStructure<Block> {
 
         for (String condition : conditions)
             conditionExpression.addArgument(ExpressionBuilder.parseExpression(condition));
+
+        id = "P" + i++;
+    }
+
+    /**
+     * Returns the id of this partition.
+     *
+     * @return the id.
+     */
+    public String getId() {
+        return id;
     }
 
     /**
@@ -87,7 +100,6 @@ public class SubStructure extends AbstractStructure<Block> {
 
         boolean nextIsNew = nparent == null; // If true, next is not yet in this substructure.
         boolean nextEqualsCurrentParent = cparent.getAtomicPropositions().equals(nextRelAP); // If true, next belongs in cparent, else next is an entry state and current an exit state.
-        boolean arcCreatesLoop = current == next; //|| (nparent != null && current.isInLoop(this)); // The arc is a back arc.
 
         // Initialize nparent if needed
         if (nextIsNew && nextEqualsCurrentParent)
@@ -103,17 +115,11 @@ public class SubStructure extends AbstractStructure<Block> {
 
         current.addNext(this, next);
 
-        // Add current as an exit state
-//        if (arcCreatesLoop || !nextEqualsCurrentParent) {
-//            cparent.addExitState(current);
-//            cparent.removeSubState(current);
-//        }
-
         return next;
     }
 
     /**
-     * Returns the SpecificationSet applicable to the SubStructure.
+     * Returns the SpecificationSet applicable to the Partition.
      *
      * @return the SpecificationSet.
      */
@@ -122,20 +128,20 @@ public class SubStructure extends AbstractStructure<Block> {
     }
 
     /**
-     * Returns true iff the given expression contradicts the conditions of this SubStructure.
+     * Returns true iff the given expression contradicts the conditions of this Partition.
      *
      * @param expression the given expression.
-     * @return true iff the given expression contradicts the conditions of this SubStructure, and false otherwise.
+     * @return true iff the given expression contradicts the conditions of this Partition, and false otherwise.
      */
     public boolean contradicts(CompositeExpression expression) {
         return expression.contradicts(conditionExpression);
     }
 
     /**
-     * Returns the set of relevant atomic propositions to this SubStructure within a given set.
+     * Returns the set of relevant atomic propositions to this Partition within a given set.
      *
      * @param atomicPropositions a given set of atomic propositions
-     * @return the set of relevant atomic propositions to this SubStructure within a given set.
+     * @return the set of relevant atomic propositions to this Partition within a given set.
      */
     public synchronized Set<String> createAtomicPropositions(Set<String> atomicPropositions) {
         TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
@@ -147,7 +153,7 @@ public class SubStructure extends AbstractStructure<Block> {
     }
 
     /**
-     * Creates and adds a new Block to this SubStructure.
+     * Creates and adds a new Block to this Partition.
      *
      * @param atomicPropositions the set of atomic propositions that hold in this state.
      * @return the created Block.
