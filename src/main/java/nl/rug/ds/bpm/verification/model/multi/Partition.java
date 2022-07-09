@@ -143,7 +143,7 @@ public class Partition extends AbstractStructure<Block> {
      * @param atomicPropositions a given set of atomic propositions
      * @return the set of relevant atomic propositions to this Partition within a given set.
      */
-    public synchronized Set<String> createAtomicPropositions(Set<String> atomicPropositions) {
+    public Set<String> createAtomicPropositions(Set<String> atomicPropositions) {
         TreeSet<String> ap = new TreeSet<String>(new ComparableComparator<String>());
 
         ap.addAll(atomicPropositions);

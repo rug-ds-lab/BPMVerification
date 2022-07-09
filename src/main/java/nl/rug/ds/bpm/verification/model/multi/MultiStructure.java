@@ -48,7 +48,7 @@ public class MultiStructure extends AbstractStructure<MultiState> {
      * @return
      * @throws ConverterException
      */
-    public synchronized MultiState addInitial(MultiState state, CompositeExpression stateExpression, CompositeExpression guardExpression) throws ConverterException {
+    public MultiState addInitial(MultiState state, CompositeExpression stateExpression, CompositeExpression guardExpression) throws ConverterException {
         MultiState found = this.addInitial(state);
 
         for (Partition partition : partitions) {

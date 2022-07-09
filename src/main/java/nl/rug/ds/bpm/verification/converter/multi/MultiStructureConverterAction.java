@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class that converts a given VerifiableNet into a MultiStructure using RecursiveActions.
@@ -89,11 +90,24 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
                 Logger.log("Encountered issue adding initial marking.", LogEvent.ERROR);
             }
         }
-        invokeAll(nextActions);
+
+//        invokeAll(nextActions);
+        for (RecursiveAction action : nextActions)
+            getForkJoinPool().execute(action);
+
+        getForkJoinPool().shutdown();
+        try {
+            if (getForkJoinPool().awaitTermination(1, TimeUnit.DAYS))
+                getForkJoinPool().shutdownNow();
+        } catch (InterruptedException exception) {
+            Logger.log("Model too big.", LogEvent.CRITICAL);
+        }
     }
 
     @Override
     public void compute() {
+        long start = System.nanoTime();
+
         Set<RecursiveAction> nextActions = new HashSet<>();
 
         for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
@@ -122,7 +136,14 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
                 Logger.log("Encountered issue adding initial marking.", LogEvent.ERROR);
             }
         }
-        invokeAll(nextActions);
+
+        if (report())
+            Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " threads with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
+        //invokeAll(nextActions);
+        for (RecursiveAction action : nextActions)
+            action.fork();
+
+
     }
 
     /**

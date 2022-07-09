@@ -121,7 +121,7 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 	 */
 	protected void getSpecificationSetPropositions(AtomicPropositionMap<CompositeExpression> atomicPropositionMap, SpecificationSet specificationSet) {
 		for (CompositeExpression expression : getSpecificationSetExpressions(specificationSet))
-			atomicPropositionMap.addID(expression);
+			atomicPropositionMap.addSpecificationId(expression);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 			CompositeExpression groupExpression = new CompositeExpression(LogicalType.OR);
 			for (Element element : group.getElements())
 				groupExpression.addArgument(ExpressionBuilder.parseExpression(element.getId()));
-			String ap = atomicPropositionMap.addID(groupExpression);
+			String ap = atomicPropositionMap.addSpecificationId(groupExpression);
 			atomicPropositionMap.addID(ExpressionBuilder.parseExpression(group.getId()), ap);
 		}
 	}

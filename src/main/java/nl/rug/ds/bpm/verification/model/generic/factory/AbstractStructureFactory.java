@@ -7,7 +7,6 @@ import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.DataMarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
-import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.StructureFactory;
 import nl.rug.ds.bpm.verification.model.generic.AbstractState;
@@ -137,15 +136,16 @@ public abstract class AbstractStructureFactory<S extends AbstractState<S>, K ext
      * @return an ordered set of Expressions that follow from stateExpression.
      */
     @Override
-    public synchronized Set<CompositeExpression> inferExpressions(CompositeExpression expression) {
+    public Set<CompositeExpression> inferExpressions(CompositeExpression expression) {
         TreeSet<CompositeExpression> expressions = new TreeSet<>(new ComparableComparator<CompositeExpression>());
 
-        for (CompositeExpression e : apMap.getIDKeys()) {
+        for (CompositeExpression e : apMap.getSpecificationIds()) {
             //TODO: @Nick: The function Expression.isFulfilledBy(OtherExpression) fails to return expected results.
             boolean implied = e.isFulfilledBy(expression);
-            if (implied)
+            if (implied) {
                 expressions.add(expression);
-            Logger.log("Evaluated expression " + expression + " => " + e + " as " + implied, 0);
+                //Logger.log("Evaluated expression " + expression + " => " + e + " as " + implied, 3);
+            }
         }
 
         return expressions;

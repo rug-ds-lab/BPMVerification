@@ -7,15 +7,20 @@ import nl.rug.ds.bpm.verification.converter.ConverterAction;
 import nl.rug.ds.bpm.verification.model.generic.AbstractState;
 
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 /**
  * An abstract ConverterAction.
  */
 public abstract class AbstractConverterAction<S extends AbstractState<S>> extends RecursiveAction implements ConverterAction<S> {
+    private static final ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 100, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
+
     protected VerifiableNet net;
     protected MarkingI marking;
     protected TransitionI fired;
+
+    protected static long report = 0;
 
     /**
      * Creates an abstract ConverterAction.
@@ -38,6 +43,15 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
     public AbstractConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired) {
         this(net, marking);
         this.fired = fired;
+    }
+
+    /**
+     * Returns the pool this task is assigned to.
+     *
+     * @return the pool this task is assigned to
+     */
+    public static ForkJoinPool getForkJoinPool() {
+        return forkJoinPool;
     }
 
     /**
@@ -70,5 +84,14 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
     public void makeSink(S sink) {
         sink.addNext(sink);
         sink.addPrevious(sink);
+    }
+
+    public synchronized boolean report() {
+        report++;
+
+        if (report >= 10000)
+            report = 0;
+
+        return (report == 0);
     }
 }

@@ -56,6 +56,8 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Initializes the blocks as per Groote's stutter equivalence algorithm.
      */
     private void initialize() {
+        Logger.log("Initializing blocks of partition " + partition.getId(), LogEvent.INFO);
+
         for (Block block : partition.getStates()) {
             block.initialize();
             Logger.log("Block " + block, LogEvent.DEBUG);
@@ -66,6 +68,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Merges and re-initializes any connected blocks that are equal.
      */
     private void merge() {
+        Logger.log("Merging blocks of partition " + partition.getId(), LogEvent.INFO);
         Set<Block> remove = new TreeSet<>(new ComparableComparator<>());
 
         for (Block block : partition.getStates()) {
@@ -78,7 +81,6 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
 
                         merged = true;
                         block.merge(next);
-                        block.initialize();
                         remove.add(next);
                     }
                 }
@@ -96,6 +98,8 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Splits blocks according to Groote's stutter equivalence algorithm.
      */
     private void split() {
+        Logger.log("Splitting blocks of partition " + partition.getId(), LogEvent.INFO);
+
         List<Block> toBeProcessed = new LinkedList<>(partition.getStates());
         List<Block> stable = new LinkedList<>();
         List<Block> BL = new LinkedList<>();
@@ -160,6 +164,8 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
      * Connects blocks using the connectivity of its substates as well as strongly connected components.
      */
     private void connect() {
+        Logger.log("Connecting blocks of partition " + partition.getId(), LogEvent.INFO);
+
         for (Block current : partition.getStates()) {
             for (Block next : current.getNextParents()) {
                 current.addNext(next);

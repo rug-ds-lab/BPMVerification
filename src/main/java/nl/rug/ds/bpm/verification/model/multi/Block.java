@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * Class that implements a block that contains multiple similar states.
  */
 public class Block extends AbstractState<Block> {
-    protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states
+    protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states=
     protected Partition partition;
     protected boolean flag;
     protected int scc = -1;
@@ -196,7 +196,8 @@ public class Block extends AbstractState<Block> {
             Iterator<MultiState> nexts = s.getNextStates(partition).iterator();
             while (nexts.hasNext() && isBottom) {
                 MultiState next = nexts.next();
-                if (s != next && next.getParent(partition) == this)
+                Block nextBlock = next.getParent(partition);
+                if (s != next && nextBlock == this)
                     isBottom = false;
             }
 
@@ -204,9 +205,11 @@ public class Block extends AbstractState<Block> {
                 if (previous.getParent(partition) != this)
                     entryStates.add(previous);
 
-            if (isBottom && !exitStates.contains(s)) {
-                foundNew = true;
-                exitStates.add(s);
+            if (isBottom) {
+                if (!exitStates.contains(s)) {
+                    foundNew = true;
+                    exitStates.add(s);
+                }
                 iterator.remove();
             }
         }
