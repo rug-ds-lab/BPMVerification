@@ -21,6 +21,13 @@ public interface State<S extends State<S>> extends Comparable<S> {
     String getId();
 
     /**
+     * Returns the unique state number.
+     *
+     * @return the unique state number.
+     */
+    long getIdNumber();
+
+    /**
      * Returns the hash code representing this state.
      *
      * @return the hash code representing this state.

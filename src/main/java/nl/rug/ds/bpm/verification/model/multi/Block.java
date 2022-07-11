@@ -1,6 +1,7 @@
 package nl.rug.ds.bpm.verification.model.multi;
 
 import nl.rug.ds.bpm.util.comparator.ComparableComparator;
+import nl.rug.ds.bpm.util.comparator.ReverseStateIdComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.model.State;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  * Class that implements a block that contains multiple similar states.
  */
 public class Block extends AbstractState<Block> {
-    protected List<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states=
+    protected TreeSet<MultiState> states, entryStates, exitStates; //aka nonbottom, entry, and bottom states.
     protected Partition partition;
     protected boolean flag;
     protected int scc = -1;
@@ -31,9 +32,9 @@ public class Block extends AbstractState<Block> {
 
         flag = false;
 
-        states = new ArrayList<>();
-        entryStates = new ArrayList<>();
-        exitStates = new ArrayList<>();
+        states = new TreeSet<>(new ReverseStateIdComparator());
+        entryStates = new TreeSet<>(new ReverseStateIdComparator());
+        exitStates = new TreeSet<>(new ReverseStateIdComparator());
 
         this.partition = partition;
     }
@@ -42,7 +43,8 @@ public class Block extends AbstractState<Block> {
     public void setId() {
         lock.lock();
         try {
-            this.id = "B" + stateID++;
+            this.idNumber = stateID++;
+            this.id = "B" + idNumber;
         } catch (Exception e) {
             Logger.log("Failed to write state ID.", LogEvent.ERROR);
         } finally {
@@ -96,7 +98,7 @@ public class Block extends AbstractState<Block> {
      *
      * @return the set of states that are part of this block.
      */
-    public List<MultiState> getSubStates() {
+    public Set<MultiState> getSubStates() {
         return states;
     }
 
@@ -125,7 +127,7 @@ public class Block extends AbstractState<Block> {
      *
      * @return the set of exit states that are part of this block.
      */
-    public List<MultiState> getExitStates() {
+    public Set<MultiState> getExitStates() {
         return exitStates;
     }
 
@@ -154,7 +156,7 @@ public class Block extends AbstractState<Block> {
      *
      * @return the set of entry states that are part of this block.
      */
-    public List<MultiState> getEntryStates() {
+    public Set<MultiState> getEntryStates() {
         return entryStates;
     }
 
@@ -235,19 +237,19 @@ public class Block extends AbstractState<Block> {
      */
     public void merge(Block other) {
         if (canMerge(other)) {
-            for (MultiState ms : other.getSubStates())
+            for (MultiState ms : other.getSubStates()) {
                 ms.setParent(this.partition, this);
-            for (MultiState ms : other.getExitStates())
+                states.add(ms);
+            }
+            for (MultiState ms : other.getExitStates()) {
                 ms.setParent(this.partition, this);
+                states.add(ms);
+            }
 
-            states.addAll(other.getSubStates());
-            states.addAll(other.getExitStates());
             states.addAll(exitStates);
+
             exitStates.clear();
             entryStates.clear();
-
-            // sort states to prevent non-deterministic results when splitting
-            states.sort(new ComparableComparator<MultiState>());
 
             // reset the scc count
             scc = -1;
@@ -260,10 +262,10 @@ public class Block extends AbstractState<Block> {
      * @return the new block with split off states.
      */
     public Block split() {
-        List<MultiState> thisBottom = new ArrayList<>();
-        List<MultiState> thisNonBottom = new ArrayList<>();
-        List<MultiState> otherBottom = new ArrayList<>();
-        List<MultiState> otherNonBottom = new ArrayList<>();
+        Set<MultiState> thisBottom = new TreeSet<>(new ReverseStateIdComparator());
+        Set<MultiState> thisNonBottom = new TreeSet<>(new ReverseStateIdComparator());
+        Set<MultiState> otherBottom = new TreeSet<>(new ReverseStateIdComparator());
+        Set<MultiState> otherNonBottom = new TreeSet<>(new ReverseStateIdComparator());
 
         for (MultiState b : exitStates) {
             if (b.getFlag(partition))
@@ -273,10 +275,8 @@ public class Block extends AbstractState<Block> {
         }
 
         //if flag down and next in bot or nonbot, add to nonbot
-        //BSF added, so iterate back to front
-        ListIterator<MultiState> iterator = states.listIterator(states.size());
-        while (iterator.hasPrevious()) {
-            MultiState nb = iterator.previous();
+        //The set is reverse ordered, making sure that states are split, beginning at exit states with raised flags, in reverse order.
+        for (MultiState nb : states) {
             if (!nb.getFlag(partition)) {
                 boolean isB2 = true;
                 Iterator<MultiState> next = nb.getNextStates(partition).iterator();
@@ -305,12 +305,9 @@ public class Block extends AbstractState<Block> {
             other.addExitState(state);
         }
 
-        //nonbot was filled in reverse
-        ListIterator<MultiState> nbiterator = otherNonBottom.listIterator(otherNonBottom.size());
-        while (nbiterator.hasPrevious()) {
-            MultiState previous = nbiterator.previous();
-            previous.setParent(partition, other);
-            other.addSubState(previous);
+        for (MultiState state : otherNonBottom) {
+            state.setParent(partition, other);
+            other.addSubState(state);
         }
 
         this.setFlag(false);
@@ -326,9 +323,9 @@ public class Block extends AbstractState<Block> {
      * @return true iff this block contains a loop.
      */
     public boolean containsCycle() {
-        return getScc() < (states.size() + exitStates.size()) ||
-                states.stream().anyMatch(state -> state.getNextStates(partition).contains(state)) ||
-                exitStates.stream().anyMatch(state -> state.getNextStates(partition).contains(state));
+        return exitStates.stream().anyMatch(state -> state.getNextStates(partition).contains(state))
+                || states.stream().anyMatch(state -> state.getNextStates(partition).contains(state))
+                || getScc() < (states.size() + exitStates.size());
     }
 
     /**
@@ -354,39 +351,48 @@ public class Block extends AbstractState<Block> {
         sccid = 0;
         scc = 0;
 
-        for (int i = 0; i < states.size() + exitStates.size(); i++)
+        for (int i = 0; i < states.size() + exitStates.size(); i++) {
             ids[i] = -1; //-1 equals unvisited
+            low[i] = -1;
+        }
 
-        for (int i = 0; i < states.size() + exitStates.size(); i++)
+        Iterator<MultiState> statesIterator = states.iterator();
+        Iterator<MultiState> exitIterator = exitStates.iterator();
+
+        // To prevent having to copy the set into a list to have access to get and indexOf methods, we pass both a state and an index to dfsSCC.
+        // We obtain the state from the concatenation of the states and exitstates iterators.
+        for (int i = 0; i < states.size() + exitStates.size(); i++) {
+            MultiState state = (statesIterator.hasNext() ? statesIterator.next() : exitIterator.next());
             if (ids[i] == -1)
-                dfsSCC(i, ids, low, stack);
+                dfsSCC(state, i, ids, low, stack);
+        }
 
-        //reset flags
+        // Reset flags
         for (MultiState state : states)
             state.setFlag(partition, false);
         for (MultiState state : exitStates)
             state.setFlag(partition, false);
 
-        Logger.log("Block " + this.getId() + " SCC ids = " + Arrays.toString(ids) + " low = " + Arrays.toString(low), LogEvent.DEBUG);
+        if (Logger.getLogLevel() == LogEvent.DEBUG)
+            Logger.log("Block " + this.getId() + " SCC ids = " + Arrays.toString(ids) + " low = " + Arrays.toString(low), LogEvent.DEBUG);
     }
 
-    private void dfsSCC(int at, int[] ids, int[] low, Stack<MultiState> stack) {
-        MultiState state = getSubState(at);
-
+    private void dfsSCC(MultiState state, int at, int[] ids, int[] low, Stack<MultiState> stack) {
         ids[at] = sccid;
         low[at] = sccid;
         sccid++;
 
         stack.push(state);
-        state.setFlag(partition, true); //re-use the stutter flag to track whether states are on the stack
+        state.setFlag(partition, true);
 
         for (MultiState next : state.getNextStates(partition)) {
             if (next.getParent(partition) == this) { //only include states within this block
-                int to = indexOf(next);
-                if (ids[to] == -1)
-                    dfsSCC(to, ids, low, stack);
-                else if (next.getFlag(partition))
+                int to = joinedIndexOf(next);
+                if (ids[to] == -1) {
+                    dfsSCC(next, to, ids, low, stack);
                     low[at] = Math.min(low[at], low[to]);
+                } else if (next.getFlag(partition))
+                    low[at] = Math.min(low[at], ids[to]);
             }
         }
 
@@ -401,36 +407,38 @@ public class Block extends AbstractState<Block> {
     }
 
     /**
-     * Obtains a substate from the concatenation of the lists of substates and exit states for a given index.
+     * Method to obtain the index of a given state within the concatenation of the set states and the set exitstates.
+     * Sets don't have an indexOf method. To not have to copy the set to a list to calculate SCC, we use the headset
+     * method.
      *
-     * @param index the index of the substate.
-     * @return the substate.
+     * @param state the given state of which we would like the index.
+     * @return the index of the state.
      */
-    public MultiState getSubState(int index) {
-        if (index < 0 || index >= states.size() + exitStates.size())
-            throw new IndexOutOfBoundsException("Index out of bounds: " + index);
-        return (index < states.size() ? states.get(index) : exitStates.get(index - states.size()));
+    private int joinedIndexOf(MultiState state) {
+        int index = -1;
+
+        SortedSet<MultiState> stateshead = states.headSet(state, true);
+        if (!stateshead.isEmpty() && stateshead.last() == state)
+            index = stateshead.size() - 1;
+        else {
+            SortedSet<MultiState> exithead = exitStates.headSet(state, true);
+            if (!exithead.isEmpty() && exithead.last() == state)
+                index = states.size() + exithead.size() - 1;
+        }
+
+        return index;
     }
 
     /**
-     * Obtains the index of a given substate from the concatenation of the lists of substates and exit states.
-     *
-     * @param state the given substate.
-     * @return the index of the given substate, or -1 if the given substate is not contained in either list.
-     */
-    public int indexOf(MultiState state) {
-        int statesIndex = states.indexOf(state);
-        int exitIndex = exitStates.indexOf(state);
-        return (statesIndex == -1 && exitIndex == -1 ? -1 : (statesIndex != -1 ? statesIndex : states.size() + exitIndex));
-    }
-
-    /**
-     * Returns the set of blocks that are reachable from the exit states of this block, excluding this.
+     * Returns the set of blocks that are reachable from the states of this block, excluding this.
      *
      * @return a set of blocks.
      */
     public Set<Block> getNextParents() {
-        return exitStates.stream().flatMap(state -> state.getNextStates(partition).stream()).map(state -> state.getParent(partition)).filter(block -> block != this).collect(Collectors.toSet());
+        Set<Block> next = new TreeSet<>(new ComparableComparator<>());
+        next.addAll(exitStates.stream().flatMap(state -> state.getNextStates(partition).stream()).map(state -> state.getParent(partition)).filter(block -> block != this).collect(Collectors.toSet()));
+        next.addAll(states.stream().flatMap(state -> state.getNextStates(partition).stream()).map(state -> state.getParent(partition)).filter(block -> block != this).collect(Collectors.toSet()));
+        return next;
     }
 
     @Override

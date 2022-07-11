@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractState<S extends State<S>> implements State<S> {
     protected static ReentrantLock lock = new ReentrantLock();
     protected static long stateID = 0;
+    protected long idNumber;
     protected String id;
     protected String hash;
     protected Set<String> atomicPropositions;
@@ -66,7 +67,8 @@ public abstract class AbstractState<S extends State<S>> implements State<S> {
     public void setId() {
         lock.lock();
         try {
-            this.id = "S" + stateID++;
+            this.idNumber = stateID++;
+            this.id = "S" + idNumber;
         } catch (Exception e) {
             Logger.log("Failed to write state ID.", LogEvent.ERROR);
         } finally {
@@ -81,6 +83,16 @@ public abstract class AbstractState<S extends State<S>> implements State<S> {
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Returns the unique state number.
+     *
+     * @return the unique state number.
+     */
+    @Override
+    public long getIdNumber() {
+        return idNumber;
     }
 
     /**

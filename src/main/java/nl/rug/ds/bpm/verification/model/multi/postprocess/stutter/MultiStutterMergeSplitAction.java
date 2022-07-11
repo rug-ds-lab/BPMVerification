@@ -71,13 +71,22 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
         Logger.log("Merging blocks of partition " + partition.getId(), LogEvent.INFO);
         Set<Block> remove = new TreeSet<>(new ComparableComparator<>());
 
-        for (Block block : partition.getStates()) {
-            if (block != null && !remove.contains(block)) {
-                boolean merged = false;
-                for (Block next : block.getNextParents()) {
-                    if (block.canMerge(next)) {
+        Iterator<Block> blockIterator = partition.getStates().iterator();
+        Block block = (blockIterator.hasNext() ? blockIterator.next() : null);
+        boolean merged = true; //start true to not trigger iterator.next() again
 
-                        Logger.log("Merging stutter blocks " + block + " and " + next, LogEvent.DEBUG);
+        while (blockIterator.hasNext() || merged) {
+            if (!merged)
+                block = blockIterator.next();
+            merged = false;
+
+            if (block != null && !remove.contains(block)) {
+                for (Block next : block.getNextParents()) {
+                    if (block.canMerge(next) && !remove.contains(next)) {
+
+                        if (Logger.getLogLevel() == LogEvent.DEBUG)
+                            Logger.log("Merging stutter blocks " + block + " and " + next, LogEvent.DEBUG);
+
 
                         merged = true;
                         block.merge(next);
@@ -86,7 +95,9 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                 }
                 if (merged) {
                     block.initialize();
-                    Logger.log("Merger result " + block, LogEvent.DEBUG);
+
+                    if (Logger.getLogLevel() == LogEvent.DEBUG)
+                        Logger.log("Merger result " + block, LogEvent.DEBUG);
                 }
             }
         }
@@ -143,7 +154,8 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                         stable.clear();
                     }
 
-                    Logger.log("Split stutter block into block " + b + " and block " + b2 + " state(s))", LogEvent.DEBUG);
+                    if (Logger.getLogLevel() == LogEvent.DEBUG)
+                        Logger.log("Split stutter block into block " + b + " and block " + b2 + " state(s))", LogEvent.DEBUG);
                 }
             }
             BL.clear();

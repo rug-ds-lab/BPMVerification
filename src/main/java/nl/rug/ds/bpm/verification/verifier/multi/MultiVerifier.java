@@ -113,18 +113,18 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
     }
 
     /**
-     * Calculates mergers and splits to obtain stutter equivalent substructures of the given Structure.
+     * Calculates mergers and splits to obtain stutter equivalent partitions of the given Structure.
      *
      * @param structure the given Structure.
      */
     protected void optimize(MultiStructure structure) {
-        Logger.log("Calculating stutter equivalent substructure(s)", LogEvent.INFO);
+        Logger.log("Calculating stutter equivalent partition(s)", LogEvent.INFO);
         double delta = stutterCalculate(structure);
-        Logger.log("Calculated stutter equivalent substructure(s) in " + formatComputationTime(delta), LogEvent.INFO);
+        Logger.log("Calculated stutter equivalent partition(s) in " + formatComputationTime(delta), LogEvent.INFO);
     }
 
     /**
-     * Calculates mergers and splits to obtain stutter equivalent substructures of the given Structure.
+     * Calculates mergers and splits to obtain stutter equivalent partitions of the given Structure.
      *
      * @param structure the given Structure.
      * @return the time it took to calculate in nanoseconds.
