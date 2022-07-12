@@ -129,7 +129,7 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
         }
 
         if (report())
-            Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " threads with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
+            Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " jobs with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
     }
 
 	/**

@@ -14,7 +14,7 @@ import java.util.concurrent.RecursiveAction;
  * An abstract ConverterAction.
  */
 public abstract class AbstractConverterAction<S extends AbstractState<S>> extends RecursiveAction implements ConverterAction<S> {
-    private static final ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 100, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
+    private static final ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
 
     protected VerifiableNet net;
     protected MarkingI marking;
@@ -89,7 +89,7 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
     public synchronized boolean report() {
         report++;
 
-        if (report >= 10000)
+        if (report >= 100000)
             report = 0;
 
         return (report == 0);

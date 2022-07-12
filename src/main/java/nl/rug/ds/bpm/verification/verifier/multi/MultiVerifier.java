@@ -65,6 +65,7 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
         try {
             compute(structure);
             optimize(structure);
+            clear(structure);
         } catch (Exception e) {
             Logger.log("Failed to compute multi structure.", LogEvent.CRITICAL);
             e.printStackTrace();
@@ -85,6 +86,12 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
                 checkerFactory.release(checker);
             }
         }
+    }
+
+    private void clear(MultiStructure structure) {
+        Logger.log("Clearing full state space to free memory", LogEvent.INFO);
+        structure.clear();
+        System.gc();
     }
 
     /**

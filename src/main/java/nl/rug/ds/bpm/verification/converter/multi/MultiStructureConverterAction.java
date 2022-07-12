@@ -138,7 +138,7 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
         }
 
         if (report())
-            Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " threads with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
+            Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " jobs with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
         //invokeAll(nextActions);
         for (RecursiveAction action : nextActions)
             action.fork();

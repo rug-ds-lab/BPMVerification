@@ -166,4 +166,17 @@ public class Partition extends AbstractStructure<Block> {
 
         return state;
     }
+
+    /**
+     * Clears the partition and its blocks from any references to multistates, leaving only the blocks.
+     */
+    public void clear() {
+        initialSubStates.clear();
+
+        for (Block block : states) {
+            block.getSubStates().clear();
+            block.getEntryStates().clear();
+            block.getExitStates().clear();
+        }
+    }
 }

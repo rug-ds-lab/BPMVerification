@@ -73,10 +73,11 @@ public abstract class AbstractStructure<S extends AbstractState<S>> implements S
     }
 
     /**
-     * Add a state to the transition system, and add it to the set of initially accessible states.
+     * Add a state to the transition system, and adds it to the set of initially accessible states.
      *
      * @param s the state.
      * @return s if new, otherwise the equaling known state.
+     * @throws ConverterException if the maximum number of states was reached.
      */
     public synchronized S addInitial(S s) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
@@ -93,6 +94,7 @@ public abstract class AbstractStructure<S extends AbstractState<S>> implements S
      *
      * @param s the state
      * @return s if new, otherwise the equaling known state.
+     * @throws ConverterException if the maximum number of states was reached.
      */
     public synchronized S addState(S s) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
@@ -122,6 +124,7 @@ public abstract class AbstractStructure<S extends AbstractState<S>> implements S
      * @param current a state current to this transition system.
      * @param next    the state that must become accessible from the given current state.
      * @return either the added next state or an already known state that equals the added state.
+     * @throws ConverterException if the maximum number of states was reached.
      */
     public synchronized S addNext(S current, S next) throws ConverterException {
         if (states.size() >= maximum || atomicPropositions.size() >= maximum)
@@ -195,7 +198,7 @@ public abstract class AbstractStructure<S extends AbstractState<S>> implements S
      * @return the number of different relations as next states within the different states of this transition system.
      */
     public long getRelationCount() {
-        return states.stream().map(n -> n.getNextStates().size()).count();
+        return states.stream().mapToLong(n -> n.getNextStates().size()).sum();
     }
 
     @Override
