@@ -1,24 +1,20 @@
 package nl.rug.ds.bpm.eventstructure;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CombinedEventStructure {
 	private List<String> totalLabels;
 	private Set<Integer> silents;
 	private int source;
 	private int sink;
+
+	private List<PESPrefixUnfolding> pesPrefixUnfoldings;
 	private int pesCount;
-	
+
 	// Integer = label index in totalLabels 
 	// BitSet  = PESs that contain this label
 	private Map<Integer, BitSet> labelmap;
-	
+
 	// all relations: 
 	// BitSet1 = behavioral relation with fromEvent and toEvent 
 	// BitSet2 = set of relation types that hold for this combination of events
@@ -65,6 +61,7 @@ public class CombinedEventStructure {
 		totalLabels = new ArrayList<String>();
 		silents = new HashSet<Integer>();
 		labelmap = new HashMap<Integer, BitSet>();
+		pesPrefixUnfoldings = new ArrayList<>();
 		pesCount = 0;
 		
 		directcausals = new HashSet<BitSet>();
@@ -102,9 +99,12 @@ public class CombinedEventStructure {
 		int relation, e1, e2;
 		BitSet br, causes, predecessors;
 		Set<BitSet> visitedBr = new HashSet<BitSet>();
-				
+
 		Map<Integer, BitSet> correspondings = getCorrespondings(pes);
-				
+
+		pesPrefixUnfoldings.add(pes);
+		pesCount = pesPrefixUnfoldings.size();
+
 		// first add all labels
 		int lbl;
 		for (int i = 0; i < pes.getLabels().size(); i++) {
@@ -299,8 +299,6 @@ public class CombinedEventStructure {
 				}
 			}
 		}
-
-		pesCount++;
 	}
 	
 	private int getRelation(PESPrefixUnfolding pes, int e1, int e2) {
@@ -875,19 +873,28 @@ public class CombinedEventStructure {
 		if (viewFirstLabel) {
 			labels = spaces + "  ";
 		}
-		
+
 		for (int i = 0; i < totalLabels.size(); i++) {
 			lbl = totalLabels.get(i) + spaces;
-			labels += lbl.substring(0, spaces.length()) + " "; 
+			labels += lbl.substring(0, spaces.length()) + " ";
 		}
-		
+
 		return labels;
 	}
-	
+
+	/**
+	 * Returns the PESPrefixUnfoldings currently included in this CombinedEventStructure.
+	 *
+	 * @return a List of PESPrefixUnfoldings currently included in this CombinedEventStructure.
+	 */
+	public List<PESPrefixUnfolding> getSourcePesPrefixUnfoldings() {
+		return pesPrefixUnfoldings;
+	}
+
 	public int getPEScount() {
 		return pesCount;
 	}
-	
+
 	// Checks whether all events in the specified relation occur in all PESs
 	private Boolean checkEventOccForAllPES(BitSet relation) {
 		for (int b = relation.nextSetBit(0); b >= 0; b = relation.nextSetBit(b + 1)) {

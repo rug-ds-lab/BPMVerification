@@ -1,5 +1,6 @@
 package nl.rug.ds.bpm.test;
 
+import nl.rug.ds.bpm.eventstructure.PESPrefixUnfolding;
 import nl.rug.ds.bpm.variability.SpecificationToXML;
 import nl.rug.ds.bpm.variability.VariabilitySpecification;
 
@@ -32,11 +33,18 @@ public class CommandlineSpecGen {
                 FileWriter fileWriter = new FileWriter(out);
                 fileWriter.write(SpecificationToXML.getOutput(vs, "silent")[0]);
                 fileWriter.close();
+
+                printPESPrefixUnfoldingsS(vs);
             } else {
                 System.out.println("CommandlineSpecGen output input_1 input_2 ...");
             }
         } catch (Exception e) {
             System.out.println("Generation failure");
         }
+    }
+
+    private void printPESPrefixUnfoldingsS(VariabilitySpecification vs) {
+        for (PESPrefixUnfolding pes : vs.getCES().getSourcePesPrefixUnfoldings())
+            System.out.println(pes.toString().replaceAll("silent", "s") + "\n\n");
     }
 }
