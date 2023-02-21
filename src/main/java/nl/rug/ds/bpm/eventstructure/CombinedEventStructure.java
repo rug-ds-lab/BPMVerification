@@ -895,13 +895,108 @@ public class CombinedEventStructure {
 		return pesCount;
 	}
 
+	/**
+	 * Returns the relations that exist between two events in String format.
+	 *
+	 * @param source the source event.
+	 * @param target the target event.
+	 * @return
+	 */
+	public String getRelations(int source, int target) {
+		BitSet relation = new BitSet();
+		relation.set(source);
+		relation.set(target);
+
+		BitSet relationTypes = combinedPES.get(relation);
+
+		Set<String> stringTypes = new HashSet<>();
+		if (source == target) stringTypes.add("X");
+
+		if (relationTypes != null) {
+			if (relationTypes.get(0)) stringTypes.add("<d");
+			if (relationTypes.get(1)) stringTypes.add("d>");
+			if (relationTypes.get(2)) stringTypes.add("<");
+			if (relationTypes.get(3)) stringTypes.add(">");
+			if (relationTypes.get(4)) stringTypes.add("#");
+			if (relationTypes.get(5)) stringTypes.add("||");
+			if (relationTypes.get(6)) stringTypes.add("O");
+		}
+
+		return "{" + String.join(",", stringTypes) + "}";
+	}
+
+	/**
+	 * Returns the relation between two events in String format.
+	 *
+	 * @param source the source event label.
+	 * @param target the target event label.
+	 * @return the relation between two events in String format.
+	 */
+	public String getRelations(String source, String target) {
+		return getRelations(totalLabels.indexOf(source), totalLabels.indexOf(target));
+	}
+
+	/**
+	 * Returns all relations between all events in String format.
+	 *
+	 * @return a String[][] of relations between all source and target events.
+	 */
+	public String[][] getAllRelations() {
+		String[][] relations = new String[totalLabels.size()][totalLabels.size()];
+
+		for (int source = 0; source < relations.length; source++) {
+			for (int target = 0; target < relations[source].length; target++) {
+				relations[source][target] = getRelations(source, target);
+			}
+		}
+
+		return relations;
+	}
+
+	private String printLabels() {
+		String labels = "\t";
+
+		for (String label : totalLabels)
+			labels = labels + label + "\t\t\t\t";
+
+		return labels;
+	}
+
+	private String printRow(String source, String[] relations) {
+		String row = source + "\t";
+
+		for (int i = 0; i < relations.length; i++) {
+			row = row + relations[i] + "\t";
+
+			for (int t = 3 - (relations[i].length() / 4); t > 0; t--)
+				row = row + "\t";
+
+		}
+
+		return row;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		String[][] relations = getAllRelations();
+
+		sb.append(printLabels() + "\n");
+
+		for (int source = 0; source < relations.length; source++) {
+			sb.append(printRow(getLabel(source), relations[source]) + "\n");
+		}
+
+		return sb.toString();
+	}
+
+
 	// Checks whether all events in the specified relation occur in all PESs
 	private Boolean checkEventOccForAllPES(BitSet relation) {
 		for (int b = relation.nextSetBit(0); b >= 0; b = relation.nextSetBit(b + 1)) {
 			if (labelmap.containsKey(b)) {
 				if (labelmap.get(b).cardinality() < pesCount) return false;
-			}
-			else {
+			} else {
 				return false;
 			}
 		}

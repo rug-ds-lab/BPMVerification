@@ -40,10 +40,13 @@ public class CommandlineSpecGen {
             }
         } catch (Exception e) {
             System.out.println("Generation failure");
+            e.printStackTrace();
         }
     }
 
     private void printPESPrefixUnfoldingsS(VariabilitySpecification vs) {
+        System.out.println(vs.getCES().toString().replaceAll("silent", "s") + "\n\n");
+
         for (PESPrefixUnfolding pes : vs.getCES().getSourcePesPrefixUnfoldings())
             System.out.println(pes.toString().replaceAll("silent", "s") + "\n\n");
     }
