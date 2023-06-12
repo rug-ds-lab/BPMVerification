@@ -1,6 +1,6 @@
 ## Business process verification package
 The business process verification package provides generic verification tools for Petri net based business process models.
-The Petri net based business process models used are specified in the [BPMPetriNet](https://github.com/rug-ds-lab/BPMPetriNetv) 
+The Petri net based business process models used are specified in the [BPMPetriNet](https://github.com/rug-ds-lab/BPMPetriNet) 
 package, which supports the standard [pnml](http://www.pnml.org/) place/transition net file format. 
 
 The package provides the following functionality:
