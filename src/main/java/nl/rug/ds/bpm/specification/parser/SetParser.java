@@ -1,23 +1,24 @@
 package nl.rug.ds.bpm.specification.parser;
 
 import nl.rug.ds.bpm.specification.jaxb.*;
-import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.specification.marshaller.SpecificationUnmarshaller;
 import nl.rug.ds.bpm.util.exception.ConfigurationException;
+
+import java.util.HashMap;
 
 
 /**
  * Created by Heerko Groefsema on 29-May-17.
  */
 public class SetParser {
-	private SpecificationTypeMap specificationTypeMap;
-	private BPMSpecification bpmSpecification;
-	private SpecificationSet specificationSet;
-	private Parser parser;
+    private HashMap<String, SpecificationType> specificationTypeMap;
+    private BPMSpecification bpmSpecification;
+    private SpecificationSet specificationSet;
+    private Parser parser;
 	private int id = 0;
 	
 	public SetParser() {
-		specificationTypeMap = new SpecificationTypeMap();
+        specificationTypeMap = new HashMap<>();
 		
 		parser = new Parser(specificationTypeMap);
 		bpmSpecification = new BPMSpecification();
@@ -66,9 +67,9 @@ public class SetParser {
 			throw new ConfigurationException("Failed to load configuration file");
 		}
 	}
-	
-	private void loadSpecificationTypes(BPMSpecification specification, SpecificationTypeMap typeMap) {
-		for (SpecificationType specificationType: specification.getSpecificationTypes())
-			typeMap.addSpecificationType(specificationType);
-	}
+
+    private void loadSpecificationTypes(BPMSpecification specification, HashMap<String, SpecificationType> typeMap) {
+        for (SpecificationType specificationType : specification.getSpecificationTypes())
+            typeMap.put(specificationType.getId(), specificationType);
+    }
 }

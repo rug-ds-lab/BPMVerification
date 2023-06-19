@@ -10,29 +10,34 @@ The package provides the following functionality:
 ### Structure
 The package is structured as followed:
 
-* eventStructure
-* main
-* specification
-  * jaxb
-  * map
-  * marshaller
-  * parser
-* variability
-* verification
-  * convert
-  * event
-  * map
-  * model.kripke
-  * modelcheck
-  * optimize
+Under `src/main` you will find
+* nl.rug.ds.bpm
+  * eventStructure
+  * specification
+    * jaxb
+    * map
+    * marshaller
+    * parser
+  * variability
+  * verification
+    * convert
+    * event
+    * map
+    * model.kripkeStructure
+    * modelcheck
+    * optimize
+  
+Under `src/test` you will find
+* nl.rug.ds.bpm
+  * test
 
 ### Usage
 The package provides two core functionalities contained within the following classes:
 
 * nl.rug.ds.bpm.variability.VariabilitySpecification
-* nl.rug.ds.bpm.verification.NetVerifier
+* nl.rug.ds.bpm.verification.verifier.kripke.KripkeVerifier
 
-Self explanatory examples using these classes can be found in nl.rug.ds.bpm.main.
+Self explanatory examples using these classes can be found in nl.rug.ds.bpm.test in the src/test directory.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
@@ -90,14 +95,17 @@ separate model is generated, reduced, and verified. Reduction is accomplished by
 with respect to the used input elements for each set.
 
 Each specification is defined by an id, type, and a list of inputElements. Each id should be unique as it is used for
-feedback purposes. The type refers to a specificationType which is either predefined in src/main/resources/specificationTypes.xml
+feedback purposes. The type refers to a specificationType which is either predefined in
+src/main/resources/specificationTypes.xml
 or defined custom. The list of inputElements target the inputs of the specificationType. In case of overloading a
 target, the inputElements form a dis/con-junction as defined by that target's type.
 
-The optional elementGroups block defines sets of elements belonging to a group given an id. This id can then be used as
+The optional elementGroups block defines sets of elements belonging to a group given an id. This id can then be
+used as
 an input element throughout the specification. Elements within a group form a disjunction.
 
-The optional specificationTypes block defines custom specificationTypes by a unique id, one or more formulas, and its
+The optional specificationTypes block defines custom specificationTypes by a unique id, one or more formulas, and
+its
 inputs. The language of a formula can be either _CTLSPEC_, _LTLSPEC_, or _JUSTICE_ as defined by the
 [NuSMV2](http://nusmv.fbk.eu/)/[NuXMV](https://nuxmv.fbk.eu/) model modelcheck.
 

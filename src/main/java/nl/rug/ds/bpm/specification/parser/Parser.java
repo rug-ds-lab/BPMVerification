@@ -1,10 +1,10 @@
 package nl.rug.ds.bpm.specification.parser;
 
 import nl.rug.ds.bpm.specification.jaxb.*;
-import nl.rug.ds.bpm.specification.map.SpecificationTypeMap;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,12 +15,12 @@ public class Parser {
 	private static Pattern groupPattern = Pattern.compile("^([gG]roup).*");
 	private static Pattern bracketPattern = Pattern.compile("\\((.*?)\\)");
 	private static Pattern quotePattern = Pattern.compile("\"([^\"]*)\"");
-	
-	private SpecificationTypeMap specificationTypeMap;
-	
-	public Parser(SpecificationTypeMap specificationTypeMap) {
-		this.specificationTypeMap = specificationTypeMap;
-	}
+
+    private HashMap<String, SpecificationType> specificationTypeMap;
+
+    public Parser(HashMap<String, SpecificationType> specificationTypeMap) {
+        this.specificationTypeMap = specificationTypeMap;
+    }
 	
 	public Specification parseSpecification(String specification) {
 		Specification spec;
@@ -29,8 +29,8 @@ public class Parser {
 			String type = bracketMatcher.replaceFirst("").trim();
 			String elements = bracketMatcher.group();
 			elements = elements.substring(1, elements.length() - 1).trim();
-			
-			SpecificationType specificationType = specificationTypeMap.getSpecificationType(type);
+
+            SpecificationType specificationType = specificationTypeMap.get(type);
 			if(specificationType != null) {
 				spec = new Specification();
 				spec.setType(specificationType.getId());
