@@ -140,7 +140,6 @@ public abstract class AbstractStructureFactory<S extends AbstractState<S>, K ext
         TreeSet<CompositeExpression> expressions = new TreeSet<>(new ComparableComparator<CompositeExpression>());
 
         for (CompositeExpression e : apMap.getSpecificationIds()) {
-            //TODO: @Nick: The function Expression.isFulfilledBy(OtherExpression) fails to return expected results.
             boolean implied = e.isFulfilledBy(expression);
             if (implied) {
                 expressions.add(expression);
@@ -173,7 +172,7 @@ public abstract class AbstractStructureFactory<S extends AbstractState<S>, K ext
         CompositeExpression stateExpression;
 
         if (expressions.isEmpty())
-            stateExpression = ExpressionBuilder.parseExpression("false");
+            stateExpression = ExpressionBuilder.parseExpression("true");
         else if (expressions.size() == 1)
             stateExpression = expressions.iterator().next();
         else {

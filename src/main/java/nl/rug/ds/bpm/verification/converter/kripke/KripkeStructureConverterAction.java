@@ -40,21 +40,21 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
 	}
 
 	/**
-	 * Creates a KripkeStructureConverterAction to compute subsequent States of the RecursiveAction computation.
-	 *
-	 * @param net             a VerifiableNet
-	 * @param marking         the subsequent Marking of the VerifiableNet obtained after firing the Transition fired.
-	 * @param fired           the Transition fired to obtain marking.
-	 * @param factory         the StructureFactory used.
-	 * @param kripkeStructure the KripkeStructure to populate.
-	 * @param previous        the State obtained in the previous computation step.
-	 */
-	public KripkeStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, KripkeFactory factory, KripkeStructure kripkeStructure, KripkeState previous) {
-		super(net, marking, fired);
-		this.kripkeFactory = factory;
-		this.kripkeStructure = kripkeStructure;
-		this.previous = previous;
-	}
+     * Creates a KripkeStructureConverterAction to compute subsequent States of the RecursiveAction computation.
+     *
+     * @param net             a VerifiableNet
+     * @param marking         the subsequent Marking of the VerifiableNet obtained after firing the Transition fired.
+     * @param fired           the Transition fired to obtain marking.
+     * @param factory         the StructureFactory used.
+     * @param kripkeStructure the KripkeStructure to populate.
+     * @param previous        the State obtained in the previous computation step.
+     */
+    public KripkeStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, KripkeFactory factory, KripkeStructure kripkeStructure, KripkeState previous) {
+        super(net, marking, fired, previousParallelEnabledTransitions);
+        this.kripkeFactory = factory;
+        this.kripkeStructure = kripkeStructure;
+        this.previous = previous;
+    }
 
 	/**
 	 * Computes the initial States and starts the RecursiveAction computation.
@@ -101,32 +101,34 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
 
 	/**
 	 * Overriden method from RecursiveAction that computes a step to calculate the Kripke structure.
-	 * <p>
-	 * TODO evaluate the need to check if all previous atomic propositions, minus those of the fired Transition, are in the computed State.
 	 */
 	@Override
-	public void compute() {
-		if (marking.getMarkedPlaces().isEmpty()) {
-			makeSink(previous);
-			Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
-		} else for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
-			KripkeState created = (KripkeState) kripkeFactory.createState(marking, enabled);
+    public void compute() {
+        if (marking.getMarkedPlaces().isEmpty()) {
+            makeSink(previous);
+            Logger.log("Encountered empty marking, adding sink state.", LogEvent.WARNING);
+        } else {
+            for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
+                if (!enabled.containsAll(previousParallelEnabledTransitions)) continue;
 
-			try {
-				KripkeState found = (KripkeState) kripkeStructure.addNext(previous, created);
+                KripkeState created = kripkeFactory.createState(marking, enabled);
 
-				if (isNew(created, found)) {
-                    if (isSink(enabled))
-                        makeSink(found);
+                try {
+                    KripkeState found = kripkeStructure.addNext(previous, created);
 
-                    //invokeAll(nextActions(found, enabled));
-                    for (RecursiveAction action : nextActions(found, enabled))
-                        action.fork();
-                }
-            } catch (ConverterException e) {
-                Logger.log("Maximum state space reached", LogEvent.CRITICAL);
-            }
-        }
+                    if (isNew(created, found)) {
+                        if (isSink(enabled))
+                            makeSink(found);
+
+                        //invokeAll(nextActions(found, enabled));
+                        for (RecursiveAction action : nextActions(found, enabled))
+                            action.fork();
+                    }
+                } catch (ConverterException e) {
+                    Logger.log("Maximum state space reached", LogEvent.CRITICAL);
+				}
+			}
+		}
 
         if (report())
             Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " jobs with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
@@ -144,7 +146,7 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
 		Set<KripkeStructureConverterAction> nextActions = new HashSet<>();
 		for (TransitionI transition : enabled)
 			for (MarkingI step : net.fireTransition(transition, marking))
-				nextActions.add(new KripkeStructureConverterAction(this.net, step, transition, this.kripkeFactory, this.kripkeStructure, created));
+                nextActions.add(new KripkeStructureConverterAction(this.net, step, transition, enabled, this.kripkeFactory, this.kripkeStructure, created));
 
 		return nextActions;
 	}

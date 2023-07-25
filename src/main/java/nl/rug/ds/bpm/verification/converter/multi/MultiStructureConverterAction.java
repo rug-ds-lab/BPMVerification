@@ -50,8 +50,8 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
      * @param multiStructure the MultiStructure to populate.
      * @param previous       the State obtained in the previous computation step.
      */
-    public MultiStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, MultiFactory factory, MultiStructure multiStructure, MultiState previous) {
-        super(net, marking, fired);
+    public MultiStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, MultiFactory factory, MultiStructure multiStructure, MultiState previous) {
+        super(net, marking, fired, previousParallelEnabledTransitions);
         this.multiFactory = factory;
         this.multiStructure = multiStructure;
         this.previous = previous;
@@ -106,11 +106,11 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
 
     @Override
     public void compute() {
-        long start = System.nanoTime();
-
         Set<RecursiveAction> nextActions = new HashSet<>();
 
         for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
+            if (!enabled.containsAll(previousParallelEnabledTransitions)) continue;
+
             Set<CompositeExpression> guardExpressions = multiFactory.getGuardExpressions(enabled);
             Set<CompositeExpression> expressions = multiFactory.getEnabledExpressions(enabled);
             expressions.addAll(multiFactory.getDataExpressions(marking));
@@ -158,7 +158,7 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
         Set<MultiStructureConverterAction> nextActions = new HashSet<>();
         for (TransitionI transition : enabled)
             for (MarkingI step : net.fireTransition(transition, marking))
-                nextActions.add(new MultiStructureConverterAction(this.net, step, transition, this.multiFactory, this.multiStructure, created));
+                nextActions.add(new MultiStructureConverterAction(this.net, step, transition, enabled, this.multiFactory, this.multiStructure, created));
 
         return nextActions;
     }

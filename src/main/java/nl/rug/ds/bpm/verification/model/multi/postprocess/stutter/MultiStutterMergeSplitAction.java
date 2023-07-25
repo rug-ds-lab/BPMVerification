@@ -183,6 +183,7 @@ public class MultiStutterMergeSplitAction extends RecursiveAction {
                 current.addNext(next);
                 next.addPrevious(current);
             }
+
             if (current.containsCycle()) {
                 current.addNext(current);
                 current.addPrevious(current);

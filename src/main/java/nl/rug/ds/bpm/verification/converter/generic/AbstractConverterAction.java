@@ -6,6 +6,7 @@ import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.verification.converter.ConverterAction;
 import nl.rug.ds.bpm.verification.model.generic.AbstractState;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
@@ -14,11 +15,12 @@ import java.util.concurrent.RecursiveAction;
  * An abstract ConverterAction.
  */
 public abstract class AbstractConverterAction<S extends AbstractState<S>> extends RecursiveAction implements ConverterAction<S> {
-    private static final ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
+    private static ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
 
     protected VerifiableNet net;
     protected MarkingI marking;
     protected TransitionI fired;
+    protected Set<? extends TransitionI> previousParallelEnabledTransitions;
 
     protected static long report = 0;
 
@@ -26,7 +28,7 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
      * Creates an abstract ConverterAction.
      *
      * @param net     a VerifiableNet.
-     * @param marking the initial Marking of the VeriableNet.
+     * @param marking the initial Marking of the VerifiableNet.
      */
     public AbstractConverterAction(VerifiableNet net, MarkingI marking) {
         this.net = net;
@@ -37,12 +39,14 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
      * Creates an abstract ConverterAction.
      *
      * @param net     a VerifiableNet.
-     * @param marking the Marking of the VeriableNet after firing the Transition fired.
+     * @param marking the Marking of the VerifiableNet after firing the Transition fired.
      * @param fired   the Transition that fired to obtain marking.
      */
-    public AbstractConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired) {
+    public AbstractConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions) {
         this(net, marking);
         this.fired = fired;
+        this.previousParallelEnabledTransitions = new HashSet<>(previousParallelEnabledTransitions);
+        this.previousParallelEnabledTransitions.remove(fired);
     }
 
     /**
@@ -52,6 +56,14 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
      */
     public static ForkJoinPool getForkJoinPool() {
         return forkJoinPool;
+    }
+
+
+    /**
+     * Creates a new pool that this task is assigned to.
+     */
+    public static void newForkJoinPool() {
+        forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
     }
 
     /**

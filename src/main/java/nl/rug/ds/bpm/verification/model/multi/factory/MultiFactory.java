@@ -47,6 +47,7 @@ public class MultiFactory extends AbstractStructureFactory<MultiState, MultiStru
 
     @Override
     public MultiStructureConverterAction createConverter(VerifiableNet net, MarkingI marking, MultiStructure structure) {
+        MultiStructureConverterAction.newForkJoinPool();
         return new MultiStructureConverterAction(net, marking, this, structure);
     }
 }

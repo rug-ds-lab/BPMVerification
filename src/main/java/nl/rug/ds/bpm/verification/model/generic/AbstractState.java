@@ -222,8 +222,8 @@ public abstract class AbstractState<S extends State<S>> implements State<S> {
             return true;
         if (arg0 == null)
             return false;
-        if (this.getClass() != arg0.getClass())
-            return false;
-        return hash.equals(((S) arg0).hash());
+        if (this.getClass() == arg0.getClass())
+            return hash.equals(((AbstractState<?>) arg0).hash());
+        else return false;
     }
 }
