@@ -173,8 +173,6 @@ public class MultiStructureTest {
         MultiStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction.computeInitial();
 
-        System.out.println(structure);
-
         MultiStutterMergeSplitAction splitter = new MultiStutterMergeSplitAction(structure.getPartitions());
 
         assertEquals(1, structure.getInitial().size());
@@ -182,7 +180,6 @@ public class MultiStructureTest {
         assertEquals(7, structure.getStateCount());
         assertEquals(9, structure.getRelationCount());
 
-        System.out.println("\n" + partition);
         structure.clear();
 
         assertEquals(1, partition.getInitial().size());
