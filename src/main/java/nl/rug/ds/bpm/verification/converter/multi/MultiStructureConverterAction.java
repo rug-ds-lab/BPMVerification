@@ -15,6 +15,7 @@ import nl.rug.ds.bpm.verification.model.multi.factory.MultiFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.TimeUnit;
 
@@ -50,8 +51,8 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
      * @param multiStructure the MultiStructure to populate.
      * @param previous       the State obtained in the previous computation step.
      */
-    public MultiStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, MultiFactory factory, MultiStructure multiStructure, MultiState previous) {
-        super(net, marking, fired, previousParallelEnabledTransitions);
+    public MultiStructureConverterAction(ForkJoinPool forkJoinPool, VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, MultiFactory factory, MultiStructure multiStructure, MultiState previous) {
+        super(forkJoinPool, net, marking, fired, previousParallelEnabledTransitions);
         this.multiFactory = factory;
         this.multiStructure = multiStructure;
         this.previous = previous;
@@ -70,6 +71,7 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
             expressions.addAll(multiFactory.getDataExpressions(marking));
 
             TreeSet<String> AP = multiFactory.addAtomicPropositions(expressions);
+            expressions.addAll(guardExpressions);
             AP.addAll(multiFactory.addAtomicPropositions(multiFactory.inferExpressions(expressions)));
 
             MultiState created = multiFactory.createState(marking.toString(), AP);
@@ -91,7 +93,6 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
             }
         }
 
-//        invokeAll(nextActions);
         for (RecursiveAction action : nextActions)
             getForkJoinPool().execute(action);
 
@@ -111,11 +112,12 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
         for (Set<? extends TransitionI> enabled : net.getParallelEnabledTransitions(marking)) {
             if (!enabled.containsAll(previousParallelEnabledTransitions)) continue;
 
-            Set<CompositeExpression> guardExpressions = multiFactory.getGuardExpressions(enabled);
             Set<CompositeExpression> expressions = multiFactory.getEnabledExpressions(enabled);
+            Set<CompositeExpression> guardExpressions = multiFactory.getGuardExpressions(enabled);
             expressions.addAll(multiFactory.getDataExpressions(marking));
 
             TreeSet<String> AP = multiFactory.addAtomicPropositions(expressions);
+            expressions.addAll(guardExpressions);
             AP.addAll(multiFactory.addAtomicPropositions(multiFactory.inferExpressions(expressions)));
 
             MultiState created = multiFactory.createState(marking.toString(), AP);
@@ -139,11 +141,9 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
 
         if (report())
             Logger.log("Pool of " + getForkJoinPool().getQueuedTaskCount() + " jobs with " + getForkJoinPool().getRunningThreadCount() + " active workers", LogEvent.INFO);
-        //invokeAll(nextActions);
+
         for (RecursiveAction action : nextActions)
-            action.fork();
-
-
+            getForkJoinPool().execute(action);
     }
 
     /**
@@ -158,7 +158,7 @@ public class MultiStructureConverterAction extends AbstractConverterAction<Multi
         Set<MultiStructureConverterAction> nextActions = new HashSet<>();
         for (TransitionI transition : enabled)
             for (MarkingI step : net.fireTransition(transition, marking))
-                nextActions.add(new MultiStructureConverterAction(this.net, step, transition, enabled, this.multiFactory, this.multiStructure, created));
+                nextActions.add(new MultiStructureConverterAction(getForkJoinPool(), this.net, step, transition, enabled, this.multiFactory, this.multiStructure, created));
 
         return nextActions;
     }

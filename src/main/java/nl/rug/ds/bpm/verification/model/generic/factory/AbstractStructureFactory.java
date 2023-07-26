@@ -141,9 +141,11 @@ public abstract class AbstractStructureFactory<S extends AbstractState<S>, K ext
 
         for (CompositeExpression e : apMap.getSpecificationIds()) {
             boolean implied = e.isFulfilledBy(expression);
+
+            System.out.println("Evaluated expression " + expression + " => " + e + " as " + implied);
             if (implied) {
-                expressions.add(expression);
-                //Logger.log("Evaluated expression " + expression + " => " + e + " as " + implied, 3);
+                expressions.add(e);
+                //Logger.log("Evaluated expression " + expression + " => " + e + " as " + implied, LogEvent.INFO);
             }
         }
 

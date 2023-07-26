@@ -5,7 +5,6 @@ import nl.rug.ds.bpm.petrinet.interfaces.element.TransitionI;
 import nl.rug.ds.bpm.petrinet.interfaces.marking.MarkingI;
 import nl.rug.ds.bpm.petrinet.interfaces.net.VerifiableNet;
 import nl.rug.ds.bpm.verification.converter.kripke.KripkeStructureConverterAction;
-import nl.rug.ds.bpm.verification.converter.multi.MultiStructureConverterAction;
 import nl.rug.ds.bpm.verification.model.StructureFactory;
 import nl.rug.ds.bpm.verification.model.generic.factory.AbstractStructureFactory;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
@@ -76,7 +75,6 @@ public class KripkeFactory extends AbstractStructureFactory<KripkeState, KripkeS
      */
     @Override
     public KripkeStructureConverterAction createConverter(VerifiableNet net, MarkingI marking, KripkeStructure structure) {
-        MultiStructureConverterAction.newForkJoinPool();
         return new KripkeStructureConverterAction(net, marking, this, structure);
     }
 }

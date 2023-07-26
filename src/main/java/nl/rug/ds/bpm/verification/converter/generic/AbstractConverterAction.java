@@ -15,7 +15,7 @@ import java.util.concurrent.RecursiveAction;
  * An abstract ConverterAction.
  */
 public abstract class AbstractConverterAction<S extends AbstractState<S>> extends RecursiveAction implements ConverterAction<S> {
-    private static ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
+    private ForkJoinPool forkJoinPool;
 
     protected VerifiableNet net;
     protected MarkingI marking;
@@ -33,6 +33,8 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
     public AbstractConverterAction(VerifiableNet net, MarkingI marking) {
         this.net = net;
         this.marking = marking;
+
+        forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
     }
 
     /**
@@ -42,8 +44,9 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
      * @param marking the Marking of the VerifiableNet after firing the Transition fired.
      * @param fired   the Transition that fired to obtain marking.
      */
-    public AbstractConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions) {
+    public AbstractConverterAction(ForkJoinPool forkJoinPool, VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions) {
         this(net, marking);
+        this.forkJoinPool = forkJoinPool;
         this.fired = fired;
         this.previousParallelEnabledTransitions = new HashSet<>(previousParallelEnabledTransitions);
         this.previousParallelEnabledTransitions.remove(fired);
@@ -54,16 +57,8 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
      *
      * @return the pool this task is assigned to
      */
-    public static ForkJoinPool getForkJoinPool() {
+    protected ForkJoinPool getForkJoinPool() {
         return forkJoinPool;
-    }
-
-
-    /**
-     * Creates a new pool that this task is assigned to.
-     */
-    public static void newForkJoinPool() {
-        forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
     }
 
     /**

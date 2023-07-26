@@ -87,7 +87,6 @@ public class MultiStructureTest {
         assertEquals(0, partition.getStateCount());
         assertEquals(0, partition.getRelationCount());
 
-        MultiStructureConverterAction.newForkJoinPool();
         MultiStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction.computeInitial();
 
@@ -107,7 +106,7 @@ public class MultiStructureTest {
     }
 
     @Test
-    public void verifiableNetTestwithNoEnanledTransition() {
+    public void verifiableNetTestwithNoEnabledTransition() {
         net.getTransition("t1").setGuard("x>0"); // Adds case where nothing is enabled
 
         MultiStructure structure = factory.createStructure();
@@ -129,7 +128,6 @@ public class MultiStructureTest {
         assertEquals(0, partition.getStateCount());
         assertEquals(0, partition.getRelationCount());
 
-        MultiStructureConverterAction.newForkJoinPool();
         MultiStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction.computeInitial();
 
@@ -144,6 +142,51 @@ public class MultiStructureTest {
 
         assertEquals(1, partition.getInitial().size());
         assertEquals(2, partition.getAtomicPropositionCount());
+        assertEquals(6, partition.getStateCount());
+        assertEquals(7, partition.getRelationCount());
+    }
+
+    @Test
+    public void verifiableNetTestwithInference() {
+        net.getTransition("t1").setGuard("x>=0"); // Adds case where nothing is enabled
+
+        MultiStructure structure = factory.createStructure();
+
+        assertEquals(0, structure.getAtomicPropositionCount());
+        assertEquals(0, structure.getStateCount());
+        assertEquals(0, structure.getRelationCount());
+
+        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t0"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t5"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("y==true"));
+        factory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
+
+        structure.addPartition(new SpecificationSet(), specificationSetPropositionMap.getAPKeys());
+        assertFalse(structure.getPartitions().isEmpty());
+        Partition partition = structure.getPartitions().iterator().next();
+
+        assertEquals(3, partition.getAtomicPropositionCount());
+        assertEquals(0, partition.getStateCount());
+        assertEquals(0, partition.getRelationCount());
+
+        MultiStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
+        converterAction.computeInitial();
+
+        System.out.println(structure);
+
+        MultiStutterMergeSplitAction splitter = new MultiStutterMergeSplitAction(structure.getPartitions());
+
+        assertEquals(1, structure.getInitial().size());
+        assertEquals(7, structure.getAtomicPropositionCount());
+        assertEquals(7, structure.getStateCount());
+        assertEquals(9, structure.getRelationCount());
+
+        System.out.println("\n" + partition);
+        structure.clear();
+
+        assertEquals(1, partition.getInitial().size());
+        assertEquals(3, partition.getAtomicPropositionCount());
         assertEquals(6, partition.getStateCount());
         assertEquals(7, partition.getRelationCount());
     }

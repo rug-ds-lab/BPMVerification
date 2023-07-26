@@ -77,7 +77,6 @@ public class KripkeStructureTest {
         enabled.add(net.getTransition("t0"));
         assertEquals(enabled, net.getEnabledTransitions(net.getInitialMarking()));
 
-        KripkeStructureConverterAction.newForkJoinPool();
         KripkeStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction.computeInitial();
 
@@ -88,12 +87,11 @@ public class KripkeStructureTest {
     }
 
     @Test
-    public void verifiableNetTestwithNoEnanledTransition() {
+    public void verifiableNetTestwithNoEnabledTransition() {
         net.getTransition("t1").setGuard("x>0"); // Adds case where nothing is enabled
 
         KripkeStructure structure = factory.createStructure();
 
-        KripkeStructureConverterAction.newForkJoinPool();
         KripkeStructureConverterAction converterAction2 = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction2.computeInitial();
 

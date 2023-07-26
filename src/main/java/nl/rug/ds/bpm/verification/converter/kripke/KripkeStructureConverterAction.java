@@ -14,6 +14,7 @@ import nl.rug.ds.bpm.verification.model.kripke.factory.KripkeFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.TimeUnit;
 
@@ -39,7 +40,7 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
 		this.kripkeStructure = kripkeStructure;
 	}
 
-	/**
+    /**
      * Creates a KripkeStructureConverterAction to compute subsequent States of the RecursiveAction computation.
      *
      * @param net             a VerifiableNet
@@ -49,8 +50,8 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
      * @param kripkeStructure the KripkeStructure to populate.
      * @param previous        the State obtained in the previous computation step.
      */
-    public KripkeStructureConverterAction(VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, KripkeFactory factory, KripkeStructure kripkeStructure, KripkeState previous) {
-        super(net, marking, fired, previousParallelEnabledTransitions);
+    public KripkeStructureConverterAction(ForkJoinPool forkJoinPool, VerifiableNet net, MarkingI marking, TransitionI fired, Set<? extends TransitionI> previousParallelEnabledTransitions, KripkeFactory factory, KripkeStructure kripkeStructure, KripkeState previous) {
+        super(forkJoinPool, net, marking, fired, previousParallelEnabledTransitions);
         this.kripkeFactory = factory;
         this.kripkeStructure = kripkeStructure;
         this.previous = previous;
@@ -86,7 +87,6 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
             }
         }
 
-        //invokeAll(nextActions);
         for (RecursiveAction action : nextActions)
             getForkJoinPool().execute(action);
 
@@ -120,9 +120,8 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
                         if (isSink(enabled))
                             makeSink(found);
 
-                        //invokeAll(nextActions(found, enabled));
                         for (RecursiveAction action : nextActions(found, enabled))
-                            action.fork();
+                            getForkJoinPool().execute(action);
                     }
                 } catch (ConverterException e) {
                     Logger.log("Maximum state space reached", LogEvent.CRITICAL);
@@ -146,7 +145,7 @@ public class KripkeStructureConverterAction extends AbstractConverterAction<Krip
 		Set<KripkeStructureConverterAction> nextActions = new HashSet<>();
 		for (TransitionI transition : enabled)
 			for (MarkingI step : net.fireTransition(transition, marking))
-                nextActions.add(new KripkeStructureConverterAction(this.net, step, transition, enabled, this.kripkeFactory, this.kripkeStructure, created));
+                nextActions.add(new KripkeStructureConverterAction(getForkJoinPool(), this.net, step, transition, enabled, this.kripkeFactory, this.kripkeStructure, created));
 
 		return nextActions;
 	}
