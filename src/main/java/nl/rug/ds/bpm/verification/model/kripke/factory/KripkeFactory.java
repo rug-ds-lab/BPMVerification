@@ -61,7 +61,7 @@ public class KripkeFactory extends AbstractStructureFactory<KripkeState, KripkeS
         expressions.addAll(getDataExpressions(marking));
 
         TreeSet<String> AP = addAtomicPropositions(expressions);
-        ;
+
         expressions.addAll(guardExpressions);
         AP.addAll(addAtomicPropositions(inferExpressions(expressions)));
 
