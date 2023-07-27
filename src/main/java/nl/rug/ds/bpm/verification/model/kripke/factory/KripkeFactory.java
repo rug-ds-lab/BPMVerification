@@ -57,9 +57,12 @@ public class KripkeFactory extends AbstractStructureFactory<KripkeState, KripkeS
      */
     public KripkeState createState(MarkingI marking, Set<? extends TransitionI> transitions) {
         Set<CompositeExpression> expressions = getEnabledExpressions(transitions);
+        Set<CompositeExpression> guardExpressions = getGuardExpressions(transitions);
         expressions.addAll(getDataExpressions(marking));
 
         TreeSet<String> AP = addAtomicPropositions(expressions);
+        ;
+        expressions.addAll(guardExpressions);
         AP.addAll(addAtomicPropositions(inferExpressions(expressions)));
 
         return createState(marking.toString(), AP);
