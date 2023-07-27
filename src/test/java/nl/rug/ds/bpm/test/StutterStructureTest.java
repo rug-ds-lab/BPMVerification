@@ -105,7 +105,7 @@ public class StutterStructureTest {
 
         assertEquals(2, structure.getAtomicPropositionCount());
 
-        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
         stutterOptimizer.linearPreProcess();
         stutterOptimizer.optimize();
 
@@ -141,7 +141,7 @@ public class StutterStructureTest {
 
         assertEquals(2, structure.getAtomicPropositionCount());
 
-        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
         stutterOptimizer.linearPreProcess();
         stutterOptimizer.optimize();
 
@@ -177,7 +177,7 @@ public class StutterStructureTest {
 
         assertEquals(3, structure.getAtomicPropositionCount());
 
-        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
         stutterOptimizer.linearPreProcess();
         stutterOptimizer.optimize();
 
