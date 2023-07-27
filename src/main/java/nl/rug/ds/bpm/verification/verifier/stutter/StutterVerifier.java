@@ -111,8 +111,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * @param ap        the AtomicPropositionMap that contains the unused atomic propositions.
      * @return the time it took to optimize in nanoseconds.
      */
-    protected double optimizeAtomicPropositions(KripkeStructure
-                                                        structure, TreeSet<String> ap) {
+    protected double optimizeAtomicPropositions(KripkeStructure structure, TreeSet<String> ap) {
         long t0 = System.nanoTime();
         PropositionOptimizer propositionOptimizer = new PropositionOptimizer(structure, ap);
         long t1 = System.nanoTime();

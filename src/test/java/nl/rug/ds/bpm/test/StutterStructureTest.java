@@ -5,20 +5,24 @@ import nl.rug.ds.bpm.expression.ExpressionBuilder;
 import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
 import nl.rug.ds.bpm.petrinet.ptnet.element.Place;
 import nl.rug.ds.bpm.petrinet.ptnet.element.Transition;
+import nl.rug.ds.bpm.util.comparator.ComparableComparator;
 import nl.rug.ds.bpm.util.exception.MalformedNetException;
 import nl.rug.ds.bpm.verification.converter.kripke.KripkeStructureConverterAction;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
+import nl.rug.ds.bpm.verification.model.generic.optimizer.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 import nl.rug.ds.bpm.verification.model.kripke.factory.KripkeFactory;
+import nl.rug.ds.bpm.verification.model.kripke.postprocess.stutter.StutterOptimizer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class KripkeStructureTest {
+public class StutterStructureTest {
     private static PlaceTransitionNet net = new PlaceTransitionNet();
     private static KripkeFactory factory = new KripkeFactory();
 
@@ -70,6 +74,11 @@ public class KripkeStructureTest {
 
         KripkeStructure structure = factory.createStructure();
 
+        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t0"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t5"));
+        factory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
+
         assertEquals(0, structure.getAtomicPropositionCount());
         assertEquals(0, structure.getStateCount());
         assertEquals(0, structure.getRelationCount());
@@ -87,6 +96,22 @@ public class KripkeStructureTest {
         assertEquals(6, structure.getAtomicPropositionCount());
         assertEquals(7, structure.getStateCount());
         assertEquals(9, structure.getRelationCount());
+
+        TreeSet<String> unusedAP = new TreeSet<>(new ComparableComparator<String>());
+        unusedAP.addAll(structure.getAtomicPropositions());
+        unusedAP.removeAll(specificationSetPropositionMap.getAPKeys());
+
+        PropositionOptimizer propositionOptimizer = new PropositionOptimizer(structure, unusedAP);
+
+        assertEquals(2, structure.getAtomicPropositionCount());
+
+        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        stutterOptimizer.linearPreProcess();
+        stutterOptimizer.optimize();
+
+        assertEquals(1, structure.getInitial().size());
+        assertEquals(4, structure.getStateCount());
+        assertEquals(4, structure.getRelationCount());
     }
 
     @Test
@@ -95,6 +120,11 @@ public class KripkeStructureTest {
 
         KripkeStructure structure = factory.createStructure();
 
+        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t0"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t5"));
+        factory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
+
         KripkeStructureConverterAction converterAction2 = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction2.computeInitial();
 
@@ -102,6 +132,22 @@ public class KripkeStructureTest {
         assertEquals(6, structure.getAtomicPropositionCount());
         assertEquals(8, structure.getStateCount());
         assertEquals(11, structure.getRelationCount());
+
+        TreeSet<String> unusedAP = new TreeSet<>(new ComparableComparator<String>());
+        unusedAP.addAll(structure.getAtomicPropositions());
+        unusedAP.removeAll(specificationSetPropositionMap.getAPKeys());
+
+        PropositionOptimizer propositionOptimizer = new PropositionOptimizer(structure, unusedAP);
+
+        assertEquals(2, structure.getAtomicPropositionCount());
+
+        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        stutterOptimizer.linearPreProcess();
+        stutterOptimizer.optimize();
+
+        assertEquals(1, structure.getInitial().size());
+        assertEquals(5, structure.getStateCount());
+        assertEquals(6, structure.getRelationCount());
     }
 
     @Test
@@ -110,20 +156,34 @@ public class KripkeStructureTest {
 
         KripkeStructure structure = factory.createStructure();
 
+        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t0"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("t5"));
+        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("y==true"));
+        factory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
+
         assertEquals(0, structure.getAtomicPropositionCount());
         assertEquals(0, structure.getStateCount());
         assertEquals(0, structure.getRelationCount());
 
-        AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
-        specificationSetPropositionMap.addSpecificationId(ExpressionBuilder.parseExpression("y==true"));
-        factory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
-
         KripkeStructureConverterAction converterAction = factory.createConverter(net, net.getInitialMarking(), structure);
         converterAction.computeInitial();
 
+        TreeSet<String> unusedAP = new TreeSet<>(new ComparableComparator<String>());
+        unusedAP.addAll(structure.getAtomicPropositions());
+        unusedAP.removeAll(specificationSetPropositionMap.getAPKeys());
+
+        PropositionOptimizer propositionOptimizer = new PropositionOptimizer(structure, unusedAP);
+
+        assertEquals(3, structure.getAtomicPropositionCount());
+
+        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
+        stutterOptimizer.linearPreProcess();
+        stutterOptimizer.optimize();
+
         assertEquals(1, structure.getInitial().size());
-        assertEquals(7, structure.getAtomicPropositionCount());
-        assertEquals(7, structure.getStateCount());
-        assertEquals(9, structure.getRelationCount());
+        assertEquals(3, structure.getAtomicPropositionCount());
+        assertEquals(5, structure.getStateCount());
+        assertEquals(6, structure.getRelationCount());
     }
 }
