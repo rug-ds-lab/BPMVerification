@@ -1,40 +1,41 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2interactive;
 
-import nl.rug.ds.bpm.expression.CompositeExpression;
-import nl.rug.ds.bpm.specification.jaxb.Formula;
-import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.CheckerException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVChecker;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFileWriter;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
-import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
- * Created by
+ * Class used to call the NuSMV2 model checker interactively and parse its results.
  */
-public class NuSMVInteractiveChecker extends Checker {
+public class NuSMVInteractiveChecker extends NuSMVChecker {
 	private File file;
 	private Process proc;
 	private NuSMVScanner scanner;
 
+	/**
+	 * Creates an interactive NuSMV2 model checker.
+	 *
+	 * @param checker file that contains the path to the NuSMV2 model checker's executable.
+	 */
 	public NuSMVInteractiveChecker(File checker) throws CheckerException {
 		super(checker);
 
 		try {
 			proc = Runtime.getRuntime().exec(executable.getAbsoluteFile() + " -int");
 			scanner = new NuSMVScanner(proc);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new CheckerException("Failed to call NuSMV2");
 		}
 	}
@@ -49,13 +50,6 @@ public class NuSMVInteractiveChecker extends Checker {
 		}
 		catch (Exception e) {}
 	}
-
-    @Override
-    public void addFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
-        NuSMVInteractiveFormula nuSMVFormula = new NuSMVInteractiveFormula(formula, specification, atomicPropositionMap);
-        formulas.add(nuSMVFormula);
-        Logger.log("Including specification formula " + nuSMVFormula.getOriginalFormula(), LogEvent.VERBOSE);
-    }
 
     @Override
     public void createModel(Structure<? extends State<?>> structure) throws CheckerException {
@@ -94,38 +88,26 @@ public class NuSMVInteractiveChecker extends Checker {
 				String line = "";
 				while (scanner.hasNext()) {
 					line = scanner.next();
+					Logger.log(line, LogEvent.DEBUG);
 
-					if (line.contains("-- specification ")) {
-						event = new VerificationEvent(formula, line.contains("is true"));
+					Matcher regexSpecificationResultLineMatcher = regexSpecificationResultLine.matcher(line);
+					Matcher regexSpecificationCounterExampleStateLineMatcher = regexSpecificationCounterExampleStateLine.matcher(line);
+					Matcher regexSpecificationCounterExampleAPLineMatcher = regexSpecificationCounterExampleAPLine.matcher(line);
+
+					if (regexSpecificationResultLineMatcher.matches()) {
+						event = createResult(regexSpecificationResultLineMatcher.group(1), regexSpecificationResultLineMatcher.group(2));
 						results.add(event);
-						formulas.remove(event.getFormula());
-					}
-					else if (line.contains("Trace Type: Counterexample")) {
-						event.setCounterExample(new ArrayList<List<String>>());
-					}
-					else if (line.contains("-> State:") && event.getCounterExample() != null) {
-						List<String> state = new ArrayList<>();
-						int previous = event.getCounterExample().size() - 1;
-						if(previous >= 0)
-							state.addAll(event.getCounterExample().get(previous));
-						event.getCounterExample().add(state);
-					}
-					else if (line.contains(" = TRUE") && event.getCounterExample() != null) {
-						String ap = line.substring(0, line.indexOf(" = TRUE")).trim();
-						String id = event.getFormula().getAtomicPropositionMap().getID(ap).getOriginalExpression();
-						event.getCounterExample().get(event.getCounterExample().size() - 1).add(id);
-					}
-					else if (line.contains(" = FALSE") && event.getCounterExample() != null) {
-						String ap = line.substring(0, line.indexOf(" = FALSE")).trim();
-						String id = event.getFormula().getAtomicPropositionMap().getID(ap).getOriginalExpression();
-						event.getCounterExample().get(event.getCounterExample().size() - 1).remove(id);
+					} else if (regexSpecificationCounterExampleStateLineMatcher.matches()) {
+						addCounterExampleState(event);
+					} else if (regexSpecificationCounterExampleAPLineMatcher.matches()) {
+						setCounterExampleStateAP(event, regexSpecificationCounterExampleAPLineMatcher.group(1), regexSpecificationCounterExampleAPLineMatcher.group(2));
 					}
 				}
 			}
 		}
 		catch (Exception e) {
 			while (scanner.hasNext())
-				outputChecker.append(scanner.next() + "\n");
+				outputChecker.append(scanner.next()).append("\n");
 			e.printStackTrace();
 			throw new CheckerException("Failed to call NuSMV2:\n" + outputChecker);
 		}
@@ -133,7 +115,7 @@ public class NuSMVInteractiveChecker extends Checker {
 		for (String line : scanner.getErrors()) {
 			String trimmed = line.trim().strip();
 			if (!trimmed.isEmpty())
-				outputChecker.append(line + "\n");
+				outputChecker.append(line).append("\n");
 		}
 
 		return results;

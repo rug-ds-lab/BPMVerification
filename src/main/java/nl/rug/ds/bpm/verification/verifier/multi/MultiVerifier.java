@@ -182,7 +182,7 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
                 Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
             else {
                 eventHandler.fireEvent(event);
-                Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getOriginalFormula(), LogEvent.INFO);
+                Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getInputFormula(), LogEvent.INFO);
             }
         }
 

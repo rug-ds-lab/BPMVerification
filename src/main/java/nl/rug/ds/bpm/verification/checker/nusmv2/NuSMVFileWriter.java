@@ -1,7 +1,6 @@
 package nl.rug.ds.bpm.verification.checker.nusmv2;
 
 import nl.rug.ds.bpm.util.exception.CheckerException;
-import nl.rug.ds.bpm.util.exception.FormulaException;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.Structure;
@@ -141,11 +140,7 @@ public class NuSMVFileWriter {
 	private String convertFORMULAS(List<CheckerFormula> formulas) {
 		StringBuilder f = new StringBuilder();
 		for (CheckerFormula formula : formulas) {
-			try {
-				f.append(formula.getCheckerFormula() + "\n");
-			} catch (FormulaException e) {
-				e.printStackTrace();
-			}
+			f.append(formula.getCheckerFormula() + "\n");
 		}
 		return f.toString();
 	}

@@ -6,7 +6,7 @@
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> AF q)</formula>
+				<formula language="CTLSPEC">AG (p -> AF q)</formula>
 			</formulas>
 			<message
 					hold = "p is always eventually followed by q"
@@ -20,7 +20,7 @@
 				<input type="or">s</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> A[(p | s) U q])</formula>
+                <formula language="CTLSPEC">AG( p -> A [(p | s) U q])</formula>
 			</formulas>
 			<message
 					hold = "p is always immediately followed by q"
@@ -33,7 +33,7 @@
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">!E[!p U q]</formula>
+                <formula language="CTLSPEC">!E [!p U q]</formula>
 			</formulas>
 			<message
 					hold = "q is always preceded by p"
@@ -47,7 +47,7 @@
 				<input type="or">s</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> E[(p | s) U q])</formula>
+                <formula language="CTLSPEC">AG (p -> E [(p | s) U q])</formula>
 			</formulas>
 			<message
 					hold = "p is immediately followed by q"
@@ -60,7 +60,7 @@
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> EF q)</formula>
+                <formula language="CTLSPEC">AG (p -> EF q)</formula>
 			</formulas>
 			<message
 					hold = "p is eventually followed by q"
@@ -73,7 +73,7 @@
 				<input type="or">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> AG !q)</formula>
+                <formula language="CTLSPEC">AG (p -> AG !q)</formula>
 			</formulas>
 			<message
 					hold = "p is never followed by q"
@@ -85,7 +85,7 @@
 				<input type="and">p</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p)</formula>
+                <formula language="CTLSPEC">AG p</formula>
 			</formulas>
 			<message
 					hold = "p are parallel"
@@ -97,7 +97,7 @@
 				<input type="and">p</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">EF(p)</formula>
+                <formula language="CTLSPEC">EF p</formula>
 			</formulas>
 			<message
 					hold = "p are sometimes parallel"
@@ -110,7 +110,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> AG(!q)) </formula>
+                <formula language="CTLSPEC">AG (p -> AG (!q))</formula>
 			</formulas>
 			<message
 					hold = "q are never parallel when p holds"
@@ -123,7 +123,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="CTLSPEC">AG(p -> AG(!q)) </formula>
+                <formula language="CTLSPEC">AG (p -> AG (!q))</formula>
 			</formulas>
 			<message
 					hold = "q are never parallel when p holds"
@@ -148,7 +148,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G(p -> F(q)) </formula>
+                <formula language="LTLSPEC">G (p -> F (q))</formula>
 			</formulas>
 			<message
 					hold = "p is eventually followed by q"
@@ -161,7 +161,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G(p -> X(G(!q)))</formula>
+                <formula language="LTLSPEC">G (p -> X (G (!q)))</formula>
 			</formulas>
 			<message
 					hold = "p is never eventually followed by q"
@@ -174,7 +174,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G(p -> F(q) | H(q))</formula>
+                <formula language="LTLSPEC">G (p -> F (q) | H (q))</formula>
 			</formulas>
 			<message
 					hold = "p implies q"
@@ -188,7 +188,7 @@
 				<input type="or">r</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">F(p) -> G(!q | F(r))</formula>
+                <formula language="LTLSPEC">F (p) -> G (!q | F (r))</formula>
 			</formulas>
 			<message
 					hold = "p does not imply q except when r"
@@ -202,7 +202,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G(p -> G(!q))</formula>
+                <formula language="LTLSPEC">G (p -> G (!q))</formula>
 			</formulas>
 			<message
 					hold = "p does not imply q except when r"
@@ -216,7 +216,7 @@
 				<input type="or">r</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">G(p -> (H(q) | F(r)))</formula>
+                <formula language="LTLSPEC">G (p -> (H (q) | F (r)))</formula>
 			</formulas>
 			<message
 					hold = "p is preceded by q or succeeded by r"
@@ -229,7 +229,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">F(p) -> F(q) </formula>
+                <formula language="LTLSPEC">F (p) -> F (q)</formula>
 			</formulas>
 			<message
 					hold = "p is at least once eventually followed by q"
@@ -243,7 +243,7 @@
 				<input type="and">q</input>
 			</inputs>
 			<formulas>
-				<formula language="LTLSPEC">F(p) -> G(!q) </formula>
+                <formula language="LTLSPEC">F (p) -> G (!q)</formula>
 			</formulas>
 			<message
 					hold = "p implies that q never occurs"

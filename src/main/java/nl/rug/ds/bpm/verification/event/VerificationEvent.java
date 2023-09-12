@@ -5,6 +5,7 @@ import nl.rug.ds.bpm.specification.jaxb.InputElement;
 import nl.rug.ds.bpm.specification.jaxb.Message;
 import nl.rug.ds.bpm.verification.checker.CheckerFormula;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,6 +23,7 @@ public class VerificationEvent {
 	public VerificationEvent(CheckerFormula formula, boolean eval) {
 		this.formula = formula;
 		this.eval = eval;
+		this.counterExample = new ArrayList<List<String>>();
 	}
 
 	public VerificationEvent(CheckerFormula formula, boolean eval, List<List<String>> counterExample) {
@@ -78,7 +80,7 @@ public class VerificationEvent {
 	}
 
 	public String toString() {
-		return (modelId.isEmpty() ? "Specification " : "For model " + modelId + " specification ") + formula.getOriginalFormula() + " with id " + formula.getSpecification().getId() + (eval ? " holds because " + getMessage() : " failed because " + getMessage() + " given the following counter example: " + getCounterString());
+		return (modelId.isEmpty() ? "Specification " : "For model " + modelId + " specification ") + formula.getInputFormula() + " with id " + formula.getSpecification().getId() + (eval ? " holds because " + getMessage() : " failed because " + getMessage() + " given the following counter example: " + getCounterString());
 	}
 
 	private String mapInputs(String s) {

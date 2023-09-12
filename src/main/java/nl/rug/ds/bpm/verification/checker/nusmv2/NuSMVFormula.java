@@ -12,25 +12,9 @@ import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
  */
 public class NuSMVFormula extends CheckerFormula {
 
-    public NuSMVFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) {
+    public NuSMVFormula(Formula formula, Specification specification, AtomicPropositionMap<CompositeExpression> atomicPropositionMap) throws FormulaException {
         super(formula, specification, atomicPropositionMap);
-    }
 
-    @Override
-    public String getCheckerFormula() throws FormulaException {
-        return formula.getLanguage() + " " + super.getCheckerFormula();
-    }
-
-    @Override
-    public boolean equals(String outputFormula) {
-        try {
-            return trimFormula(super.getCheckerFormula()).equals(trimFormula(outputFormula));
-        } catch (FormulaException e) {
-            return false;
-        }
-    }
-
-    private String trimFormula(String formula) {
-        return formula.replaceAll("\\s+", "").trim();
+        this.checkerFormula = formula.getLanguage() + " " + outputFormula;
     }
 }
