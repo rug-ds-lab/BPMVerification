@@ -1,4 +1,4 @@
-package nl.rug.ds.bpm.test;
+package nl.rug.ds.bpm;
 
 import nl.rug.ds.bpm.eventstructure.PESPrefixUnfolding;
 import nl.rug.ds.bpm.variability.SpecificationToXML;

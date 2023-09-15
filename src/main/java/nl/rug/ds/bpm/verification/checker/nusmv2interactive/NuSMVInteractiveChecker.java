@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
  */
 public class NuSMVInteractiveChecker extends NuSMVChecker {
 	private File file;
-	private Process proc;
-	private NuSMVScanner scanner;
+	private final Process proc;
+	private final NuSMVScanner scanner;
 
 	/**
 	 * Creates an interactive NuSMV2 model checker.
@@ -43,12 +43,14 @@ public class NuSMVInteractiveChecker extends NuSMVChecker {
 	@Override
 	public void destroy() {
 		try {
+			scanner.writeln("quit");
 			scanner.close();
 
 			proc.waitFor();
 			proc.destroy();
+		} catch (Exception e) {
+			Logger.log("Failed to stop checker process", LogEvent.ERROR);
 		}
-		catch (Exception e) {}
 	}
 
     @Override
@@ -72,8 +74,11 @@ public class NuSMVInteractiveChecker extends NuSMVChecker {
 	public List<VerificationEvent> checkModel() throws CheckerException {
 		List<VerificationEvent> results = new ArrayList<>();
 		try {
+			Logger.log("Writing reset", LogEvent.DEBUG);
 			scanner.writeln("reset");
+			Logger.log("Writing read_model -i " + file.getAbsolutePath(), LogEvent.DEBUG);
 			scanner.writeln("read_model -i " + file.getAbsolutePath());
+			Logger.log("Writing go", LogEvent.DEBUG);
 			scanner.writeln("go");
 
 			List<CheckerFormula> formulaList = new ArrayList<>();
@@ -82,10 +87,11 @@ public class NuSMVInteractiveChecker extends NuSMVChecker {
 					formulaList.add(f);
 
 			for (CheckerFormula formula: formulaList) {
-				scanner.writeln((formula.getFormula().getLanguage().equalsIgnoreCase("ctlspec") ? "check_ctlspec" : "check_ltlspec") + " -p " + formula.getCheckerFormula());
+				scanner.writeln((formula.getFormula().getLanguage().equalsIgnoreCase("ctlspec") ? "check_ctlspec" : "check_ltlspec") + " -p \"" + formula.getOutputFormula() + "\"");
+				Logger.log("Writing " + (formula.getFormula().getLanguage().equalsIgnoreCase("ctlspec") ? "check_ctlspec" : "check_ltlspec") + " -p \"" + formula.getOutputFormula() + "\"", LogEvent.DEBUG);
 
 				VerificationEvent event = null;
-				String line = "";
+				String line;
 				while (scanner.hasNext()) {
 					line = scanner.next();
 					Logger.log(line, LogEvent.DEBUG);
@@ -104,19 +110,21 @@ public class NuSMVInteractiveChecker extends NuSMVChecker {
 					}
 				}
 			}
-		}
-		catch (Exception e) {
+
+
+		} catch (Exception e) {
 			while (scanner.hasNext())
 				outputChecker.append(scanner.next()).append("\n");
 			e.printStackTrace();
 			throw new CheckerException("Failed to call NuSMV2:\n" + outputChecker);
+		} finally {
+			for (String line : scanner.getErrors()) {
+				String trimmed = line.trim().strip();
+				if (!trimmed.isEmpty())
+					outputChecker.append(line).append("\n");
+			}
 		}
 
-		for (String line : scanner.getErrors()) {
-			String trimmed = line.trim().strip();
-			if (!trimmed.isEmpty())
-				outputChecker.append(line).append("\n");
-		}
 
 		return results;
 	}

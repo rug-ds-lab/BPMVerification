@@ -37,7 +37,7 @@ The package provides two core functionalities contained within the following cla
 * nl.rug.ds.bpm.variability.VariabilitySpecification
 * nl.rug.ds.bpm.verification.verifier.kripke.KripkeVerifier
 
-Self explanatory examples using these classes can be found in nl.rug.ds.bpm.test in the src/test directory.
+Self-explanatory command line tools/examples that use these classes can be found in nl.rug.ds.bpm in the src directory.
 
 ### Custom specifications
 Specifications can be either generated automatically or defined manually.
