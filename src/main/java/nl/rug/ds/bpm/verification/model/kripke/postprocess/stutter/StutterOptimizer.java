@@ -149,7 +149,8 @@ public class StutterOptimizer {
 			}
 		}
 
-		kripke.getStates().retainAll(stateMap.values());
+		kripke.getStates().clear();
+		kripke.getStates().addAll(stateMap.values());
 
 		for (KripkeState state : kripke.getStates())
 			state.resetBlock();
