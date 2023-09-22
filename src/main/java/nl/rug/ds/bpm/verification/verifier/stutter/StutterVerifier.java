@@ -141,10 +141,10 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      */
     protected double stutterOptimize(KripkeStructure structure) {
         long t0 = System.nanoTime();
-        StutterOptimizer stutterOptimizer = new StutterOptimizer((KripkeStructure) structure);
-        stutterOptimizer.linearPreProcess();
-        ///stutterOptimizer.treeSearchPreProcess();
-        stutterOptimizer.optimize();
+        StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
+        stutterOptimizer.preprocess();
+        stutterOptimizer.partition();
+        stutterOptimizer.reduce();
         long t1 = System.nanoTime();
 
         if (Logger.getLogLevel() <= LogEvent.DEBUG) {

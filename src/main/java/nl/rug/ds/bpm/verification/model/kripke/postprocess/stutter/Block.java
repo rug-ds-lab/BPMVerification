@@ -5,12 +5,17 @@ import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
 import java.util.*;
 
 /**
- * Created by Heerko Groefsema on 09-Mar-17.
+ * Class that represents a partition.
  */
 public class Block {
     private boolean flag;
-    private List<KripkeState> bottom, nonbottom, entry;
+    private final List<KripkeState> entry;
+    private List<KripkeState> bottom;
+    private List<KripkeState> nonbottom;
 
+    /**
+     * Creates an empty Block partition.
+     */
     public Block() {
         flag = false;
         bottom = new ArrayList<>();
@@ -18,6 +23,12 @@ public class Block {
         entry = new ArrayList<>();
     }
 
+    /**
+     * Creates a Block partition with the given bottom and nonbottom states.
+     *
+     * @param bottom    the bottom states assigned to the block.
+     * @param nonbottom the nonbottom states assigned to the block.
+     */
     public Block(List<KripkeState> bottom, List<KripkeState> nonbottom) {
         flag = false;
         this.bottom = bottom;
@@ -25,6 +36,11 @@ public class Block {
         entry = new ArrayList<>();
     }
 
+    /**
+     * Splits the partition into two partitions according to the flags raised on states, and returns the newly created partition.
+     *
+     * @return the newly created partition.
+     */
     public Block split() {
         List<KripkeState> thisBottom = new ArrayList<>();
         List<KripkeState> thisNonBottom = new ArrayList<>();
@@ -90,6 +106,11 @@ public class Block {
         return block;
     }
 
+    /**
+     * Merges the given partition into this partition.
+     *
+     * @param b the partition to be merged into this one.
+     */
     public void merge(Block b) {
         for (KripkeState s : b.getNonbottom())
             s.setBlock(this);
@@ -105,6 +126,9 @@ public class Block {
         b = null;
     }
 
+    /**
+     * Initializes this partition by dividing its states into entry, bottom, and non-bottom states.
+     */
     public void init() {
         Iterator<KripkeState> iterator = nonbottom.iterator();
         while (iterator.hasNext()) {
@@ -130,6 +154,11 @@ public class Block {
         }
     }
 
+    /**
+     * Re-initializes this partition by dividing its states into entry, bottom, and non-bottom states.
+     *
+     * @return true iff additional bottom states were discovered.
+     */
     public boolean reinit() {
         List<KripkeState> newBottom = new ArrayList<>();
         entry.clear();
@@ -164,34 +193,74 @@ public class Block {
         return !newBottom.isEmpty();
     }
 
+    /**
+     * Returns the list of bottom states of this partition.
+     *
+     * @return the list of bottom states of this partition.
+     */
     public List<KripkeState> getBottom() {
         return bottom;
     }
 
+    /**
+     * Returns the list of non-bottom states of this partition.
+     *
+     * @return the list of non-bottom states of this partition.
+     */
     public List<KripkeState> getNonbottom() {
         return nonbottom;
     }
 
+    /**
+     * Returns the list of entry states of this partition.
+     *
+     * @return the list of entry states of this partition.
+     */
     public List<KripkeState> getEntry() {
         return entry;
     }
 
+    /**
+     * Adds a state to the partition.
+     *
+     * @param state the state to add.
+     */
     public void addState(KripkeState state) {
         nonbottom.add(state);
     }
 
+    /**
+     * Returns the status of this partition's flag.
+     *
+     * @return true iff the flag is raised.
+     */
     public boolean getFlag() {
         return flag;
     }
 
+    /**
+     * Sets the status of the flag of this partition.
+     *
+     * @param flag the status that flag is to be given.
+     */
     public void setFlag(boolean flag) {
         this.flag = flag;
     }
 
+    /**
+     * Returns the number of states within th partition.
+     *
+     * @return the number of states within th partition.
+     */
     public int size() {
         return nonbottom.size() + bottom.size();
     }
 
+    /**
+     * Returns a String representation of the partition.
+     *
+     * @return a String representation of the partition.
+     */
     public String toString() {
         StringBuilder sb = new StringBuilder("{b: ");
 

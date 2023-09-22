@@ -34,7 +34,7 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
         this.net = net;
         this.marking = marking;
 
-        forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 4, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
+        forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2, ForkJoinPool.defaultForkJoinWorkerThreadFactory, Thread.getDefaultUncaughtExceptionHandler(), true);
     }
 
     /**
@@ -96,7 +96,7 @@ public abstract class AbstractConverterAction<S extends AbstractState<S>> extend
     public synchronized boolean report() {
         report++;
 
-        if (report >= 100000)
+        if (report >= 10000)
             report = 0;
 
         return (report == 0);

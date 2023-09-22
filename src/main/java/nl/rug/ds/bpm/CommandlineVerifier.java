@@ -14,7 +14,7 @@ import nl.rug.ds.bpm.util.log.listener.VerificationLogListener;
 import nl.rug.ds.bpm.verification.VerificationFactory;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.checker.nusmv2interactive.NuSMVInteractiveFactory;
+import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
@@ -191,7 +191,7 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 			Logger.log("No such model checker binary", LogEvent.CRITICAL);
 
 		//Create the wanted model modelcheck factory
-		return new NuSMVInteractiveFactory(nusmv2);
+		return new NuSMVFactory(nusmv2);
 	}
 
 	/**

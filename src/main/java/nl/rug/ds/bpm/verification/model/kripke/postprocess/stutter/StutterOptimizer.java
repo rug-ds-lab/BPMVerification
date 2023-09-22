@@ -1,23 +1,29 @@
 package nl.rug.ds.bpm.verification.model.kripke.postprocess.stutter;
 
-import nl.rug.ds.bpm.util.comparator.StringComparator;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
-import nl.rug.ds.bpm.verification.model.State;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeState;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Created by Heerko Groefsema on 06-Mar-17.
+ * Class that calculates stutter equivalent partitions of Kripke structures and reduces the state space accordingly.
  */
 public class StutterOptimizer {
 	private int count, eventCount;
-	private KripkeStructure kripke;
-	private Set<KripkeState> stutterStates;
-	private List<Block> toBeProcessed, stable, BL;
+	private final KripkeStructure kripke;
+	private final Set<KripkeState> stutterStates;
+	private final List<Block> toBeProcessed;
+	private final List<Block> stable;
+	private final List<Block> BL;
 
+	/**
+	 * Creates a StutterOptimizer for the given Kripke structure.
+	 *
+	 * @param kripke The Kripke structure to partition and reduce.
+	 */
 	public StutterOptimizer(KripkeStructure kripke) {
 		this.kripke = kripke;
 
@@ -27,11 +33,14 @@ public class StutterOptimizer {
 
 		count = 0;
 		eventCount = 160000;
-		stutterStates = new HashSet<KripkeState>();
+		stutterStates = new HashSet<>();
 	}
-	
-	public int optimize() {
-		while(!toBeProcessed.isEmpty()) {
+
+	/**
+	 * Partitions the Kripke structure into stutter equivalent blocks. The Kripke structure must be preprocessed first.
+	 */
+	public void partition() {
+		while (!toBeProcessed.isEmpty()) {
 			Logger.log("Checking stutter block (" + (1 + BL.size() + stable.size()) + "/" + (toBeProcessed.size() + BL.size() + stable.size()) + ") for any required splits", LogEvent.VERBOSE);
 			Block bAccent = toBeProcessed.get(0);
 			// Scan incoming relations
@@ -44,20 +53,20 @@ public class StutterOptimizer {
 					entryState.getBlock().setFlag(true);
 				}
 			}
-			
+
 			// Scan BL
-			for(Block b: BL) {
+			for (Block b : BL) {
 				boolean isSplitter = false;
 				Iterator<KripkeState> i = b.getBottom().iterator();
 				while (i.hasNext() && !isSplitter)
 					isSplitter = !i.next().getFlag();
-				
-				if(isSplitter) {
+
+				if (isSplitter) {
 					Logger.log("Splitting stutter block " + b + " with " + b.size() + " state(s))", LogEvent.DEBUG);
 
 					toBeProcessed.remove(b);
 					stable.remove(b);
-					
+
 					Block b2 = b.split();
 					toBeProcessed.add(b);
 					toBeProcessed.add(b2);
@@ -66,169 +75,101 @@ public class StutterOptimizer {
 
 
 					//if additional bottom states are created, clear stable
-					if(b2.reinit()) {
+					if (b2.reinit()) {
 						toBeProcessed.addAll(stable);
 						stable.clear();
 					}
 
-					Logger.log("Split stutter block into block " + b + " and block " + b2 + " state(s))", LogEvent.DEBUG);
+					Logger.log("Split stutter block into block " + b + " and block " + b2 + " with " + b.size() + " and " + b2.size() + " state(s))", LogEvent.DEBUG);
 				}
 			}
 			BL.clear();
-			
+
 			//reset flags
 			for (KripkeState entryState : bAccent.getEntry()) {
 				entryState.setFlag(false);
 				entryState.getBlock().setFlag(false);
 			}
-			
+
 			//move to stable
 			stable.add(bAccent);
 			toBeProcessed.remove(bAccent);
 		}
-
-		//merge blocks with size > 1
-		for(Block b: stable) {
-			if(b.size() > 1) {
-				Logger.log("Merging states in stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()), LogEvent.VERBOSE);
-
-				Set<KripkeState> previous = new HashSet<KripkeState>();
-				Set<KripkeState> next = new HashSet<KripkeState>();
-				KripkeState s = null;
-
-				for (KripkeState n : b.getBottom()) {
-					for (State state : n.getPreviousStates()) {
-						KripkeState prev = (KripkeState) state;
-						if (prev.getBlock() != b) {
-							previous.add(prev);
-							prev.getNextStates().remove(n);
-						}
-					}
-
-					for (State state : n.getNextStates()) {
-						KripkeState ne = (KripkeState) state;
-						if (ne.getBlock() != b) {
-							next.add(ne);
-							ne.getPreviousStates().remove(n);
-						}
-					}
-
-					if (s == null)
-						s = n;
-					else
-						stutterStates.add(n);
-				}
-
-				for (KripkeState n : b.getNonbottom()) {
-					for (State state : n.getPreviousStates()) {
-						KripkeState prev = (KripkeState) state;
-						if (prev.getBlock() != b) {
-							previous.add(prev);
-							prev.getNextStates().remove(n);
-						}
-					}
-
-					for (State state : n.getNextStates()) {
-						KripkeState ne = (KripkeState) state;
-						if (ne.getBlock() != b) {
-							next.add(ne);
-							ne.getPreviousStates().remove(n);
-						}
-					}
-
-					if (s == null)
-						s = n;
-					else
-						stutterStates.add(n);
-				}
-
-				if(s != null) {
-					for (KripkeState p : previous)
-						p.addNext(s);
-
-					for (KripkeState n : next)
-						n.addPrevious(s);
-
-					s.getNextStates().clear();
-					s.getNextStates().addAll(next);
-
-					s.getPreviousStates().clear();
-					s.getPreviousStates().addAll(previous);
-
-					//if block contains initial states, remove them and add the stutter state
-					Set<KripkeState> initRem = new HashSet<>();
-					for (State state : kripke.getInitial()) {
-						KripkeState initial = (KripkeState) state;
-						if (initial.getBlock() == b)
-							initRem.add(initial);
-					}
-
-					if (!initRem.isEmpty()) {
-						kripke.getInitial().removeAll(initRem);
-						kripke.getInitial().add(s);
-					}
-				}
-			}
-		}
-
-		kripke.getStates().removeAll(stutterStates);
-
-		for (State z: kripke.getStates())
-			((KripkeState) z).resetBlock();
-
-		return stutterStates.size();
 	}
 
+	/**
+	 * Reduces the Kripke structure into the calculated partitions. The Kripke structure must be partitioned first.
+	 */
+	public void reduce() {
+		Map<Block, KripkeState> stateMap = new HashMap<>();
 
-
-	public void linearPreProcess() {
-		SortedMap<String, Block> blocks = new TreeMap<>(new StringComparator());
-
-		for (State state : kripke.getStates()) {
-			KripkeState s = (KripkeState) state;
-
-			Block b = blocks.get(s.APHash());
-			if (b == null) {
-				b = new Block();
-				blocks.put(s.APHash(), b);
-				toBeProcessed.add(b);
-			}
-			b.addState(s);
-			s.setBlock(b);
-		}
-
-		for (State state : kripke.getSinkStates()) {
-			KripkeState sink = (KripkeState) state;
-			Block b = new Block();
-			sink.getBlock().getNonbottom().remove(sink);
-			sink.setBlock(b);
-			b.addState(sink);
-
-			toBeProcessed.add(b);
-		}
-
-		for (Block b : toBeProcessed) {
-			if (!b.getNonbottom().isEmpty()) {
-				b.init();
-				Logger.log("Created stutter block with " + b.size() + " state(s))", LogEvent.VERBOSE);
+		// Assign state to each block
+		for (Block b : stable) {
+			if (b.size() > 0) {
+				KripkeState s = b.getBottom().get(0);
+				stateMap.put(b, s);
+				stutterStates.addAll(b.getBottom().stream().filter(state -> state != s).collect(Collectors.toSet()));
+				stutterStates.addAll(b.getNonbottom());
 			}
 		}
+
+		// Remove empty blocks
+		// If they're not assigned a state, they're empty.
+		stable.retainAll(stateMap.keySet());
+
+		// Remap relations to assigned states
+		for (Block b : stable) {
+			Logger.log("Merging states in stutter block with size " + (b.getBottom().size() + b.getNonbottom().size()), LogEvent.VERBOSE);
+
+			KripkeState s = stateMap.get(b);
+
+			Set<KripkeState> previous = new HashSet<>(b.getBottom().stream().flatMap(prev -> prev.getPreviousStates().stream()).filter(state -> state.getBlock() != b).map(state -> stateMap.get(state.getBlock())).toList());
+			Set<KripkeState> next = new HashSet<>(b.getBottom().stream().flatMap(prev -> prev.getNextStates().stream()).filter(state -> state.getBlock() != b).map(state -> stateMap.get(state.getBlock())).toList());
+
+			previous.addAll(b.getNonbottom().stream().flatMap(prev -> prev.getPreviousStates().stream()).filter(state -> state.getBlock() != b).map(state -> stateMap.get(state.getBlock())).toList());
+			next.addAll(b.getNonbottom().stream().flatMap(prev -> prev.getNextStates().stream()).filter(state -> state.getBlock() != b).map(state -> stateMap.get(state.getBlock())).toList());
+
+			if (next.isEmpty()) {
+				next.add(s);
+				previous.add(s);
+			}
+
+			s.getNextStates().clear();
+			s.getNextStates().addAll(next);
+
+			s.getPreviousStates().clear();
+			s.getPreviousStates().addAll(previous);
+
+			// If block contains initial states, remove them and add the assigned state
+			Set<KripkeState> initRem = kripke.getInitial().stream().filter(state -> state.getBlock() == b).collect(Collectors.toSet());
+
+			if (!initRem.isEmpty()) {
+				kripke.getInitial().removeAll(initRem);
+				kripke.getInitial().add(s);
+			}
+		}
+
+		kripke.getStates().retainAll(stateMap.values());
+
+		for (KripkeState state : kripke.getStates())
+			state.resetBlock();
 	}
-	
-	public void treeSearchPreProcess() {
-		for (State state : kripke.getInitial()) {
-			KripkeState s = (KripkeState) state;
+
+	/**
+	 * Assigns states in the Kripke structure to initial, non-stutter equivalent, partitions.
+	 */
+	public void preprocess() {
+		for (KripkeState s : kripke.getInitial()) {
 			Block b = new Block();
 			b.addState(s);
 			s.setBlock(b);
 			toBeProcessed.add(b);
 
 			count++;
-			treeSearchPreProcess(s);
+			treeSearchPreprocess(s);
 		}
 
-		for (State state : kripke.getSinkStates()) {
-			KripkeState sink = (KripkeState) state;
+		for (KripkeState sink : kripke.getSinkStates().stream().filter(state -> state.getBlock().size() > 1).collect(Collectors.toSet())) {
 			Block b = new Block();
 			sink.getBlock().getNonbottom().remove(sink);
 			sink.setBlock(b);
@@ -242,11 +183,8 @@ public class StutterOptimizer {
 		}
 	}
 
-	private void treeSearchPreProcess(KripkeState s) {
-		//Set<State> toPartion = new HashSet<>();
-
-		for (State state : s.getNextStates()) {
-			KripkeState next = (KripkeState) state;
+	private void treeSearchPreprocess(KripkeState s) {
+		for (KripkeState next : s.getNextStates()) {
 			if (next.getBlock() == null) {
 				if (s.atomicPropositionsEquals(next)) {
 					s.getBlock().addState(next);
@@ -257,16 +195,15 @@ public class StutterOptimizer {
 					next.setBlock(b);
 					toBeProcessed.add(b);
 				}
-				//toPartion.add(next);
+
 				count++;
 				if (count >= eventCount) {
 					Logger.log("Partitioning states into stutter blocks (at " + count + " states)", LogEvent.VERBOSE);
 					eventCount += 160000;
 				}
-				
-				treeSearchPreProcess(next);
-			}
-			else {
+
+				treeSearchPreprocess(next);
+			} else {
 				if (s.atomicPropositionsEquals(next) && s.getBlock() != next.getBlock()) {
 					Block merge = next.getBlock();
 					toBeProcessed.remove(merge);
@@ -275,29 +212,43 @@ public class StutterOptimizer {
 				//else already preprocessed correctly
 			}
 		}
-		//for (State next: toPartion)
-			//treeSearchPreProcess(next);
 	}
-	
+
+	/**
+	 * Returns a String representation of the state of the optimization.
+	 *
+	 * @param fullOutput Iff true, includes the status of the partitions.
+	 * @return a String representation of the state of the optimization.
+	 */
 	public String toString(boolean fullOutput) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Reduction of " + stutterStates.size() + " states");
+		sb.append("Reduction of ").append(stutterStates.size()).append(" states");
 		if (fullOutput) {
 			sb.append("\nUnstable Block Partitions:\n");
-			for (Block b: toBeProcessed)
-				sb.append(b.toString() + "\n");
+			for (Block b : toBeProcessed)
+				sb.append(b.toString()).append("\n");
 			sb.append("Stable Block Partitions:\n");
-			for (Block b: stable)
-				sb.append(b.toString() + "\n");
+			for (Block b : stable)
+				sb.append(b.toString()).append("\n");
 		}
-		
+
 		return sb.toString();
 	}
 
+	/**
+	 * Returns the removed states.
+	 *
+	 * @return a set containing the removed states.
+	 */
 	public Set<KripkeState> getStutterStates() {
 		return stutterStates;
 	}
-	
+
+	/**
+	 * Returns a String representation of the state of the optimization.
+	 *
+	 * @return a String representation of the state of the optimization.
+	 */
 	public String toString() {
 		return toString(true);
 	}

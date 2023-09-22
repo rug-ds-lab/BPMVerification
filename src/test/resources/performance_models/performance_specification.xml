@@ -10,13 +10,13 @@
                 </specification>
                 <specification id="s2" type="AlwaysResponse">
                     <inputElements>
-                        <inputElement target="p">node_1</inputElement>
+                        <inputElement target="p">node7</inputElement>
                         <inputElement target="q">node_end</inputElement>
                     </inputElements>
                 </specification>
                 <specification id="s2" type="AlwaysResponse">
                     <inputElements>
-                        <inputElement target="p">node_17</inputElement>
+                        <inputElement target="p">node3</inputElement>
                         <inputElement target="q">node_end</inputElement>
                     </inputElements>
                 </specification>

@@ -23,8 +23,8 @@ import java.util.TreeSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StutterStructureTest {
-    private static PlaceTransitionNet net = new PlaceTransitionNet();
-    private static KripkeFactory factory = new KripkeFactory();
+    private static final PlaceTransitionNet net = new PlaceTransitionNet();
+    private static final KripkeFactory factory = new KripkeFactory();
 
     @BeforeAll
     public static void createNet() throws MalformedNetException {
@@ -106,8 +106,9 @@ public class StutterStructureTest {
         assertEquals(2, structure.getAtomicPropositionCount());
 
         StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
-        stutterOptimizer.linearPreProcess();
-        stutterOptimizer.optimize();
+        stutterOptimizer.preprocess();
+        stutterOptimizer.partition();
+        stutterOptimizer.reduce();
 
         assertEquals(1, structure.getInitial().size());
         assertEquals(4, structure.getStateCount());
@@ -142,8 +143,9 @@ public class StutterStructureTest {
         assertEquals(2, structure.getAtomicPropositionCount());
 
         StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
-        stutterOptimizer.linearPreProcess();
-        stutterOptimizer.optimize();
+        stutterOptimizer.preprocess();
+        stutterOptimizer.partition();
+        stutterOptimizer.reduce();
 
         assertEquals(1, structure.getInitial().size());
         assertEquals(5, structure.getStateCount());
@@ -178,8 +180,9 @@ public class StutterStructureTest {
         assertEquals(3, structure.getAtomicPropositionCount());
 
         StutterOptimizer stutterOptimizer = new StutterOptimizer(structure);
-        stutterOptimizer.linearPreProcess();
-        stutterOptimizer.optimize();
+        stutterOptimizer.preprocess();
+        stutterOptimizer.partition();
+        stutterOptimizer.reduce();
 
         assertEquals(1, structure.getInitial().size());
         assertEquals(3, structure.getAtomicPropositionCount());
