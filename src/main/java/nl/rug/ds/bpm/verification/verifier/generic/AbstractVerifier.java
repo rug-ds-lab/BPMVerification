@@ -12,7 +12,9 @@ import nl.rug.ds.bpm.util.exception.VerifierException;
 import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
-import nl.rug.ds.bpm.verification.event.EventHandler;
+import nl.rug.ds.bpm.verification.event.handler.PerformanceEventHandler;
+import nl.rug.ds.bpm.verification.event.handler.VerificationEventHandler;
+import nl.rug.ds.bpm.verification.event.listener.PerformanceEventListener;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.State;
@@ -31,17 +33,18 @@ import java.util.TreeSet;
  * Abstract class representing a verifier.
  */
 public abstract class AbstractVerifier<F extends StructureFactory<? extends State<?>, ? extends Structure<?>>> implements Verifier {
-    protected F structureFactory;
-    protected EventHandler eventHandler;
+	protected F structureFactory;
+	protected VerificationEventHandler verificationEventHandler;
+	protected PerformanceEventHandler performanceEventHandler;
 
-    protected VerifiableNet net;
-    protected BPMSpecification specification;
-    protected CheckerFactory checkerFactory;
+	protected VerifiableNet net;
+	protected BPMSpecification specification;
+	protected CheckerFactory checkerFactory;
 
-    protected HashMap<String, SpecificationType> specificationTypes;
+	protected HashMap<String, SpecificationType> specificationTypes;
 
-    /**
-     * Creates the abstract verifier.
+	/**
+	 * Creates the abstract verifier.
 	 *
 	 * @param net            The VerifiableNet that represents the model on which the given specification must be verified.
 	 * @param specification  The specification must be verified on the given model (i.e., net).
@@ -49,7 +52,8 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 	 * @throws ConfigurationException when the configuration fails to load.
 	 */
 	public AbstractVerifier(VerifiableNet net, BPMSpecification specification, CheckerFactory checkerFactory) throws ConfigurationException {
-		eventHandler = new EventHandler();
+		verificationEventHandler = new VerificationEventHandler();
+		performanceEventHandler = new PerformanceEventHandler();
 		specificationTypes = new HashMap<>();
 
 		this.net = net;
@@ -75,8 +79,17 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 	 *
 	 * @param verificationEventListener the listener to add.
 	 */
-	public void addEventListener(VerificationEventListener verificationEventListener) {
-		eventHandler.addEventListener(verificationEventListener);
+	public void addVerificationEventListener(VerificationEventListener verificationEventListener) {
+		verificationEventHandler.addEventListener(verificationEventListener);
+	}
+
+	/**
+	 * Adds a listener that is notified of performance results.
+	 *
+	 * @param performanceEventListener the listener to add.
+	 */
+	public void addPerformanceEventListener(PerformanceEventListener performanceEventListener) {
+		performanceEventHandler.addEventListener(performanceEventListener);
 	}
 
 	/**
@@ -85,7 +98,16 @@ public abstract class AbstractVerifier<F extends StructureFactory<? extends Stat
 	 * @param verificationEventListener the listener to remove.
 	 */
 	public void removeEventListener(VerificationEventListener verificationEventListener) {
-		eventHandler.removeEventListener(verificationEventListener);
+		verificationEventHandler.removeEventListener(verificationEventListener);
+	}
+
+	/**
+	 * Removes the listener, preventing further notifications.
+	 *
+	 * @param performanceEventListener the listener to remove.
+	 */
+	public void removeEventListener(PerformanceEventListener performanceEventListener) {
+		performanceEventHandler.removeEventListener(performanceEventListener);
 	}
 
 	/**

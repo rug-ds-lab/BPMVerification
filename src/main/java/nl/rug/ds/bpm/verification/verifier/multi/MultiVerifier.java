@@ -14,6 +14,7 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.converter.multi.MultiStructureConverterAction;
+import nl.rug.ds.bpm.verification.event.PerformanceEvent;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.multi.MultiStructure;
@@ -49,6 +50,8 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
     public void verify() throws VerifierException {
         Logger.log("Verifying specification", LogEvent.INFO);
 
+        PerformanceEvent performanceEvent = new PerformanceEvent(this.net);
+
         MultiStructure structure = structureFactory.createStructure();
         AtomicPropositionMap<CompositeExpression> specificationSetPropositionMap = new AtomicPropositionMap<>("p");
         getGroupPropositions(specificationSetPropositionMap);
@@ -63,8 +66,25 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
         structureFactory.getAtomicPropositionMap().merge(specificationSetPropositionMap);
 
         try {
-            compute(structure);
-            optimize(structure);
+            double computationTime = compute(structure);
+
+            performanceEvent.addMetric("StructureComputationMs", computationTime / 1000000);
+            performanceEvent.addMetric("StructureStateCount", structure.getStateCount());
+            performanceEvent.addMetric("StructureRelationCount", structure.getRelationCount());
+            performanceEvent.addMetric("StructureAtomicPropositionCount", structure.getAtomicPropositionCount());
+
+            double optimizationTime = optimize(structure);
+
+            performanceEvent.addMetric("ReductionComputationMs", optimizationTime / 1000000);
+
+            int p = 0;
+            for (Partition partition : structure.getPartitions()) {
+                p++;
+                performanceEvent.addMetric("ReducedStructure" + p + "StateCount", partition.getStateCount());
+                performanceEvent.addMetric("ReducedStructure" + p + "RelationCount", partition.getRelationCount());
+                performanceEvent.addMetric("ReducedStructure" + p + "AtomicPropositionCount", partition.getAtomicPropositionCount());
+            }
+
             clear(structure);
         } catch (Exception e) {
             Logger.log("Failed to compute multi structure.", LogEvent.CRITICAL);
@@ -80,12 +100,13 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
                 check(checker);
             } catch (Exception e) {
                 Logger.log("Failed to verify set.", LogEvent.ERROR);
-                e.printStackTrace();
                 throw new VerifierException("Failed to verify set.");
             } finally {
                 checkerFactory.release(checker);
             }
         }
+
+        performanceEventHandler.fireEvent(performanceEvent);
     }
 
     private void clear(MultiStructure structure) {
@@ -98,11 +119,14 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
      * Computes the Structure of the Net and logs results.
      *
      * @param structure the Structure to populate.
+     * @return the time it took to compute the Structure in nanoseconds.
      */
-    protected void compute(MultiStructure structure) {
+    protected double compute(MultiStructure structure) {
         Logger.log("Calculating multi structure", LogEvent.INFO);
         double delta = compute(structureFactory.createConverter(net, net.getInitialMarking(), structure));
         Logger.log("Calculated multi structure with " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
+
+        return delta;
     }
 
     /**
@@ -123,11 +147,14 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
      * Calculates mergers and splits to obtain stutter equivalent partitions of the given Structure.
      *
      * @param structure the given Structure.
+     * @return the time it took to calculate in nanoseconds.
      */
-    protected void optimize(MultiStructure structure) {
+    protected double optimize(MultiStructure structure) {
         Logger.log("Calculating stutter equivalent partition(s)", LogEvent.INFO);
         double delta = stutterCalculate(structure);
         Logger.log("Calculated stutter equivalent partition(s) in " + formatComputationTime(delta), LogEvent.INFO);
+
+        return delta;
     }
 
     /**
@@ -181,7 +208,7 @@ public class MultiVerifier extends AbstractVerifier<MultiFactory> implements Ver
             if (event.getFormula() == null)
                 Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
             else {
-                eventHandler.fireEvent(event);
+                verificationEventHandler.fireEvent(event);
                 Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getInputFormula(), LogEvent.INFO);
             }
         }

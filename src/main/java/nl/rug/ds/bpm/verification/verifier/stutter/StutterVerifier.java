@@ -11,6 +11,7 @@ import nl.rug.ds.bpm.util.log.LogEvent;
 import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
+import nl.rug.ds.bpm.verification.event.PerformanceEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.generic.optimizer.proposition.PropositionOptimizer;
 import nl.rug.ds.bpm.verification.model.kripke.KripkeStructure;
@@ -48,6 +49,8 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
     protected void verifySet(SpecificationSet specificationSet) throws VerifierException {
         Logger.log("Verifying set.", LogEvent.INFO);
 
+        PerformanceEvent performanceEvent = new PerformanceEvent(this.net, specificationSet);
+
         AtomicPropositionMap<CompositeExpression> specificationPropositions = new AtomicPropositionMap<>("p");
         getGroupPropositions(specificationPropositions);
         getSpecificationSetPropositions(specificationPropositions, specificationSet);
@@ -58,18 +61,31 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
         addConditions(structure, specificationSet.getConditions());
 
         try {
-            compute(structure);
-            optimize(structure, specificationPropositions);
+            double computationTime = compute(structure);
+
+            performanceEvent.addMetric("StructureComputationMs", computationTime / 1000000);
+            performanceEvent.addMetric("StructureStateCount", structure.getStateCount());
+            performanceEvent.addMetric("StructureRelationCount", structure.getRelationCount());
+            performanceEvent.addMetric("StructureAtomicPropositionCount", structure.getAtomicPropositionCount());
+
+            double optimizationTime = optimize(structure, specificationPropositions);
+
+            performanceEvent.addMetric("ReductionComputationMs", optimizationTime / 1000000);
+            performanceEvent.addMetric("ReducedStructureStateCount", structure.getStateCount());
+            performanceEvent.addMetric("ReducedStructureRelationCount", structure.getRelationCount());
+            performanceEvent.addMetric("ReducedStructureAtomicPropositionCount", structure.getAtomicPropositionCount());
+
             finalize(structure, specificationPropositions);
             convert(checker, structure, specificationSet);
             check(checker);
         } catch (Exception e) {
             Logger.log("Failed to verify set.", LogEvent.ERROR);
-            e.printStackTrace();
             throw new VerifierException("Failed to verify set.");
         } finally {
             checkerFactory.release(checker);
         }
+
+        performanceEventHandler.fireEvent(performanceEvent);
     }
 
     /**
@@ -78,12 +94,15 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      *
      * @param structure the Structure to optimize.
      * @param ap        the AtomicPropositionMap that contains the relevant atomic propositions.
+     * @return the time it took to optimize in nanoseconds.
      */
-    protected void optimize(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
+    protected double optimize(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
         Logger.log("Reducing Kripke structure", LogEvent.INFO);
 
-        optimizeAtomicPropositions(structure, ap);
-        optimizeStutterStates(structure);
+        double optimizationTime = optimizeAtomicPropositions(structure, ap);
+        optimizationTime += optimizeStutterStates(structure);
+
+        return optimizationTime;
     }
 
     /**
@@ -91,8 +110,10 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      *
      * @param structure the Structure to optimize.
      * @param ap        the AtomicPropositionMap that contains the relevant atomic propositions.
+     *
+     * @return the time it took to optimize in nanoseconds.
      */
-    protected void optimizeAtomicPropositions(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
+    protected double optimizeAtomicPropositions(KripkeStructure structure, AtomicPropositionMap<CompositeExpression> ap) {
         Logger.log("Removing unused atomic propositions", LogEvent.VERBOSE);
 
         TreeSet<String> unusedAP = new TreeSet<>(new ComparableComparator<String>());
@@ -102,6 +123,8 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
         double delta = optimizeAtomicPropositions(structure, unusedAP);
 
         Logger.log("Removed unused atomic propositions in " + formatComputationTime(delta) + ".", LogEvent.VERBOSE);
+
+        return delta;
     }
 
     /**
@@ -109,6 +132,7 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      *
      * @param structure the Structure to optimize.
      * @param ap        the AtomicPropositionMap that contains the unused atomic propositions.
+     *
      * @return the time it took to optimize in nanoseconds.
      */
     protected double optimizeAtomicPropositions(KripkeStructure structure, TreeSet<String> ap) {
@@ -124,19 +148,22 @@ public class StutterVerifier extends KripkeVerifier implements Verifier {
      * Optimizes the given Structure by reducing its state space to a stutter equivalent model.
      *
      * @param structure the Structure to optimize.
+     *
+     * @return the time it took to optimize in nanoseconds.
      */
-    protected void optimizeStutterStates(KripkeStructure structure) {
+    protected double optimizeStutterStates(KripkeStructure structure) {
         Logger.log("Reducing state space of " + structure.stats(), LogEvent.VERBOSE);
-
         double delta = stutterOptimize(structure);
-
         Logger.log("Reduced state space to " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
+
+        return delta;
     }
 
     /**
      * Optimizes the given Structure by reducing its state space to a stutter equivalent model.
      *
      * @param structure the Structure to optimize.
+     *
      * @return the time it took to optimize in nanoseconds.
      */
     protected double stutterOptimize(KripkeStructure structure) {

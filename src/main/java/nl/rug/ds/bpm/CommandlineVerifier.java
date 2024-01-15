@@ -6,6 +6,8 @@ import nl.rug.ds.bpm.petrinet.ptnet.PlaceTransitionNet;
 import nl.rug.ds.bpm.pnml.ptnet.jaxb.ptnet.Net;
 import nl.rug.ds.bpm.pnml.ptnet.marshaller.PTNetUnmarshaller;
 import nl.rug.ds.bpm.specification.jaxb.BPMSpecification;
+import nl.rug.ds.bpm.specification.jaxb.Condition;
+import nl.rug.ds.bpm.specification.jaxb.Specification;
 import nl.rug.ds.bpm.util.exception.MalformedNetException;
 import nl.rug.ds.bpm.util.exception.SpecificationException;
 import nl.rug.ds.bpm.util.log.LogEvent;
@@ -15,7 +17,9 @@ import nl.rug.ds.bpm.verification.VerificationFactory;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.checker.nusmv2.NuSMVFactory;
+import nl.rug.ds.bpm.verification.event.PerformanceEvent;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
+import nl.rug.ds.bpm.verification.event.listener.PerformanceEventListener;
 import nl.rug.ds.bpm.verification.event.listener.VerificationEventListener;
 import nl.rug.ds.bpm.verification.verifier.Verifier;
 import org.apache.commons.cli.*;
@@ -25,11 +29,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Class that enables verification from the command line.
  */
-public class CommandlineVerifier implements VerificationEventListener, VerificationLogListener {
+public class CommandlineVerifier implements VerificationEventListener, VerificationLogListener, PerformanceEventListener {
 
 	/**
 	 * Creates a CommandlineVerifier.
@@ -237,7 +242,8 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 				default -> VerificationFactory.createMultiVerifier(net, specification, checkerFactory);
 			};
 
-			verifier.addEventListener(this);
+			verifier.addVerificationEventListener(this);
+			verifier.addPerformanceEventListener(this);
 
 			//Start verification
 			verifier.verify();
@@ -267,5 +273,30 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 	public void verificationLogEvent(LogEvent event) {
 		//Use for log and textual user feedback
 		System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "] " + event.toString());
+	}
+
+	/**
+	 * listener for performance events.
+	 *
+	 * @param event the performance event.
+	 */
+	@Override
+	public void performanceEvent(PerformanceEvent event) {
+		//Use to obtain performance metrics, e.g., computation times, structure sizes, reduction.
+		//Event returns the net, specification set, and a map with Name-Number pairs of metrics.
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("Metrics for net: ").append(event.getNet().getId()).append(" - ").append(event.getNet().getId()).append("\n\r");
+		if (event.getSpecificationSet() != null) {
+			sb.append("Specification set: ").append("\n\r");
+			sb.append("- Conditions: ").append(event.getSpecificationSet().getConditions().stream().map(Condition::getCondition).collect(Collectors.joining(", "))).append("\n\r");
+			sb.append("- Specifications: ").append(event.getSpecificationSet().getSpecifications().stream().map(Specification::getId).collect(Collectors.joining(", "))).append("\n\r");
+		}
+		sb.append("\n\r");
+
+		for (String name : event.getMetrics().keySet())
+			sb.append(name).append("\t").append("=").append("\t").append(event.getMetrics().get(name)).append("\n\r");
+
+		System.out.println(sb);
 	}
 }

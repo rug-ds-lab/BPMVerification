@@ -12,6 +12,7 @@ import nl.rug.ds.bpm.util.log.Logger;
 import nl.rug.ds.bpm.verification.checker.Checker;
 import nl.rug.ds.bpm.verification.checker.CheckerFactory;
 import nl.rug.ds.bpm.verification.converter.kripke.KripkeStructureConverterAction;
+import nl.rug.ds.bpm.verification.event.PerformanceEvent;
 import nl.rug.ds.bpm.verification.event.VerificationEvent;
 import nl.rug.ds.bpm.verification.map.AtomicPropositionMap;
 import nl.rug.ds.bpm.verification.model.ConditionalStructure;
@@ -58,6 +59,8 @@ public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements V
 	protected void verifySet(SpecificationSet specificationSet) throws VerifierException {
 		Logger.log("Verifying set.", LogEvent.INFO);
 
+		PerformanceEvent performanceEvent = new PerformanceEvent(this.net, specificationSet);
+
 		AtomicPropositionMap<CompositeExpression> specificationPropositions = new AtomicPropositionMap<>("p");
 		getGroupPropositions(specificationPropositions);
 		getSpecificationSetPropositions(specificationPropositions, specificationSet);
@@ -68,17 +71,24 @@ public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements V
 		addConditions(structure, specificationSet.getConditions());
 
 		try {
-			compute(structure);
+			double computationTime = compute(structure);
+
+			performanceEvent.addMetric("StructureComputationMs", computationTime / 1000000);
+			performanceEvent.addMetric("StructureStateCount", structure.getStateCount());
+			performanceEvent.addMetric("StructureRelationCount", structure.getRelationCount());
+			performanceEvent.addMetric("StructureAtomicPropositionCount", structure.getAtomicPropositionCount());
+
 			finalize(structure, specificationPropositions);
 			convert(checker, structure, specificationSet);
 			check(checker);
 		} catch (Exception e) {
 			Logger.log("Failed to verify set.", LogEvent.ERROR);
-			e.printStackTrace();
 			throw new VerifierException("Failed to verify set.");
 		} finally {
 			checkerFactory.release(checker);
 		}
+
+		performanceEventHandler.fireEvent(performanceEvent);
 	}
 
 	/**
@@ -99,13 +109,16 @@ public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements V
 	 * Computes the Structure of the Net and logs results.
 	 *
 	 * @param structure the Structure to populate.
+	 * @return the time it took to compute the Structure in nanoseconds.
 	 */
-	protected void compute(KripkeStructure structure) {
+	protected double compute(KripkeStructure structure) {
 		Logger.log("Calculating Kripke structure", LogEvent.INFO);
 		double delta = compute(structureFactory.createConverter(net, net.getInitialMarking(), structure));
 		Logger.log("Calculated Kripke structure with " + structure.stats() + " in " + formatComputationTime(delta), LogEvent.INFO);
 		if (Logger.getLogLevel() <= LogEvent.DEBUG)
 			Logger.log("\n" + structure, LogEvent.DEBUG);
+
+		return delta;
 	}
 
 	/**
@@ -174,8 +187,8 @@ public class KripkeVerifier extends AbstractVerifier<KripkeFactory> implements V
 			if (event.getFormula() == null)
 				Logger.log("Failed to map formula to original specification", LogEvent.ERROR);
 			else {
-				eventHandler.fireEvent(event);
-                Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getInputFormula(), LogEvent.INFO);
+				verificationEventHandler.fireEvent(event);
+				Logger.log("Specification " + event.getFormula().getSpecification().getId() + " evaluated " + event.getVerificationResult() + " for " + event.getFormula().getInputFormula(), LogEvent.INFO);
 			}
 		}
 
