@@ -38,44 +38,21 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 
 	/**
 	 * Creates a CommandlineVerifier.
+	 */
+	public CommandlineVerifier() {
+		// Add the log listener
+		Logger.addLogListener(this);
+	}
+
+	/**
+	 * Creates a CommandlineVerifier.
 	 *
 	 * @param args the command line arguments used.
 	 */
 	public CommandlineVerifier(String[] args) {
-		// Add the log listener
-		Logger.addLogListener(this);
+		this();
 
-		// Apache Commons CLI options
-		Options options = new Options();
-
-		Option pnmlOption = new Option("p", "pnml", true, "pnml file path");
-		pnmlOption.setRequired(true);
-		options.addOption(pnmlOption);
-
-		Option netOption = new Option("n", "net", true, "type of Petri net to use, either ptnet (default) or ddnet");
-		netOption.setRequired(false);
-		options.addOption(netOption);
-
-		Option specOption = new Option("s", "spec", true, "specification file path");
-		specOption.setRequired(true);
-		options.addOption(specOption);
-
-		Option checkerOption = new Option("c", "checker", true, "model checker binary location");
-		checkerOption.setRequired(true);
-		options.addOption(checkerOption);
-
-		Option verifierOption = new Option("v", "verifier", true, "type of verifier to use, either kripke, stutter, or multi (default)]");
-		verifierOption.setRequired(false);
-		options.addOption(verifierOption);
-
-		Option outputOption = new Option("o", "output", true, "output directory path");
-		outputOption.setRequired(false);
-		options.addOption(outputOption);
-
-		Option logOption = new Option("l", "log", true, "the log level, either critical, error, warning, info (default), verbose, or debug");
-		logOption.setRequired(false);
-		options.addOption(logOption);
-
+		Options options = createOptions();
 		CommandLineParser parser = new DefaultParser();
 
 		try {
@@ -109,18 +86,47 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 		}
 	}
 
-	public static void main(String[] args) {
-		CommandlineVerifier pnmlVerifier = new CommandlineVerifier(args);
+	/**
+	 * Creates the Apache Commons CLI options.
+	 *
+	 * @return Apache Commons CLI options
+	 */
+	protected Options createOptions() {
+		Options options = new Options();
+
+		Option pnmlOption = new Option("p", "pnml", true, "pnml file path");
+		pnmlOption.setRequired(true);
+		options.addOption(pnmlOption);
+
+		Option netOption = new Option("n", "net", true, "type of Petri net to use, either ptnet (default) or ddnet");
+		netOption.setRequired(false);
+		options.addOption(netOption);
+
+		Option specOption = new Option("s", "spec", true, "specification file path");
+		specOption.setRequired(true);
+		options.addOption(specOption);
+
+		Option checkerOption = new Option("c", "checker", true, "model checker binary location");
+		checkerOption.setRequired(true);
+		options.addOption(checkerOption);
+
+		Option verifierOption = new Option("v", "verifier", true, "type of verifier to use, either kripke, stutter, or multi (default)]");
+		verifierOption.setRequired(false);
+		options.addOption(verifierOption);
+
+		Option outputOption = new Option("o", "output", true, "output directory path");
+		outputOption.setRequired(false);
+		options.addOption(outputOption);
+
+		Option logOption = new Option("l", "log", true, "the log level, either critical, error, warning, info (default), verbose, or debug");
+		logOption.setRequired(false);
+		options.addOption(logOption);
+
+		return options;
 	}
 
-	/**
-	 * Loads the pnml file at the given location.
-	 *
-	 * @param pnml the location of the pnml file.
-	 * @return a PlaceTransitionNet.
-	 */
-	public PlaceTransitionNet loadNet(String pnml) {
-		return (PlaceTransitionNet) loadNet(pnml, "ptnt");
+	public static void main(String[] args) {
+		CommandlineVerifier pnmlVerifier = new CommandlineVerifier(args);
 	}
 
 	/**
@@ -131,15 +137,26 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 	 * @return a VerifiableNet of the given type.
 	 */
 	public VerifiableNet loadNet(String pnml, String type) {
-		VerifiableNet net = null;
-
 		File file = new File(pnml);
 		if (!file.exists() || !file.isFile())
 			Logger.log("No such pnml file", LogEvent.CRITICAL);
 
+		return loadNet(file, type);
+	}
+
+	/**
+	 * Loads the pnml file at the given location and returns a net of the given type.
+	 *
+	 * @param pnml the location of the pnml file.
+	 * @param type the type of net to return.
+	 * @return a VerifiableNet of the given type.
+	 */
+	public VerifiableNet loadNet(File pnml, String type) {
+		VerifiableNet net = null;
+
 		//Load net(s) from pnml file
 		try {
-			PTNetUnmarshaller pnu = new PTNetUnmarshaller(file);
+			PTNetUnmarshaller pnu = new PTNetUnmarshaller(pnml);
 			Set<Net> pnset = pnu.getNets();
 
 			Iterator<Net> nets = pnset.iterator();
@@ -286,7 +303,7 @@ public class CommandlineVerifier implements VerificationEventListener, Verificat
 		//Event returns the net, specification set, and a map with Name-Number pairs of metrics.
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("Metrics for net: ").append(event.getNet().getId()).append(" - ").append(event.getNet().getId()).append("\n\r");
+		sb.append("Metrics for net: ").append(event.getNet().getId()).append(" - ").append(event.getNet().getName()).append("\n\r");
 		if (event.getSpecificationSet() != null) {
 			sb.append("Specification set: ").append("\n\r");
 			sb.append("- Conditions: ").append(event.getSpecificationSet().getConditions().stream().map(Condition::getCondition).collect(Collectors.joining(", "))).append("\n\r");
